@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -21,4 +22,17 @@ func Open(path string) (*sql.DB, error) {
 	}
 
 	return db, nil
+}
+
+func Migrate(db *sql.DB) error {
+	schema, err := os.ReadFile("internal/database/migrations/001_init.sql")
+	if err != nil {
+		return fmt.Errorf("read migration: %w", err)
+	}
+
+	if _, err := db.Exec(string(schema)); err != nil {
+		return fmt.Errorf("execute migration: %w", err)
+	}
+
+	return nil
 }
