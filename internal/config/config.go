@@ -9,7 +9,7 @@ type Config struct {
 }
 
 func Load() Config {
-	cfg := Config{MigrationsPath: "internal/database/migrations/001_init.sql"}
+	cfg := Config{MigrationsPath: "migrations/001_init.sql"}
 
 	flag.IntVar(&cfg.Port, "port", 8080, "Server port number")
 	flag.StringVar(&cfg.DbPath, "db", "forum.db", "Database file path")
