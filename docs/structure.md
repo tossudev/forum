@@ -1,17 +1,20 @@
 # Project structure
 
 Keep this up to date
-  
-/forum  
-├── cmd  
+
+ ```sh
+Cmd
 │   └── main.go  
-├── internal  
+│  
+Internal  
 │   ├── config  
 │   │   └── config.go  
+│   │  
 │   ├── database  
 │   │   ├── database.go  
 │   │   └── migrations  
-│   │       └── 001_init.sql  
+│   │       └── 001_init.sql (schema)  
+│   │  
 │   ├── entities  
 │   │   ├── category  
 │   │   │   ├── handlers.go  
@@ -28,10 +31,13 @@ Keep this up to date
 │   │       ├── model.go  
 │   │       ├── repository.go  
 │   │       └── service.go  
+│   │  
 │   ├── http  
 │   │   └── routes.go  
 │   └── middleware  
 │       ├── logging.go  
 │       └── recovery.go  
-└── web  
-    └── index.html  
+│  
+Web  
+    └── index.html
+```
