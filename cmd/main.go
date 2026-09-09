@@ -20,7 +20,7 @@ func main() {
 	defer db.Close()
 	slog.Info("connected to database", "db", cfg.DbPath)
 
-	if err := database.Migrate(db); err != nil {
+	if err := database.Migrate(db, cfg.MigrationsPath); err != nil {
 		slog.Error("migrating database", "err", err)
 		return
 	}

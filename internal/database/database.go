@@ -24,8 +24,8 @@ func Open(path string) (*sql.DB, error) {
 	return db, nil
 }
 
-func Migrate(db *sql.DB) error {
-	schema, err := os.ReadFile("internal/database/migrations/001_init.sql")
+func Migrate(db *sql.DB, path string) error {
+	schema, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("read migration: %w", err)
 	}
