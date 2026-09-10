@@ -1,4 +1,4 @@
-package http
+package handlers
 
 import (
 	"github.com/go-playground/validator/v10"
@@ -7,7 +7,7 @@ import (
 )
 
 func initValidator() *validator.Validate (
-	validate := validator.New()
+	validator := validator.New()
 
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
@@ -17,5 +17,5 @@ func initValidator() *validator.Validate (
 		return name
 	})
 
-	return validate
+	return validator
 )
