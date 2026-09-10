@@ -1,0 +1,46 @@
+#!/bin/sh
+
+# colour variables
+GREEN='\033[32m'
+RED='\033[31m'
+RESET='\033[0m'
+# text of white slightly yellow colour with dark gray background
+CUSTOM='\033[38;2;255;255;200m\033[48;2;40;40;40m'
+
+set -e
+
+printf "[pre-commit hook activated]\n" >&2
+
+# Get names of the .go files staged for commit (added / copied / modified)
+staged_go=$(git diff --name-only --cached --diff-filter=ACM -- '*.go')
+
+# Exit if there are no staged .go files
+[ -z "$staged_go" ] && printf "[hook skipped: no staged .go files]\n\n" && exit 0
+
+# Format files -----------------------
+printf "Formatting staged .go files: "
+if ! echo "$staged_go" | xargs gofmt -w; then
+    printf "%bgofmt failed.%b\n" "$RED" "$RESET" >&2
+    printf "Fix issues and try again, or %b git commit --no-verify %b to skip.\n" "$CUSTOM" "$RESET" >&2
+    printf "%b[commit failed]%b\n" "$RED" "$RESET"
+    exit 1
+fi
+printf "%bdone%b\n" "$GREEN" "$RESET"
+# formatting part ends ---------------------
+
+# Re-add formatted .go files
+echo "$staged_go" | xargs git add
+
+# Vet *all* the .go files (including in nested directories)
+printf "Vetting staged .go files: "
+if ! go vet ./...; then
+    printf "go vet found issues (see above).\n"
+    printf "Fix issues and try again, or %b git commit --no-verify %b to skip.\n" "$CUSTOM" "$RESET" >&2
+    printf "%b[commit failed]%b\n" "$RED" "$RESET"
+    exit 1
+fi
+printf "%bdone%b\n" "$GREEN" "$RESET"
+# vetting part ends ---------------------------------------
+
+printf "[hook finished successfully]\n\n"
+
