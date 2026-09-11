@@ -1,20 +1,14 @@
 package routes
 
 import (
-	"forum/internal/middleware"
-
+	"net/http"
 )
 
-func GetRoutes(app *App) *ServeMux{
+func GetRoutes(app *App) *http.ServeMux {
 	mux := http.NewServeMux()
 
-	mux.HandlFunc("Get /categories/{id}", app.ThreadHandler.GetThreadsByCategory)
+	mux.HandleFunc("Get /categories/{id}", app.ThreadHandler.GetByCategory)
 
-
-	// Middleware
-	handler := middleware.Logger(mux)
-	handler = middleware.Recovery(handler)
-
-	return handler
+	return mux
 	
 }

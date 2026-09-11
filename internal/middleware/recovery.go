@@ -1,7 +1,8 @@
 package middleware
 
 import (
-	"forum/internal/errs"
+	"net/http"
+	//"forum/internal/errs"
 )
 
 
@@ -16,7 +17,8 @@ func RecoverPanic(next http.Handler) http.Handler {
 			if panicValue != nil {
 				w.Header().Set("Connection", "close")
 				//check error when errors package exists
-				errs.WriteError(w, fmt.Errorf("%v", panicValue))
+				// TODO: errs
+				//errs.WriteError(w, fmt.Errorf("%v", panicValue))
 			}
 		}()
 

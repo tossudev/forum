@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"forum/internal/config"
-	"forum/internal/database"
-	"forum/internal/handlers" 
-	"forum/internal/routes"
 	"log/slog"
 	"net/http"
+
+	"forum/internal/config"
+	"forum/internal/database"
+	"forum/internal/routes" 
+	"forum/internal/validate" 
 )
 
 func main() {
@@ -22,16 +23,13 @@ func main() {
 	defer db.Close()
 	slog.Info("connected to database", "db", cfg.DbPath)
 
-	validator := handlers.initValidator() 
-	threadHandler := handlers.initHandlers(db, validator) //commentHandler, userHandler, etc will also go here
-	app := handlers.initApp(threadHandler)  //and here
+	validator := validate.InitValidator() 
+	handler := routes.InitHandlers(db, validator)  //and here
 
 	if err := database.Migrate(db, cfg.MigrationsPath); err != nil {
 		slog.Error("migrating database", "err", err)
 		return
 	}
-
-	handler := routes.GetRoutes(app) 
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.Port),

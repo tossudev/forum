@@ -1,14 +1,13 @@
 package thread
 
 import (
-	
 )
 
 type ThreadService struct {
-	repo *respository.Repo
+	repo *ThreadRepository
 }
 
-func NewService(r *respository.Repo) *ThreadService {
+func NewService(r *ThreadRepository) *ThreadService {
 	return &ThreadService{repo: r}
 }
 
