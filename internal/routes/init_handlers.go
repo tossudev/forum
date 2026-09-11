@@ -1,10 +1,13 @@
 package routes
 
 import (
-	"net/http"
 	"database/sql"
+	"net/http"
+	"time"
 
 	"forum/internal/entities/thread"
+	"forum/internal/middleware"
+
 	//"forum/internal/middleware"
 	"github.com/go-playground/validator/v10"
 )
@@ -23,10 +26,11 @@ func InitHandlers(db *sql.DB, validate *validator.Validate) http.Handler {
 	}
 
 	mux := GetRoutes(&app)
-	
-	// Middleware
-	//handler := middleware.Logger(mux)
-	//handler = middleware.Recovery(handler)
 
-	return mux
+	// Middleware
+	handler := middleware.Timeout(5 * time.Second)(mux)
+	handler = middleware.Logger(handler)
+	handler = middleware.RecoverPanic(handler)
+
+	return handler
 }
