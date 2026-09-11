@@ -6,9 +6,9 @@ import (
 )
 
 func initHandlers(db *sql.DB, validator *validator.Validate)  *ThreadHandler {
-	threadRepo := thread.NewThreadRepo(db)
-	threadService := thread.NewThreadService(threadRepo)
-	threadHandler := thread.NewThreadHandler(threadService, validator)
+	threadRepo := thread.NewRepo(db)
+	threadService := thread.NewService(threadRepo)
+	threadHandler := thread.NewHandler(threadService, validator)
 
 	return threadHandler
 }

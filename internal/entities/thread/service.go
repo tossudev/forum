@@ -8,10 +8,10 @@ type ThreadService struct {
 	repo *respository.Repo
 }
 
-func NewThreadService(r *respository.Repo) *ThreadService {
+func NewService(r *respository.Repo) *ThreadService {
 	return &ThreadService{repo: r}
 }
 
-func (s *ThreadService) GetThreadsByCategory() {
+func (s *ThreadService) GetByCategory() {
 	
 }

@@ -31,12 +31,11 @@ func main() {
 		return
 	}
 
-	mux := http.NewServeMux()
-	routes.GetRoutes(mux, app) 
+	handler := routes.GetRoutes(app) 
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.Port),
-		Handler: mux,
+		Handler: handler,
 	}
 
 	slog.Info("starting server", "addr", server.Addr)

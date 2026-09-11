@@ -8,10 +8,10 @@ type ThreadRepository struct {
 	db *sql.DB
 }
 
-func ThreadRepository(db *sql.DB) *GenreRepository {
-	return &GenreRepository{db: db}
+func NewRepository(db *sql.DB) *ThreadRepository {
+	return &ThreadRepository{db: db}
 }
 
-func (r *ThreadRepository) GetThreadsByCategory() {
+func (r *ThreadRepository) GetByCategory() {
 	
 }
