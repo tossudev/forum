@@ -3,7 +3,7 @@ package password
 import (
 	"crypto/pbkdf2"
 	"crypto/rand"
-	"crypto/sha512"
+	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
@@ -47,7 +47,7 @@ func GenerateSalt(length int) ([]byte, error) {
 }
 
 // HashPassword derives a 32-byte key ("hash") using PBKDF2
-// with hashing algorithm SHA512 and 10000 iterations.
+// with hashing algorithm SHA256 and 600000 iterations.
 func HashPassword(password string, salt []byte) ([]byte, error) {
 	// PBKDF2 parameters
 	params := getHashParams()
@@ -86,9 +86,9 @@ type hashParams struct {
 
 func getHashParams() hashParams {
 	params := hashParams{
-		iterations: 10000,
+		iterations: 600000,
 		keyLength:  32,
-		hashAlgo:   sha512.New,
+		hashAlgo:   sha256.New,
 	}
 	return params
 }
