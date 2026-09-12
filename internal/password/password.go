@@ -10,6 +10,30 @@ import (
 	"hash"
 )
 
+type Password struct {
+	Hash []byte
+	Salt []byte
+}
+
+func New(inputPassword string) (Password, error) {
+	salt, err := GenerateSalt(16)
+	if err != nil {
+		return Password{}, fmt.Errorf("setting password: %w", err)
+	}
+
+	key, err := HashPassword(inputPassword, salt)
+	if err != nil {
+		return Password{}, fmt.Errorf("setting password: %w", err)
+	}
+
+	pw := Password{
+		Salt: salt,
+		Hash: key,
+	}
+
+	return pw, nil
+}
+
 // GenerateSalt generates a salt (random value) of provided length (byte size).
 // Add salt to the password for secure hashing.
 // Minimum recommended salt length: 16 bytes.
