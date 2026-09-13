@@ -40,22 +40,27 @@ internal/handlers/
 ### Example
 
 ```golang
-type Handlers struct {
+type App struct {
 	User    *user.Handler
-	// Thread  *thread.Handler, etc...
+	Thread  *thread.Handler, etc...
 }
 
-func New(database *sql.DB) http.Handler {
-    userRepo := user.NewRepo(database)
+func New(db *sql.DB) http.Handler {
+    userRepo := user.NewRepo(db)
     userService := user.NewService(userRepo)
     userHandler := user.NewHandler(userService, validator.Validate)
+
+    threadRepo := thread.NewRepository(db)
+    threadService := thread.NewService(threadRepo)
+    threadHandler := thread.NewHandler(threadService, validate)
     // etc...
 
-    handlers := Handlers{
+    app := App{
         User:   userHandler,
+        Thread: threadHandler,
     }
 
-    mux := routes.NewRoutes(handlers)
+    mux := routes.NewRoutes(&app)
 
     handler := middleware.Logger(mux)
     handler = middleware.Recovery(handler)
@@ -79,8 +84,8 @@ internal/routes/
 func NewRoutes(h Handlers) http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /users/{id}", h.User.Get)
-	mux.HandleFunc("POST /users", h.User.Create)
+	mux.HandleFunc("GET /users/{id}", app.UserHandler.Get)
+	mux.HandleFunc("POST /users", app.UserHandler.Create)
 
 	return mux
 }
@@ -199,3 +204,4 @@ WHERE id = ?;
 ```
 
 ---
+
