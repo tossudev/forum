@@ -34,6 +34,7 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		Username: input.Username,
 		Email:    input.Email,
 		Password: password.Password{},
+		RoleID:   1,
 	}
 
 	if err := h.service.RegisterUser(ctx, &user, input.Password); err != nil {
@@ -43,5 +44,5 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"message": fmt.Sprint("Welcome to Literary Lions, %s!", user.Username)})
+	json.NewEncoder(w).Encode(map[string]string{"message": fmt.Sprintf("Welcome to Literary Lions, %s!", user.Username)})
 }
