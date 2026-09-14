@@ -7,8 +7,8 @@ import (
 
 	"forum/internal/config"
 	"forum/internal/database"
-	"forum/internal/routes" 
-	"forum/internal/validate" 
+	"forum/internal/routes"
+	"forum/internal/validate"
 )
 
 func main() {
@@ -23,8 +23,8 @@ func main() {
 	defer db.Close()
 	slog.Info("connected to database", "db", cfg.DbPath)
 
-	validator := validate.InitValidator() 
-	handler := routes.InitHandlers(db, validator)  //and here
+	validator := validate.InitValidator()
+	handler := routes.InitHandlers(db, validator)
 
 	if err := database.Migrate(db, cfg.MigrationsPath); err != nil {
 		slog.Error("migrating database", "err", err)
