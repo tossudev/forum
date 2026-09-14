@@ -28,9 +28,14 @@ func (r *CommentRepository) Create(ctx context.Context, req *Comment) (Comment, 
 
 func (r *CommentRepository) GetByID(ctx context.Context, id int) (Comment, error) {
 
-	//query := `SELECT (id, body, date_created) FROM comments WHERE id = ? RETURNING (id, body, date_created) `
+	comment := Comment{}
+	query := `SELECT (id, body, date_created) FROM comments WHERE id = ?`
+	err := r.db.QueryRowContext(ctx, query, id).Scan(&comment.ID, &comment.Body, &comment.DateCreated)
+	if err != nil {
+		return Comment{}, err
+	}
 
-	return Comment{}, nil
+	return comment, nil
 
 }
 

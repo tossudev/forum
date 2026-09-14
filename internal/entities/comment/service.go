@@ -22,7 +22,7 @@ func (s *CommentService) Create(ctx context.Context, req *Comment) (Comment, err
 
 	newComment, err := s.repo.Create(ctx, req)
 	if err != nil {
-		//handle error here
+		return Comment{}, err
 	}
 
 	return newComment, nil
@@ -31,7 +31,7 @@ func (s *CommentService) Create(ctx context.Context, req *Comment) (Comment, err
 func (s *CommentService) GetByID(ctx context.Context, id int) (Comment, error) {
 	comment, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		//handle error
+		return Comment{}, err
 	}
 
 	return comment, nil
