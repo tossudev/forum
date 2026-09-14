@@ -7,6 +7,9 @@ import (
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
+
+	"forum/internal/errs"
+	"forum/internal/pagination"
 )
 
 type ThreadHandler struct {
@@ -19,16 +22,23 @@ func NewHandler(service *ThreadService, validator *validator.Validate) *ThreadHa
 }
 
 func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
-	idString := r.PathValue("id")
+	ctx := r.Context()
+	query := r.URL.Query()
+	idString := r.URL.Query().Get("id")
+	pagination, err := pagination.Parse(query)
+	if err != nil {
+		errs.WriteError(w, err)
+	}
+
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		//TODO: handle this error
+		errs.WriteError(w, fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput))
 		return
 	}
 
-	threads, err := h.service.GetByCategory(id)
+	threads, err := h.service.GetByCategory(ctx, id, pagination)
 	if err != nil {
-		//TODO: handle this error
+		errs.WriteError(w, err)
 		return
 	}
 
@@ -40,16 +50,18 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	idString := r.PathValue("id")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
-		//TODO: handle this error
+		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
 		return
 	}
 
-	thread, err := h.service.GetByID(id)
+	thread, err := h.service.GetByID(ctx, id)
 	if err != nil {
-		//TODO: handle this error
+		errs.WriteError(w, err)
 		fmt.Println(err)
 	}
 
@@ -61,24 +73,27 @@ func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
-	//TODO: agree/confirm form values
-	//TODO: use these when form exists
-	/*category := r.FormValue("category")
-	title := r.FormValue("title")
-	body := r.FormValue("body")*/
+	ctx := r.Context()
 
-	//FOR TESTING REMOVE THIS WHEN FRONT END EXISTS...
-	var threadRequest *Thread
-	err := json.NewDecoder(r.Body).Decode(&threadRequest)
+	var input struct {
+		Title string `json:"title"`
+		Body  string `json:"body"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
-		fmt.Println(err)
+		errs.WriteError(w, fmt.Errorf("%w: invalid request body", errs.ErrInvalidUserInput))
 		return
 	}
-	//...UNTIL HERE
 
-	thread, err := h.service.Create(threadRequest)
+	thread := Thread{
+		Title: input.Title,
+		Body:  input.Body,
+	}
+
+	newThread, err := h.service.Create(ctx, &thread)
 	if err != nil {
-		//TODO: handle this error
+		errs.WriteError(w, err)
 		fmt.Println(err)
 		return
 	}
@@ -87,6 +102,6 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	json.NewEncoder(w).Encode(thread)
+	json.NewEncoder(w).Encode(newThread)
 
 }

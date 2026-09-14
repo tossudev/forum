@@ -1,7 +1,12 @@
 package thread
 
 import (
-	"errors"
+	"context"
+	"fmt"
+	"time"
+
+	"forum/internal/errs"
+	"forum/internal/pagination"
 )
 
 type ThreadService struct {
@@ -12,37 +17,29 @@ func NewService(r *ThreadRepository) *ThreadService {
 	return &ThreadService{repo: r}
 }
 
-func (s *ThreadService) GetByCategory(id int) ([]Thread, error) {
+func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, error) {
 	if id <= 0 {
-		return nil, errors.New("invalidCategoryID")
+		return nil, fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput)
 	}
 
-	threads, err := s.repo.GetByCategory(id)
-	if err != nil {
-		return nil, err
-	}
-
-	return threads, nil
+	return s.repo.GetByCategory(ctx, id, pagination)
 }
 
-func (s *ThreadService) GetByID(id int) (*Thread, error) {
+func (s *ThreadService) GetByID(ctx context.Context, id int) (*Thread, error) {
 	if id <= 0 {
-		return nil, errors.New("invalidThreadID")
+		return nil, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput)
 	}
 
-	thread, err := s.repo.GetByID(id)
-	if err != nil {
-		return nil, err
-	}
-	return thread, nil
+	return s.repo.GetByID(ctx, id)
 }
 
-func (s *ThreadService) Create(threadRequest *Thread) (*Thread, error) {
+func (s *ThreadService) Create(ctx context.Context, thread *Thread) (*Thread, error) {
 
-	thread, err := s.repo.Create(threadRequest)
-	if err != nil {
-		return nil, err
-	}
+	now := time.Now().Format("20060102T150405")
 
-	return thread, nil
+	thread.DateCreated = now
+
+	fmt.Println(thread)
+
+	return s.repo.Create(ctx, thread)
 }

@@ -1,7 +1,10 @@
 package thread
 
 import (
+	"context"
 	"database/sql"
+
+	"forum/internal/pagination"
 )
 
 type ThreadRepository struct {
@@ -12,10 +15,12 @@ func NewRepository(db *sql.DB) *ThreadRepository {
 	return &ThreadRepository{db: db}
 }
 
-func (r *ThreadRepository) GetByCategory(id int) ([]Thread, error) {
+func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, error) {
 	var threads []Thread
 
-	rows, err := r.db.Query("SELECT * FROM threads WHERE category_id = ?", id)
+	query := "SELECT * FROM threads WHERE category_id = ? ORDER BY date_created ASC LIMIT ? OFFSET ?;"
+
+	rows, err := r.db.QueryContext(ctx, query, id, pagination.Limit(), pagination.Offset())
 	if err != nil {
 		return nil, err
 	}
@@ -34,10 +39,10 @@ func (r *ThreadRepository) GetByCategory(id int) ([]Thread, error) {
 	return threads, nil
 }
 
-func (r *ThreadRepository) GetByID(id int) (*Thread, error) {
-	query := "SELECT (id, title, body, date_created) FROM threads WHERE id = ?"
+func (r *ThreadRepository) GetByID(ctx context.Context, id int) (*Thread, error) {
+	query := "SELECT (id, title, body, date_created) FROM threads WHERE id = ?;"
 	var thread *Thread
-	err := r.db.QueryRow(query, id).Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated)
+	err := r.db.QueryRowContext(ctx, query, id).Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated)
 	if err != nil {
 		return nil, err
 	}
@@ -46,9 +51,9 @@ func (r *ThreadRepository) GetByID(id int) (*Thread, error) {
 
 }
 
-func (r *ThreadRepository) Create(threadRequest *Thread) (*Thread, error) {
-	query := "INSERT INTO threads (title, body, date_created) VALUES (?, ?, ?)"
-	result, err := r.db.Exec(query, threadRequest.Title, threadRequest.Body, threadRequest.DateCreated)
+func (r *ThreadRepository) Create(ctx context.Context, thread *Thread) (*Thread, error) {
+	query := "INSERT INTO threads (title, body, date_created) VALUES (?, ?, ?);"
+	result, err := r.db.ExecContext(ctx, query, thread.Title, thread.Body, thread.DateCreated)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +63,7 @@ func (r *ThreadRepository) Create(threadRequest *Thread) (*Thread, error) {
 	}
 
 	var newThread *Thread
-	newThread, err = r.GetByID(int(id))
+	newThread, err = r.GetByID(ctx, int(id))
 	if err != nil {
 		return nil, err
 	}
