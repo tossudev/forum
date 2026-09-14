@@ -42,3 +42,22 @@ func (s *UserService) RegisterUser(ctx context.Context, user *User, inputPasswor
 
 	return s.repo.AddUser(ctx, user)
 }
+
+func (s *UserService) Authenticate(ctx context.Context, input CredentialsSubmission) error {
+	user, err := s.repo.GetUserByEmail(ctx, input.Email)
+	if err != nil {
+		return err
+	}
+
+	// Check if password hash matches
+	matches, err := password.VerifyPassword(input.Password, user.Password.Hash, user.Password.Salt)
+	if err != nil {
+		return err
+	}
+
+	if !matches {
+		return fmt.Errorf("%w: invalid credentials", errs.ErrsUnauthorized)
+	}
+
+	return nil
+}

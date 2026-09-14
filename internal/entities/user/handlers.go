@@ -46,3 +46,25 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{"message": fmt.Sprintf("Welcome to Literary Lions, %s!", user.Username)})
 }
+
+func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var input CredentialsSubmission
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		errs.WriteError(w, fmt.Errorf("%w: invalid request body", errs.ErrInvalidUserInput))
+		return
+	}
+
+	if err := h.service.Authenticate(ctx, input); err != nil {
+		errs.WriteError(w, err)
+		return
+	}
+
+	// TODO: Create new session
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Logged in successfully"})
+}

@@ -13,3 +13,9 @@ type User struct {
 	CreatedAt time.Time         `json:"created_at"`
 	RoleID    int               `json:"role_id"`
 }
+
+// CredentialsSubmission contains the user input during login before credential verification
+type CredentialsSubmission struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
