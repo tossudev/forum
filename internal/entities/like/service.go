@@ -2,8 +2,6 @@ package like
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 )
 
 type LikeService struct {
@@ -16,14 +14,14 @@ func NewService(r *LikeRepository) *LikeService {
 
 func (s *LikeService) LikeThread(ctx context.Context, req ThreadLikeRequest) error {
 	// Retrieve existing like/dislike
-	like, err := s.repo.GetThreadLike(ctx, req.ThreadID, req.UserID)
-	// If no like/dislike, apply like/dislike
+	exists, like, err := s.repo.GetThreadLike(ctx, req.ThreadID, req.UserID)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return s.repo.LikeThread(ctx, req)
-		} else {
-			return fmt.Errorf("get thread like: %w", err)
-		}
+		return err
+	}
+
+	// If no like/dislike, apply like/dislike
+	if !exists {
+		return s.repo.LikeThread(ctx, req)
 	}
 
 	// Swap between like/dislike
@@ -37,14 +35,14 @@ func (s *LikeService) LikeThread(ctx context.Context, req ThreadLikeRequest) err
 
 func (s *LikeService) LikeComment(ctx context.Context, req CommentLikeRequest) error {
 	// Retrieve existing like/dislike
-	like, err := s.repo.GetCommentLike(ctx, req.CommentID, req.UserID)
-	// If no like/dislike, apply like/dislike
+	exists, like, err := s.repo.GetCommentLike(ctx, req.CommentID, req.UserID)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return s.repo.LikeComment(ctx, req)
-		} else {
-			return fmt.Errorf("get comment like: %w", err)
-		}
+		return err
+	}
+
+	// If no like/dislike, apply like/dislike
+	if !exists {
+		return s.repo.LikeComment(ctx, req)
 	}
 
 	// Swap between like/dislike
