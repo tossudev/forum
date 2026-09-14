@@ -20,8 +20,7 @@ func NewHandler(service *CommentService, validator *validator.Validate) *Comment
 func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	var test struct {
-		Body      string `json:"body"`
-		CreatedAt string `json:"created_at"`
+		Body string `json:"body"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -30,20 +29,39 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		//handle this error
 	}
 
-	comment := Comment{
+	req := Comment{
 		Body: test.Body,
 	}
 
-	err = h.service.Create(r.Context(), &comment)
+	newComment, err := h.service.Create(r.Context(), &req)
 	if err != nil {
 		//handle this error
 	}
 
-	w.Header().Set("Content-type", "application-json")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(test)
+	json.NewEncoder(w).Encode(newComment)
 
 	return
+}
+
+func (h *CommentHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+	idString := r.PathValue("id")
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		//handle error
+	}
+
+	comment, err := h.service.GetByID(ctx, id)
+	if err != nil {
+		//handle error
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(comment)
 }
 
 func (h *CommentHandler) GetByThread(w http.ResponseWriter, r *http.Request) {

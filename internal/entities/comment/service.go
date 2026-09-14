@@ -13,14 +13,29 @@ func NewService(r *CommentRepository) *CommentService {
 	return &CommentService{repo: r}
 }
 
-func (s *CommentService) Create(ctx context.Context, c *Comment) error {
+func (s *CommentService) Create(ctx context.Context, req *Comment) (Comment, error) {
 
 	isoTime := time.Now().UTC()
 	isoString := isoTime.Format(time.RFC3339)
 
-	c.DateCreated = isoString
+	req.DateCreated = isoString
 
-	return nil
+	newComment, err := s.repo.Create(ctx, req)
+	if err != nil {
+		//handle error here
+	}
+
+	return newComment, nil
+}
+
+func (s *CommentService) GetByID(ctx context.Context, id int) (Comment, error) {
+	comment, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		//handle error
+	}
+
+	return comment, nil
+
 }
 
 func (s *CommentService) GetByThread(ctx context.Context, id int) ([]Comment, error) {
