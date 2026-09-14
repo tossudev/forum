@@ -11,7 +11,11 @@ func GetRoutes(app *App) *http.ServeMux {
 	mux.HandleFunc("POST /users", app.UserHandler.RegisterUser)
 
 	// Thread routes
-	mux.HandleFunc("Get /categories/{id}", app.ThreadHandler.GetByCategory)
+	mux.HandleFunc("GET /categories/{id}", app.ThreadHandler.GetByCategory)
+
+	// Like routes
+	mux.HandleFunc("POST /like/thread", app.LikeHandler.LikeThread)
+	mux.HandleFunc("POST /like/comment", app.LikeHandler.LikeComment)
 
 	return mux
 
