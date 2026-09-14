@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"forum/internal/entities/thread"
+	"forum/internal/entities/user"
 	"forum/internal/middleware"
 
 	//"forum/internal/middleware"
@@ -13,15 +14,21 @@ import (
 )
 
 type App struct {
+	UserHandler   *user.UserHandler
 	ThreadHandler *thread.ThreadHandler
 }
 
 func InitHandlers(db *sql.DB, validate *validator.Validate) http.Handler {
+	userRepo := user.NewRepo(db)
+	userService := user.NewService(userRepo)
+	userHandler := user.NewHandler(userService)
+
 	threadRepo := thread.NewRepository(db)
 	threadService := thread.NewService(threadRepo)
 	threadHandler := thread.NewHandler(threadService, validate)
 
 	app := App{
+		UserHandler:   userHandler,
 		ThreadHandler: threadHandler,
 	}
 

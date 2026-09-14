@@ -1,19 +1,20 @@
 CREATE TABLE IF NOT EXISTS users (
 	id INTEGER PRIMARY KEY,
 	username TEXT COLLATE NOCASE NOT NULL UNIQUE,
-	password TEXT NOT NULL,
-	email TEXT NOT NULL UNIQUE,
+	email TEXT COLLATE NOCASE NOT NULL UNIQUE,
+	password_hash BLOB NOT NULL,
+	password_salt BLOB NOT NULL,
 	avatar TEXT,
-	date_created TEXT NOT NULL, 
+	date_created INTEGER NOT NULL, 
 	role_id INTEGER NOT NULL,
-	signature TEXT,
-	FOREIGN KEY(role_id) REFERENCES roles(id)
+	signature TEXT
+	-- FOREIGN KEY(role_id) REFERENCES roles(id)
 );
 
-CREATE TABLE IF NOT EXISTS roles (
-	id INTEGER PRIMARY KEY,
-	name TEXT NOT NULL
-);
+-- CREATE TABLE IF NOT EXISTS roles (
+-- 	id INTEGER PRIMARY KEY,
+-- 	name TEXT NOT NULL
+-- );
 
 CREATE TABLE IF NOT EXISTS threads (
 	id INTEGER PRIMARY KEY,
