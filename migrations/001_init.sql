@@ -70,9 +70,10 @@ CREATE TABLE IF NOT EXISTS images (
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
-	id INTEGER PRIMARY KEY,
-	session_id TEXT NOT NULL,
+	id TEXT PRIMARY KEY,
 	user_id INTEGER NOT NULL,
+	date_created TEXT NOT NULL,
+	csrf_token TEXT NOT NULL,
 	FOREIGN KEY(user_id) REFERENCES users(id)
 );
 
