@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"forum/internal/config"
 	"forum/internal/errs"
 	"forum/internal/pagination"
 )
@@ -35,7 +36,7 @@ func (s *ThreadService) GetByID(ctx context.Context, id int) (*Thread, error) {
 
 func (s *ThreadService) Create(ctx context.Context, thread *Thread) (*Thread, error) {
 
-	now := time.Now().Format("20060102T150405")
+	now := time.Now().Format(config.TimeFormat)
 
 	thread.DateCreated = now
 

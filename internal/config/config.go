@@ -9,6 +9,8 @@ type Config struct {
 	Reset          bool
 }
 
+const TimeFormat string = "20060102T150405"
+
 func Load() Config {
 	cfg := Config{MigrationsPath: "migrations/001_init.sql"}
 
