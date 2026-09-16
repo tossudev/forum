@@ -1,9 +1,11 @@
 package session
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -21,6 +23,10 @@ type Session struct {
 	createdAt     time.Time
 	idleExpiresAt time.Time
 }
+
+// sessionContextKey is used as a context key for getting the session from context
+// Having this separate type helps prevent potential key naming collisions
+type sessionContextKey struct{}
 
 func NewSessionManager(repo *SessionRepo, cookieName string, idleExpiration, absoluteExpiration time.Duration) *SessionManager {
 	return &SessionManager{
@@ -77,4 +83,44 @@ func (sm *SessionManager) writeCookie(w http.ResponseWriter, session *Session) {
 	}
 
 	http.SetCookie(w, cookie)
+}
+
+// Authenticate session middleware - check cookie for session ID, then validate it
+func (sm *SessionManager) Authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		var session *Session
+
+		// Read session ID from cookie
+		cookie, err := r.Cookie(sm.cookieName)
+		if err == nil {
+			sessionID := cookie.Value
+			session, err = sm.repo.GetSessionByID(ctx, sessionID)
+			if err != nil {
+				slog.Error("failed to get session from repo", "err", err)
+			}
+		}
+
+		// If the the session is expired, delete session
+		if session != nil && session.isExpired() {
+			sm.repo.DeleteSession(ctx, session.id)
+			session = nil
+		}
+
+		// If the session is valid, update last idleExpiration
+		if session != nil && !session.isExpired() {
+			session.idleExpiresAt = time.Now().Add(sm.idleExpiration)
+			sm.repo.UpdateExpiry(ctx, session.id)
+		}
+
+		// Attach session to context
+		ctx = context.WithValue(ctx, sessionContextKey{}, session)
+		r = r.WithContext(ctx)
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (s *Session) isExpired() bool {
+	return s.idleExpiresAt.Before(time.Now())
 }
