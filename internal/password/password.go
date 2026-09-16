@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
-	"encoding/base64"
 	"fmt"
 	"hash"
 )
@@ -62,10 +61,7 @@ func HashPassword(password string, salt []byte) ([]byte, error) {
 
 // VerifyPassword checks that the hash of the input password matches the stored hash
 // by hashing the incoming password with the original salt
-func VerifyPassword(inputPassword string, storedHash string, storedSalt []byte) (bool, error) {
-	// Decode the stored storedHash from base64 string into bytes
-	decodedHash, _ := base64.StdEncoding.DecodeString(storedHash)
-
+func VerifyPassword(inputPassword string, storedHash []byte, storedSalt []byte) (bool, error) {
 	// PBKDF2 parameters
 	params := getHashParams()
 
@@ -75,7 +71,7 @@ func VerifyPassword(inputPassword string, storedHash string, storedSalt []byte) 
 	}
 
 	// Compare the hashes
-	return subtle.ConstantTimeCompare(decodedHash, hashedPassword) == 1, nil
+	return subtle.ConstantTimeCompare(storedHash, hashedPassword) == 1, nil
 }
 
 type hashParams struct {
