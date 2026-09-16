@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"forum/internal/entities/like"
 	"forum/internal/entities/thread"
 	"forum/internal/entities/user"
 	"forum/internal/middleware"
@@ -16,6 +17,7 @@ import (
 type App struct {
 	UserHandler   *user.UserHandler
 	ThreadHandler *thread.ThreadHandler
+	LikeHandler   *like.LikeHandler
 }
 
 func InitHandlers(db *sql.DB, validate *validator.Validate) http.Handler {
@@ -27,9 +29,14 @@ func InitHandlers(db *sql.DB, validate *validator.Validate) http.Handler {
 	threadService := thread.NewService(threadRepo)
 	threadHandler := thread.NewHandler(threadService, validate)
 
+	likeRepo := like.NewRepository(db)
+	likeService := like.NewService(likeRepo)
+	likeHandler := like.NewHandler(likeService, validate)
+
 	app := App{
 		UserHandler:   userHandler,
 		ThreadHandler: threadHandler,
+		LikeHandler:   likeHandler,
 	}
 
 	mux := GetRoutes(&app)
