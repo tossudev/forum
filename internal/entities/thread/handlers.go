@@ -62,7 +62,6 @@ func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	thread, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		errs.WriteError(w, err)
-		fmt.Println(err)
 	}
 
 	//TODO: find out what front end needs this result to do/look like
