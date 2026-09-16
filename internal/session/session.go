@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
+	"forum/internal/errs"
 	"log/slog"
 	"net/http"
 	"time"
@@ -28,12 +30,29 @@ type Session struct {
 // Having this separate type helps prevent potential key naming collisions
 type sessionContextKey struct{}
 
-func NewSessionManager(repo *SessionRepo, cookieName string, idleExpiration, absoluteExpiration time.Duration) *SessionManager {
+func NewSessionManager(repo *SessionRepo, cookieName string, idleExpiration time.Duration) *SessionManager {
 	return &SessionManager{
 		repo:           repo,
 		cookieName:     cookieName,
 		idleExpiration: idleExpiration,
 	}
+}
+
+// Login creates a new session, adds it to the database, and sets a cookie with the session ID
+func (sm *SessionManager) Login(userID int, w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+
+	session, err := sm.NewSession(userID)
+	if err != nil {
+		return fmt.Errorf("session login: %w", err)
+	}
+
+	if err := sm.repo.AddSession(ctx, session); err != nil {
+		return fmt.Errorf("session login: %w", err)
+	}
+
+	sm.writeCookie(w, session)
+	return nil
 }
 
 func (sm *SessionManager) NewSession(userID int) (*Session, error) {
@@ -49,7 +68,7 @@ func (sm *SessionManager) NewSession(userID int) (*Session, error) {
 
 	now := time.Now()
 
-	s := Session{
+	s := &Session{
 		id:            sessionID,
 		csrfToken:     csrfToken,
 		userID:        userID,
@@ -57,7 +76,7 @@ func (sm *SessionManager) NewSession(userID int) (*Session, error) {
 		idleExpiresAt: now.Add(sm.idleExpiration),
 	}
 
-	return &s, nil
+	return s, nil
 }
 
 func generateToken(length int) (string, error) {
@@ -72,6 +91,11 @@ func generateToken(length int) (string, error) {
 }
 
 func (sm *SessionManager) writeCookie(w http.ResponseWriter, session *Session) {
+	if session == nil {
+		slog.Error("writing cookie with nil session")
+		return
+	}
+
 	cookie := &http.Cookie{
 		Name:     sm.cookieName,
 		Value:    session.id,
@@ -96,21 +120,30 @@ func (sm *SessionManager) Authenticate(next http.Handler) http.Handler {
 		if err == nil {
 			sessionID := cookie.Value
 			session, err = sm.repo.GetSessionByID(ctx, sessionID)
-			if err != nil {
+			if err != nil && !errors.Is(err, errs.ErrNotFound) {
 				slog.Error("failed to get session from repo", "err", err)
 			}
 		}
 
 		// If the the session is expired, delete session
 		if session != nil && session.isExpired() {
-			sm.repo.DeleteSession(ctx, session.id)
+			if err := sm.repo.DeleteSession(ctx, session.id); err != nil {
+				slog.Error("failed to delete expired session", "err", err)
+			}
 			session = nil
 		}
 
 		// If the session is valid, update last idleExpiration
 		if session != nil && !session.isExpired() {
 			session.idleExpiresAt = time.Now().Add(sm.idleExpiration)
-			sm.repo.UpdateExpiry(ctx, session.id)
+			if err := sm.repo.UpdateExpiry(ctx, session); err != nil {
+				slog.Error("failed to update session expiry", "err", err)
+			}
+		}
+
+		// Update cookie
+		if session != nil {
+			sm.writeCookie(w, session)
 		}
 
 		// Attach session to context
@@ -124,3 +157,11 @@ func (sm *SessionManager) Authenticate(next http.Handler) http.Handler {
 func (s *Session) isExpired() bool {
 	return s.idleExpiresAt.Before(time.Now())
 }
+
+// TODO: Getter for Session's user ID (handlers need to be able to get the user ID)
+
+// TODO: Getter for Session's csrf token (handlers need to be able to get the csrf token)
+
+// TODO: GetSession(r) that handlers & middleware can access for getting the session from request context
+
+// TODO: Logout
