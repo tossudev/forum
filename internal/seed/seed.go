@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 
 	"forum/internal/database"
 	"forum/internal/entities/user"
@@ -28,12 +29,12 @@ func ResetDatabase(db *sql.DB, path string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("Deleted all data from database")
+	slog.Info("Deleted all data from database")
 
 	if err := database.Migrate(db, path); err != nil {
 		return err
 	}
-	fmt.Println("Reset database schema")
+	slog.Info("Reset database schema")
 
 	app := initSeedHandlers(db)
 
