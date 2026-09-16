@@ -7,6 +7,7 @@ import (
 	"log/slog"
 
 	"forum/internal/database"
+	"forum/internal/entities/thread"
 	"forum/internal/entities/user"
 	"forum/internal/password"
 )
@@ -46,17 +47,20 @@ func ResetDatabase(db *sql.DB, path string) error {
 }
 
 type SeedApp struct {
-	UserService *user.UserService
-	//ThreadService *thread.ThreadService
+	UserService   *user.UserService
+	ThreadService *thread.ThreadService
 }
 
 func initSeedHandlers(db *sql.DB) SeedApp {
 	userRepo := user.NewRepo(db)
 	userService := user.NewService(userRepo)
 
+	threadRepo := thread.NewRepository(db)
+	threadService := thread.NewService(threadRepo)
+
 	app := SeedApp{
-		UserService: userService,
-		//ThreadHandler: threadHandler,
+		UserService:   userService,
+		ThreadService: threadService,
 	}
 
 	return app
@@ -65,6 +69,9 @@ func initSeedHandlers(db *sql.DB) SeedApp {
 func seedDatabase(ctx context.Context, app *SeedApp) error {
 	if err := seedUsers(ctx, app); err != nil {
 		return fmt.Errorf("seedUsers: %w", err)
+	}
+	if err := seedThreads(ctx, app); err != nil {
+		return fmt.Errorf("seedThreads: %w", err)
 	}
 	return nil
 }
@@ -78,11 +85,50 @@ func seedUsers(ctx context.Context, app *SeedApp) error {
 			Password: password.Password{},
 			RoleID:   1,
 		},
+		{
+			Username: "JustinV",
+			Email:    "v@justin.com",
+			Password: password.Password{},
+			RoleID:   1,
+		},
+		{
+			Username: "KevinMac2004",
+			Email:    "KevinMac@email.com",
+			Password: password.Password{},
+			RoleID:   1,
+		},
+		{
+			Username: "Marie",
+			Email:    "mpp@thegoat.ca",
+			Password: password.Password{},
+			RoleID:   1,
+		},
 	}
 
 	for _, newUser := range users {
 		password := "password"
 		err := app.UserService.RegisterUser(ctx, &newUser, password)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func seedThreads(ctx context.Context, app *SeedApp) error {
+
+	threads := []thread.Thread{
+		{
+			Title:      "I loved this book",
+			Body:       "I super loved this book! I read it in two days!!",
+			AuthorID:   3,
+			CategoryID: 1,
+		},
+	}
+
+	for _, newThread := range threads {
+		_, err := app.ThreadService.Create(ctx, &newThread)
 		if err != nil {
 			return err
 		}

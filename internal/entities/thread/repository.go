@@ -52,8 +52,8 @@ func (r *ThreadRepository) GetByID(ctx context.Context, id int) (*Thread, error)
 }
 
 func (r *ThreadRepository) Create(ctx context.Context, thread *Thread) (*Thread, error) {
-	query := "INSERT INTO threads (title, body, date_created) VALUES (?, ?, ?);"
-	result, err := r.db.ExecContext(ctx, query, thread.Title, thread.Body, thread.DateCreated)
+	query := "INSERT INTO threads (title, body, date_created, author_id, category_id) VALUES (?, ?, ?, ?, ?);"
+	result, err := r.db.ExecContext(ctx, query, thread.Title, thread.Body, thread.DateCreated, thread.AuthorID, thread.CategoryID)
 	if err != nil {
 		return nil, err
 	}
