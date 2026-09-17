@@ -11,6 +11,7 @@ import (
 	"forum/internal/entities/thread"
 	"forum/internal/entities/user"
 	//"forum/internal/entities/comment"
+	"forum/internal/entities/like"
 	"forum/internal/password"
 )
 
@@ -18,11 +19,11 @@ func ResetDatabase(db *sql.DB, path string) error {
 	ctx := context.Background()
 
 	query := `
-	DROP TABLE IF EXISTS threads;
-	DROP TABLE IF EXISTS users;
 	DROP TABLE IF EXISTS comments;
 	DROP TABLE IF EXISTS thread_likes;
 	DROP TABLE IF EXISTS comment_likes;
+	DROP TABLE IF EXISTS threads;
+	DROP TABLE IF EXISTS users;
 	DROP TABLE IF EXISTS categories;
 	DROP TABLE IF EXISTS images;
 	DROP TABLE IF EXISTS sessions;
@@ -53,6 +54,7 @@ type SeedApp struct {
 	CategoryService *category.CategoryService
 	ThreadService   *thread.ThreadService
 	//CommentService *comment.CommentService
+	LikeService *like.LikeService
 }
 
 func initSeedHandlers(db *sql.DB) SeedApp {
@@ -68,11 +70,15 @@ func initSeedHandlers(db *sql.DB) SeedApp {
 	/*commentRepo := comment.NewRepository(db)
 	commentService := comment.NewService(commentRepo)*/
 
+	likeRepo := like.NewRepository(db)
+	likeService := like.NewService(likeRepo)
+
 	app := SeedApp{
 		UserService:     userService,
 		CategoryService: categoryService,
 		ThreadService:   threadService,
 		//CommentService: commentService,
+		LikeService: likeService,
 	}
 
 	return app
@@ -91,6 +97,9 @@ func seedDatabase(ctx context.Context, app *SeedApp) error {
 	/*if err := seedComments(ctx, app); err != nil {
 		return fmt.Errorf("seedComments: %w", err)
 	}*/
+	if err := seedLikes(ctx, app); err != nil {
+		return fmt.Errorf("seedLikes: %w", err)
+	}
 	return nil
 }
 
@@ -260,6 +269,27 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 			AuthorID: 1,
 		},
 		{
+			Body: `I found Katabasis (in English) in a small airport bookstore in Croatia. Not sure how I feel about finding one of my favourite authors of the last few years
+			in an airport...`,
+			ThreadID: 3,
+			AuthorID: 4,
+		},
+		{
+			Body: "Maybe Croatians just have good taste *shrug*",
+			ThreadID: 3,
+			AuthorID: 2,
+		},
+		{
+			Body: "You may be right. There was also a beautiful version of Wuthering Heights that I was tempted to pick up. No Dean Koontz in Croatia, I guess.",
+			ThreadID: 3,
+			AuthorID: 4,
+		},
+		{
+			Body: "Do people read Dean Koontz in Europe?",
+			ThreadID: 3,
+			AuthorID: 5,
+		},
+		{
 			Body: "",
 			ThreadID: 1,
 			AuthorID: 1,
@@ -275,3 +305,42 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 
 	return nil
 }*/
+
+func seedLikes(ctx context.Context, app *SeedApp) error {
+	threadLikes := []like.ThreadLikeRequest{
+		{
+			ThreadID: 1,
+			UserID:   5,
+			Like:     true,
+		},
+		{
+			ThreadID: 1,
+			UserID:   1,
+			Like:     false,
+		},
+	}
+
+	/*commentLikes := []like.CommentLikeRequest{
+		{
+			CommentID: 1,
+			UserID: 1,
+			Like:
+		},
+	}*/
+
+	for _, newThreadLike := range threadLikes {
+		err := app.LikeService.LikeThread(ctx, newThreadLike)
+		if err != nil {
+			return err
+		}
+	}
+
+	/*for _, newCommentLike := range commentLikes {
+		err := app.LikeService.LikeComment(ctx, newCommentLike)
+		if err != nil {
+			return err
+		}
+	}*/
+
+	return nil
+}
