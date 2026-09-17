@@ -15,7 +15,7 @@ func NewRepo(db *sql.DB) *SessionRepo {
 	return &SessionRepo{db: db}
 }
 
-func (r *SessionRepo) AddSession(ctx context.Context, session *Session) error {
+func (r *SessionRepo) addSession(ctx context.Context, session *Session) error {
 	query := `INSERT INTO sessions (id, user_id, csrf_token, date_created, expires_at)
 	VALUES (?, ?, ?, ?);`
 
@@ -27,7 +27,7 @@ func (r *SessionRepo) AddSession(ctx context.Context, session *Session) error {
 	return nil
 }
 
-func (r *SessionRepo) GetSessionByID(ctx context.Context, id string) (*Session, error) {
+func (r *SessionRepo) getSessionByID(ctx context.Context, id string) (*Session, error) {
 	query := `SELECT (id, user_id, csrf_token, date_created, expires_at)
 	FROM sessions WHERE id = ?;`
 
@@ -42,7 +42,7 @@ func (r *SessionRepo) GetSessionByID(ctx context.Context, id string) (*Session, 
 	return s, nil
 }
 
-func (r *SessionRepo) DeleteSession(ctx context.Context, id string) error {
+func (r *SessionRepo) deleteSession(ctx context.Context, id string) error {
 	query := `DELETE FROM sessions WHERE id = ?;`
 	if _, err := r.db.ExecContext(ctx, query, id); err != nil {
 		return fmt.Errorf("deleting session: %w", err)
@@ -51,7 +51,7 @@ func (r *SessionRepo) DeleteSession(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *SessionRepo) UpdateExpiry(ctx context.Context, session *Session) error {
+func (r *SessionRepo) updateExpiry(ctx context.Context, session *Session) error {
 	query := `UPDATE sessions SET expires_at = ? WHERE id = ?;`
 	if _, err := r.db.ExecContext(ctx, query, session.idleExpiresAt, session.id); err != nil {
 		return fmt.Errorf("refreshing session expiry: %w", err)
