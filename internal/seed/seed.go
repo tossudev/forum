@@ -7,6 +7,7 @@ import (
 	"log/slog"
 
 	"forum/internal/database"
+	"forum/internal/entities/category"
 	"forum/internal/entities/thread"
 	"forum/internal/entities/user"
 	"forum/internal/password"
@@ -16,8 +17,8 @@ func ResetDatabase(db *sql.DB, path string) error {
 	ctx := context.Background()
 
 	query := `
-	DROP TABLE IF EXISTS users;
 	DROP TABLE IF EXISTS threads;
+	DROP TABLE IF EXISTS users;
 	DROP TABLE IF EXISTS comments;
 	DROP TABLE IF EXISTS thread_likes;
 	DROP TABLE IF EXISTS comment_likes;
@@ -47,20 +48,25 @@ func ResetDatabase(db *sql.DB, path string) error {
 }
 
 type SeedApp struct {
-	UserService   *user.UserService
-	ThreadService *thread.ThreadService
+	UserService     *user.UserService
+	CategoryService *category.CategoryService
+	ThreadService   *thread.ThreadService
 }
 
 func initSeedHandlers(db *sql.DB) SeedApp {
 	userRepo := user.NewRepo(db)
 	userService := user.NewService(userRepo)
 
+	categoryRepo := category.NewRepository(db)
+	categoryService := category.NewService(categoryRepo)
+
 	threadRepo := thread.NewRepository(db)
 	threadService := thread.NewService(threadRepo)
 
 	app := SeedApp{
-		UserService:   userService,
-		ThreadService: threadService,
+		UserService:     userService,
+		CategoryService: categoryService,
+		ThreadService:   threadService,
 	}
 
 	return app
@@ -69,6 +75,9 @@ func initSeedHandlers(db *sql.DB) SeedApp {
 func seedDatabase(ctx context.Context, app *SeedApp) error {
 	if err := seedUsers(ctx, app); err != nil {
 		return fmt.Errorf("seedUsers: %w", err)
+	}
+	if err := seedCategories(ctx, app); err != nil {
+		return fmt.Errorf("seedCategories: %w", err)
 	}
 	if err := seedThreads(ctx, app); err != nil {
 		return fmt.Errorf("seedThreads: %w", err)
@@ -108,6 +117,35 @@ func seedUsers(ctx context.Context, app *SeedApp) error {
 	for _, newUser := range users {
 		password := "password"
 		err := app.UserService.RegisterUser(ctx, &newUser, password)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func seedCategories(ctx context.Context, app *SeedApp) error {
+	categories := []category.Category{
+		{
+			Name: "General",
+		},
+		{
+			Name: "Books",
+		},
+		{
+			Name: "Genres",
+		},
+		{
+			Name: "Authors",
+		},
+		{
+			Name: "Off Topic",
+		},
+	}
+
+	for _, newCategory := range categories {
+		_, err := app.CategoryService.Create(ctx, &newCategory)
 		if err != nil {
 			return err
 		}
