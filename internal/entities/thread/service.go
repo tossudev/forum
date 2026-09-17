@@ -40,7 +40,5 @@ func (s *ThreadService) Create(ctx context.Context, thread *Thread) (*Thread, er
 
 	thread.DateCreated = now
 
-	fmt.Println(thread)
-
 	return s.repo.Create(ctx, thread)
 }

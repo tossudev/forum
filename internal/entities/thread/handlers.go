@@ -77,6 +77,8 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Title string `json:"title"`
 		Body  string `json:"body"`
+		AuthorID int `json:"author_id"`
+		CategoryID int `json:"category_id"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&input)
@@ -88,12 +90,13 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	thread := Thread{
 		Title: input.Title,
 		Body:  input.Body,
+		AuthorID: input.AuthorID,
+		CategoryID: input.CategoryID,
 	}
 
 	newThread, err := h.service.Create(ctx, &thread)
 	if err != nil {
 		errs.WriteError(w, err)
-		fmt.Println(err)
 		return
 	}
 
