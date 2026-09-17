@@ -102,13 +102,25 @@ func seedUsers(ctx context.Context, app *SeedApp) error {
 		},
 		{
 			Username: "KevinMac2004",
-			Email:    "KevinMac@email.com",
+			Email:    "imjustakid@email.com",
 			Password: password.Password{},
 			RoleID:   1,
 		},
 		{
 			Username: "Marie",
 			Email:    "mpp@thegoat.ca",
+			Password: password.Password{},
+			RoleID:   1,
+		},
+		{
+			Username: "MontrealGoalie",
+			Email:    "ard@montreal.ca",
+			Password: password.Password{},
+			RoleID:   1,
+		},
+		{
+			Username: "",
+			Email:    "",
 			Password: password.Password{},
 			RoleID:   1,
 		},
@@ -161,6 +173,42 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 			Title:      "I loved this book",
 			Body:       "I super loved this book! I read it in two days!!",
 			AuthorID:   3,
+			CategoryID: 2,
+		},
+		{
+			Title:      "The best book I've read this week",
+			Body:       "It's called There Is No Antimimetic Division. #scifi",
+			AuthorID:   4,
+			CategoryID: 2,
+		},
+		{
+			Title:      "My favourite author",
+			Body:       "",
+			AuthorID:   2,
+			CategoryID: 4,
+		},
+		{
+			Title:      "What are some good libraries in Helsinki???",
+			Body:       "Help! I am visiting Helsinki for the weekend and would like to know, what are your favourite libraries in the city?? I will be there for three days and want to visit any cool or unique libraries you have. Also, any cool bookstores? Thanks!",
+			AuthorID:   1,
+			CategoryID: 1,
+		},
+		{
+			Title: "The history of natural history",
+			Body: `Let me tell you all about my favourite nonfiction genre. It started with Moby Dick (I know I know not nonfiction). When I was reading Moby Dick, 
+			probably around the time where he was listing literally every kind of whale, I got curious if his whale stuff was based on any contemporary understanding of whales or if he was 
+			just making stuff up. Eventually, while visiting London, I found a book called Leviathan by Philip Hoare. This book details Hoare's own obsession with whales through Moby Dick / Herman Mellville
+			and through humanity's understanding of whales, and the sperm whale, through history. My enjoyment of this book led me to another book called Why Fish Don't Exist by Lulu Miller, which 
+			is half personal memoir and half biography of a natural history dude (natural historialist?) from the 1800's who attempted to chronicle every fish in the world. Most recently, I have
+			enjoyed a book called Beasts of the Sea (Iida Turpeinen), which details humanity's discovery, extermination of, and then retrospective fascination with the Stellar's sea cow. Beasts of the Sea
+			is listed as fiction, but it feels like a history, which brings me back to Moby Dick...`,
+			AuthorID:   1,
+			CategoryID: 1,
+		},
+		{
+			Title:      "",
+			Body:       "",
+			AuthorID:   1,
 			CategoryID: 1,
 		},
 	}
