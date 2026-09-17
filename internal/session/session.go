@@ -119,6 +119,7 @@ func (sm *SessionManager) Authenticate(next http.Handler) http.Handler {
 		cookie, err := r.Cookie(sm.cookieName)
 		if err == nil {
 			sessionID := cookie.Value
+			fmt.Println("session id from cookie:", sessionID) // for testing
 			session, err = sm.repo.getSessionByID(ctx, sessionID)
 			if err != nil && !errors.Is(err, errs.ErrNotFound) {
 				slog.Error("failed to get session from repo", "err", err)
