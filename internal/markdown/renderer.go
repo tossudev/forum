@@ -11,6 +11,8 @@ type Renderer struct {
 	policy *bluemonday.Policy
 }
 
+var renderer *Renderer = NewRenderer()
+
 // Sanitizer uses default UGCPolicy
 // https://pkg.go.dev/github.com/microcosm-cc/bluemonday?utm_source=godoc#UGCPolicy
 func NewRenderer() *Renderer {
@@ -19,8 +21,8 @@ func NewRenderer() *Renderer {
 	}
 }
 
-func (r *Renderer) RenderHTML(input string) (string, error) {
-	return r.SanitizeHTML(string(blackfriday.Run([]byte(input))))
+func RenderHTML(input string) (string, error) {
+	return renderer.SanitizeHTML(string(blackfriday.Run([]byte(input))))
 }
 
 func (r *Renderer) SanitizeHTML(input string) (string, error) {
