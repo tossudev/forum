@@ -20,15 +20,9 @@ func NewRenderer() *Renderer {
 }
 
 func (r *Renderer) RenderHTML(input string) (string, error) {
-	return r.SanitizeHTML(r.ParseMarkdown(input))
+	return r.SanitizeHTML(string(blackfriday.Run([]byte(input))))
 }
 
-// Use in isolation for storing markdown in database
-func (r *Renderer) ParseMarkdown(input string) string {
-	return string(blackfriday.Run([]byte(input)))
-}
-
-// Use after parsing markdown to render HTML to frontend
 func (r *Renderer) SanitizeHTML(input string) (string, error) {
 	out := r.policy.Sanitize(input)
 	if out == "" {
