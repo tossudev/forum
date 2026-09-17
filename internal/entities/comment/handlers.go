@@ -66,8 +66,6 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 func (h *CommentHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
-	//endpoint: mux.HandleFunc(GET comments/{id})
-
 	ctx := r.Context()
 	idString := r.PathValue("id")
 	id, err := strconv.Atoi(idString)
@@ -88,8 +86,6 @@ func (h *CommentHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *CommentHandler) GetByThread(w http.ResponseWriter, r *http.Request) {
-
-	//endpoint: mux.HandleFunc(GET threads/{id}/comments)
 
 	pagination, err := pagination.Parse(r.URL.Query())	
 	if err != nil {
