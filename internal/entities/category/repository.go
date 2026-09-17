@@ -1,10 +1,9 @@
 package category
 
 import (
-	"database/sql"
 	"context"
+	"database/sql"
 	"fmt"
-
 )
 
 type CategoryRepository struct {
@@ -20,28 +19,27 @@ func (r *CategoryRepository) GetByID(ctx context.Context, id int) (*Category, er
 	var category Category
 	err := r.db.QueryRowContext(ctx, query, id).Scan(&category.ID, &category.Name)
 	if err != nil {
-		fmt.Println("here", id)
-		return nil, err
+		return nil, fmt.Errorf("Category GetByID: %w", err)
 	}
-	
+
 	return &category, nil
 }
- 
+
 func (r *CategoryRepository) Create(ctx context.Context, category *Category) (*Category, error) {
-	query := "INSERT INTO categories (name) VALUES (?);"	
+	query := "INSERT INTO categories (name) VALUES (?);"
 	result, err := r.db.ExecContext(ctx, query, category.Name)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Category Create: %w", err)
 	}
 	id, err := result.LastInsertId()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Category Create: %w", err)
 	}
 
 	var newCategory *Category
 	newCategory, err = r.GetByID(ctx, int(id))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Category Create: %w", err)
 	}
 	return newCategory, nil
 }

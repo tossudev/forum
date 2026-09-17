@@ -5,15 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	
+
 	"github.com/go-playground/validator/v10"
 
 	"forum/internal/errs"
-
 )
 
 type CategoryHandler struct {
-	service *CategoryService
+	service   *CategoryService
 	validator *validator.Validate
 }
 
@@ -47,12 +46,12 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Name string `json:"name"`
 	}
 
-	err:= json.NewDecoder(r.Body).Decode(&input)
+	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid request body"))
+		errs.WriteError(w, fmt.Errorf("%w: invalid request body", err))
 		return
 	}
-	
+
 	category := Category{
 		Name: input.Name,
 	}
@@ -67,5 +66,5 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	json.NewEncoder(w).Encode(newCategory)	
+	json.NewEncoder(w).Encode(newCategory)
 }
