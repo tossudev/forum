@@ -1,59 +1,39 @@
-package main
+package markdown
 
 import (
-	"bytes"
 	"fmt"
 
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/yuin/goldmark/v2/parser"
-	"github.com/yuin/goldmark/v2/renderer/html"
+	"github.com/russross/blackfriday/v2"
 )
 
 type Renderer struct {
-	parser parser.Parser
 	policy *bluemonday.Policy
 }
 
+// Sanitizer uses default UGCPolicy
+// https://pkg.go.dev/github.com/microcosm-cc/bluemonday?utm_source=godoc#UGCPolicy
 func NewRenderer() *Renderer {
-	parser := parser.New()
-	policy := bluemonday.UGCPolicy()
-
 	return &Renderer{
-		parser: parser,
-		policy: policy,
+		policy: bluemonday.UGCPolicy(),
 	}
 }
 
 func (r *Renderer) RenderHTML(input string) (string, error) {
-	html, err := r.ParseMarkdown(input)
-	if err != nil {
-		return "", err
-	}
+	return r.SanitizeHTML(r.ParseMarkdown(input))
+}
 
-	rendered := r.SanitizeHTML(html)
+// Use in isolation for storing markdown in database
+func (r *Renderer) ParseMarkdown(input string) string {
+	return string(blackfriday.Run([]byte(input)))
+}
 
-	if rendered == "" {
+// Use after parsing markdown to render HTML to frontend
+func (r *Renderer) SanitizeHTML(input string) (string, error) {
+	out := r.policy.Sanitize(input)
+	if out == "" {
 		return "", fmt.Errorf("HTML sanitization failed")
 	}
 
-	return rendered, nil
-}
-
-func (r *Renderer) ParseMarkdown(input string) (string, error) {
-	source := []byte(input)
-
-	var buf bytes.Buffer
-	p := parser.New()
-	re := html.New()
-
-	doc := p.Parse(source)
-	if err := re.Render(&buf, source, doc); err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
-}
-
-func (r *Renderer) SanitizeHTML(input string) string {
-	return r.policy.Sanitize(input)
+	return out, nil
 }
