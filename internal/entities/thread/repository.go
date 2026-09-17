@@ -40,14 +40,14 @@ func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination
 }
 
 func (r *ThreadRepository) GetByID(ctx context.Context, id int) (*Thread, error) {
-	query := "SELECT (id, title, body, date_created) FROM threads WHERE id = ?;"
-	var thread *Thread
-	err := r.db.QueryRowContext(ctx, query, id).Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated)
+	query := "SELECT id, title, body, date_created, author_id, category_id FROM threads WHERE id = ?;"
+	var thread Thread
+	err := r.db.QueryRowContext(ctx, query, id).Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID)
 	if err != nil {
 		return nil, err
 	}
 
-	return thread, nil
+	return &thread, nil
 
 }
 

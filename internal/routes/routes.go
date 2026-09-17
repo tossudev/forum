@@ -11,6 +11,9 @@ func GetRoutes(app *App) *http.ServeMux {
 	mux.HandleFunc("POST /users/register", app.UserHandler.RegisterUser)
 	mux.HandleFunc("POST /users/login", app.UserHandler.Login)
 
+	// Category routes
+	mux.HandleFunc("POST /categories", app.CategoryHandler.Create)
+
 	// Thread routes
 	mux.HandleFunc("GET /categories/{id}", app.ThreadHandler.GetByCategory)
 	mux.HandleFunc("POST /threads", app.ThreadHandler.Create)
