@@ -47,7 +47,7 @@ func (sm *SessionManager) Login(userID int, w http.ResponseWriter, r *http.Reque
 		return fmt.Errorf("session login: %w", err)
 	}
 
-	if err := sm.repo.AddSession(ctx, session); err != nil {
+	if err := sm.repo.addSession(ctx, session); err != nil {
 		return fmt.Errorf("session login: %w", err)
 	}
 
@@ -119,7 +119,8 @@ func (sm *SessionManager) Authenticate(next http.Handler) http.Handler {
 		cookie, err := r.Cookie(sm.cookieName)
 		if err == nil {
 			sessionID := cookie.Value
-			session, err = sm.repo.GetSessionByID(ctx, sessionID)
+			fmt.Println("session id from cookie:", sessionID) // for testing
+			session, err = sm.repo.getSessionByID(ctx, sessionID)
 			if err != nil && !errors.Is(err, errs.ErrNotFound) {
 				slog.Error("failed to get session from repo", "err", err)
 			}
@@ -127,7 +128,7 @@ func (sm *SessionManager) Authenticate(next http.Handler) http.Handler {
 
 		// If the the session is expired, delete session
 		if session != nil && session.isExpired() {
-			if err := sm.repo.DeleteSession(ctx, session.id); err != nil {
+			if err := sm.repo.deleteSession(ctx, session.id); err != nil {
 				slog.Error("failed to delete expired session", "err", err)
 			}
 			session = nil
@@ -136,7 +137,7 @@ func (sm *SessionManager) Authenticate(next http.Handler) http.Handler {
 		// If the session is valid, update last idleExpiration
 		if session != nil && !session.isExpired() {
 			session.idleExpiresAt = time.Now().Add(sm.idleExpiration)
-			if err := sm.repo.UpdateExpiry(ctx, session); err != nil {
+			if err := sm.repo.updateExpiry(ctx, session); err != nil {
 				slog.Error("failed to update session expiry", "err", err)
 			}
 		}
@@ -157,11 +158,5 @@ func (sm *SessionManager) Authenticate(next http.Handler) http.Handler {
 func (s *Session) isExpired() bool {
 	return s.idleExpiresAt.Before(time.Now())
 }
-
-// TODO: Getter for Session's user ID (handlers need to be able to get the user ID)
-
-// TODO: Getter for Session's csrf token (handlers need to be able to get the csrf token)
-
-// TODO: GetSession(r) that handlers & middleware can access for getting the session from request context
 
 // TODO: Logout
