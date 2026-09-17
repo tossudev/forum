@@ -3,6 +3,10 @@ package comment
 import (
 	"context"
 	"time"
+	"fmt"
+
+	"forum/internal/errs"
+	"forum/internal/pagination"
 )
 
 type CommentService struct {
@@ -38,6 +42,20 @@ func (s *CommentService) GetByID(ctx context.Context, id int) (Comment, error) {
 
 }
 
-func (s *CommentService) GetByThread(ctx context.Context, id int) ([]Comment, error) {
-	return nil, nil
+func (s *CommentService) GetByThread(ctx context.Context, id int, p pagination.Pagination) ([]Comment, error) {
+
+	if id <= 0 { return nil, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput)}
+	comments, err := s.repo.GetByThread(ctx, id, p)	
+	if err != nil { return nil, err }
+	return comments, nil
 }
+
+
+
+
+
+
+
+
+
+
