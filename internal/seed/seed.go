@@ -10,6 +10,7 @@ import (
 	"forum/internal/entities/category"
 	"forum/internal/entities/thread"
 	"forum/internal/entities/user"
+	//"forum/internal/entities/comment"
 	"forum/internal/password"
 )
 
@@ -51,6 +52,7 @@ type SeedApp struct {
 	UserService     *user.UserService
 	CategoryService *category.CategoryService
 	ThreadService   *thread.ThreadService
+	//CommentService *comment.CommentService
 }
 
 func initSeedHandlers(db *sql.DB) SeedApp {
@@ -63,10 +65,14 @@ func initSeedHandlers(db *sql.DB) SeedApp {
 	threadRepo := thread.NewRepository(db)
 	threadService := thread.NewService(threadRepo)
 
+	/*commentRepo := comment.NewRepository(db)
+	commentService := comment.NewService(commentRepo)*/
+
 	app := SeedApp{
 		UserService:     userService,
 		CategoryService: categoryService,
 		ThreadService:   threadService,
+		//CommentService: commentService,
 	}
 
 	return app
@@ -82,6 +88,9 @@ func seedDatabase(ctx context.Context, app *SeedApp) error {
 	if err := seedThreads(ctx, app); err != nil {
 		return fmt.Errorf("seedThreads: %w", err)
 	}
+	/*if err := seedComments(ctx, app); err != nil {
+		return fmt.Errorf("seedComments: %w", err)
+	}*/
 	return nil
 }
 
@@ -222,3 +231,47 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 
 	return nil
 }
+
+/*func seedComments(ctx context.Context, app *SeedApp) error {
+	comments := []comment.Comment{
+		{
+			Body: "What book?",
+			ThreadID: 1,
+			AuthorID: 1,
+		},
+		{
+			Body: "What do you mean?",
+			ThreadID: 1,
+			AuthorID: 3,
+		},
+		{
+			Body: "What was the book?",
+			ThreadID: 1,
+			AuthorID: 1,
+		},
+		{
+			Body: "What book??",
+			ThreadID: 1,
+			AuthorID: 3,
+		},
+		{
+			Body: "The name of the book that you read!!",
+			ThreadID: 1,
+			AuthorID: 1,
+		},
+		{
+			Body: "",
+			ThreadID: 1,
+			AuthorID: 1,
+		},
+	}
+
+	for _, newComment := range comments {
+		_, err := app.CommentService.Create(ctx, &newComment)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}*/
