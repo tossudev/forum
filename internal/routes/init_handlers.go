@@ -8,6 +8,7 @@ import (
 	"forum/internal/entities/like"
 	"forum/internal/entities/thread"
 	"forum/internal/entities/user"
+	"forum/internal/entities/category"
 	"forum/internal/middleware"
 
 	//"forum/internal/middleware"
@@ -16,6 +17,7 @@ import (
 
 type App struct {
 	UserHandler   *user.UserHandler
+	CategoryHandler *category.CategoryHandler
 	ThreadHandler *thread.ThreadHandler
 	LikeHandler   *like.LikeHandler
 }
@@ -24,6 +26,10 @@ func InitHandlers(db *sql.DB, validate *validator.Validate) http.Handler {
 	userRepo := user.NewRepo(db)
 	userService := user.NewService(userRepo)
 	userHandler := user.NewHandler(userService)
+
+	categoryRepo := category.NewRepository(db)
+	categoryService := category.NewService(categoryRepo)
+	categoryHandler := category.NewHandler(categoryService, validate)
 
 	threadRepo := thread.NewRepository(db)
 	threadService := thread.NewService(threadRepo)
@@ -35,6 +41,7 @@ func InitHandlers(db *sql.DB, validate *validator.Validate) http.Handler {
 
 	app := App{
 		UserHandler:   userHandler,
+		CategoryHandler: categoryHandler,
 		ThreadHandler: threadHandler,
 		LikeHandler:   likeHandler,
 	}
