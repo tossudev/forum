@@ -7,6 +7,7 @@ import (
 
 	"forum/internal/errs"
 	"forum/internal/pagination"
+	"forum/internal/config"
 )
 
 type CommentService struct {
@@ -20,7 +21,7 @@ func NewService(r *CommentRepository) *CommentService {
 func (s *CommentService) Create(ctx context.Context, req *Comment) (Comment, error) {
 
 	isoTime := time.Now().UTC()
-	isoString := isoTime.Format(time.RFC3339)
+	isoString := isoTime.Format(config.TimeFormat)
 
 	req.DateCreated = isoString
 
@@ -33,13 +34,7 @@ func (s *CommentService) Create(ctx context.Context, req *Comment) (Comment, err
 }
 
 func (s *CommentService) GetByID(ctx context.Context, id int) (Comment, error) {
-	comment, err := s.repo.GetByID(ctx, id)
-	if err != nil {
-		return Comment{}, err
-	}
-
-	return comment, nil
-
+	return s.repo.GetByID(ctx, id)
 }
 
 func (s *CommentService) GetByThread(ctx context.Context, id int, p pagination.Pagination) ([]Comment, error) {
@@ -50,12 +45,7 @@ func (s *CommentService) GetByThread(ctx context.Context, id int, p pagination.P
 	return comments, nil
 }
 
-
-
-
-
-
-
-
-
-
+func (s *CommentService) Delete(ctx context.Context, id int) error {
+	//TODO: Logic for the service layer --> who gets to delete a comment (user, admin etc.)
+	return s.repo.Delete(ctx, id)
+}

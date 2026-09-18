@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS comment_likes (
 	comment_id INTEGER NOT NULL,
 	user_id INTEGER NOT NULL,
 	thread_like BOOLEAN NOT NULL,
-	FOREIGN KEY(comment_id) REFERENCES comments(id),
+	FOREIGN KEY(comment_id) REFERENCES comments(id) ON DELETE CASCADE,
 	FOREIGN KEY(user_id) REFERENCES users(id),
 	PRIMARY KEY (comment_id, user_id)
 );
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS images (
 	image_path TEXT NOT NULL,
 	comment_id INTEGER,
 	thread_id INTEGER,
-	FOREIGN KEY(comment_id) REFERENCES comments(id),
+	FOREIGN KEY(comment_id) REFERENCES comments(id) ON DELETE CASCADE,
 	FOREIGN KEY(thread_id) REFERENCES threads(id)
 );
 

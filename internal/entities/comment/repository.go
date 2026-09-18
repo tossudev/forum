@@ -72,12 +72,24 @@ func (r *CommentRepository) GetByThread(ctx context.Context, id int, pag paginat
 			return nil, err
 		}
 		comments = append(comments, comment)
-		
 	}
-	
-	if err := rows.Err(); err != nil { return nil, err }
+	err = rows.Err()
+	if err != nil { 
+		return nil, err 
+	}
 	
 	return comments, nil 
 }
 
+func (r *CommentRepository) Delete(ctx context.Context, id int) error {
 
+	query := `DELETE FROM comments WHERE id = ?` 
+	res, err := r.db.ExecContext(ctx, query, id)
+	if err != nil { return err }
+	
+	amount, err := res.RowsAffected()
+	if err != nil { return err }
+	if amount == 0 { return errs.ErrNotFound }
+
+	return nil 
+}

@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"forum/internal/pagination"
+	"forum/internal/session"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -22,6 +23,11 @@ func NewHandler(service *CommentService, validator *validator.Validate) *Comment
 }
 
 func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
+	sess, ok := session.GetSession(r.Context())
+	if !ok || sess == nil { 
+		errs.WriteError(w, fmt.Errorf("%w: login required", errs.ErrsUnauthorized))
+		return
+	}
 
 	var input struct {
 		Body string `json:"body" validate:"required"`
@@ -33,33 +39,28 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		errs.WriteError(w, fmt.Errorf("%w: invalid request body", errs.ErrInvalidUserInput))
 		return
 	}
-
 	if err := h.validator.Struct(input); err != nil { 
 		errs.WriteError(w, fmt.Errorf("%w: invalid input", errs.ErrInvalidUserInput))
 		return
 	}
-
 	threadID, err := strconv.Atoi(r.PathValue("id"))	
 	if err != nil {
 		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
 		return
 	}
-
 	req := Comment{
 		Body: input.Body,
 		ThreadID: threadID,
-		AuthorID: 1, 		//TODO: we get the author id from sessions. Will be implemented later.
+		AuthorID: sess.UserID(),
 	}
-
-	newComment, err := h.service.Create(r.Context(), &req)
+	_, err = h.service.Create(r.Context(), &req) //leftmost value left out, since the commented out section of json encoding (line 63)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
+	//w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(newComment) //message: success and error (nil?)
+	//json.NewEncoder(w).Encode(newComment) 
 }
 
 func (h *CommentHandler) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -71,15 +72,15 @@ func (h *CommentHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	comment, err := h.service.GetByID(ctx, id)
+	_, err = h.service.GetByID(ctx, id) //same thing for the comment, commented out the json encoding 
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(comment)
+	//w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK) // TODO: decision on what to return: statusOK or noContent?
+	//json.NewEncoder(w).Encode(comment)
 }
 
 func (h *CommentHandler) GetByThread(w http.ResponseWriter, r *http.Request) {
@@ -96,25 +97,29 @@ func (h *CommentHandler) GetByThread(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	comments, err := h.service.GetByThread(r.Context(), id, pagination)
+	_, err = h.service.GetByThread(r.Context(), id, pagination)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
-	w.Header().Set("Content-type", "application/json")
+	//w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(comments)
+	//json.NewEncoder(w).Encode(comments)
 }
 
 func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	//TODO
-	//endpoint: mux.HandleFunc(DELETE comments/{id})
+	idString := r.PathValue("id")
+	id, err := strconv.Atoi(idString)
+	if err != nil { 
+		errs.WriteError(w, fmt.Errorf("%w: invalid id", errs.ErrInvalidUserInput))
+		return
+	}
 
-	return 
+	err = h.service.Delete(r.Context(), id)	
+	if err != nil {
+		errs.WriteError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
-
-
-
-
-
