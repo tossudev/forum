@@ -18,6 +18,8 @@
 !*.md
 !*.sql
 
+!forum.postman_collection.json
+
 !LICENSE
 !Makefile
 !.githooks/pre-commit
