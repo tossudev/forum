@@ -37,17 +37,14 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	threads, err := h.service.GetByCategory(ctx, id, pagination)
+	//TODO: change _ to threads and send to front end
+	_, err = h.service.GetByCategory(ctx, id, pagination)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
-	//TODO: find out what front end needs this result to do/look like
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
-	json.NewEncoder(w).Encode(threads)
 }
 
 func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -59,16 +56,13 @@ func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	thread, err := h.service.GetByID(ctx, id)
+	//TODO: change _ to thread and send to front end
+	_, err = h.service.GetByID(ctx, id)
 	if err != nil {
 		errs.WriteError(w, err)
 	}
 
-	//TODO: find out what front end needs this result to do/look like
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
-	json.NewEncoder(w).Encode(thread)
 }
 
 func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -100,15 +94,13 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 		CategoryID: input.CategoryID,
 	}
 
-	newThread, err := h.service.Create(ctx, &thread)
+	err = h.service.Create(ctx, &thread)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
 	//TODO: find out what front end needs this result to do/look like
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 
-	json.NewEncoder(w).Encode(newThread)
+	w.WriteHeader(http.StatusOK)
 }
