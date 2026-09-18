@@ -10,6 +10,7 @@ import (
 
 	"forum/internal/errs"
 	"forum/internal/pagination"
+	"forum/internal/session"
 )
 
 type ThreadHandler struct {
@@ -52,8 +53,7 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	idString := r.PathValue("id")
-	id, err := strconv.Atoi(idString)
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
 		return
@@ -75,10 +75,9 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var input struct {
-		Title string `json:"title"`
-		Body  string `json:"body"`
-		AuthorID int `json:"author_id"`
-		CategoryID int `json:"category_id"`
+		Title      string `json:"title"`
+		Body       string `json:"body"`
+		CategoryID int    `json:"category_id"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&input)
@@ -87,10 +86,17 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	session, ok := session.GetSession(ctx)
+	if session == nil || !ok {
+		errs.WriteError(w, fmt.Errorf("%w: not authenticated", errs.ErrsUnauthorized))
+		return
+	}
+	authorID := session.UserID()
+
 	thread := Thread{
-		Title: input.Title,
-		Body:  input.Body,
-		AuthorID: input.AuthorID,
+		Title:      input.Title,
+		Body:       input.Body,
+		AuthorID:   authorID,
 		CategoryID: input.CategoryID,
 	}
 
@@ -105,5 +111,4 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	json.NewEncoder(w).Encode(newThread)
-
 }
