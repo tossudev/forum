@@ -10,6 +10,7 @@ import (
 	"forum/internal/entities/category"
 	"forum/internal/entities/thread"
 	"forum/internal/entities/user"
+
 	//"forum/internal/entities/comment"
 	"forum/internal/entities/like"
 	"forum/internal/password"
@@ -19,6 +20,7 @@ func ResetDatabase(db *sql.DB, path string) error {
 	ctx := context.Background()
 
 	query := `
+	DROP TABLE IF EXISTS sessions;
 	DROP TABLE IF EXISTS comments;
 	DROP TABLE IF EXISTS thread_likes;
 	DROP TABLE IF EXISTS comment_likes;
@@ -26,7 +28,6 @@ func ResetDatabase(db *sql.DB, path string) error {
 	DROP TABLE IF EXISTS users;
 	DROP TABLE IF EXISTS categories;
 	DROP TABLE IF EXISTS images;
-	DROP TABLE IF EXISTS sessions;
 	`
 
 	_, err := db.ExecContext(ctx, query)
