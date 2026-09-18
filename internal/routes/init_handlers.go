@@ -8,6 +8,7 @@ import (
 	"forum/internal/entities/category"
 	"forum/internal/entities/like"
 	"forum/internal/entities/thread"
+	"forum/internal/entities/comment"
 	"forum/internal/entities/user"
 	"forum/internal/middleware"
 	"forum/internal/session"
@@ -19,8 +20,9 @@ import (
 type App struct {
 	UserHandler     *user.UserHandler
 	CategoryHandler *category.CategoryHandler
-	ThreadHandler   *thread.ThreadHandler
-	LikeHandler     *like.LikeHandler
+	ThreadHandler *thread.ThreadHandler
+	CommentHandler *comment.CommentHandler
+	LikeHandler   *like.LikeHandler
 }
 
 func InitHandlers(db *sql.DB, validate *validator.Validate) http.Handler {
@@ -39,15 +41,20 @@ func InitHandlers(db *sql.DB, validate *validator.Validate) http.Handler {
 	threadService := thread.NewService(threadRepo)
 	threadHandler := thread.NewHandler(threadService, validate)
 
+	commentRepo := comment.NewRepository(db)
+	commentService := comment.NewService(commentRepo)
+	commentHandler := comment.NewHandler(commentService, validate)
+
 	likeRepo := like.NewRepository(db)
 	likeService := like.NewService(likeRepo)
 	likeHandler := like.NewHandler(likeService, validate)
 
 	app := App{
-		UserHandler:     userHandler,
+		UserHandler:   	userHandler,
 		CategoryHandler: categoryHandler,
-		ThreadHandler:   threadHandler,
-		LikeHandler:     likeHandler,
+		ThreadHandler: 	threadHandler,
+		CommentHandler: commentHandler,
+		LikeHandler:   	likeHandler,
 	}
 
 	mux := GetRoutes(&app, sm)
