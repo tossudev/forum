@@ -19,7 +19,7 @@ func NewRepository(db *sql.DB) *ThreadRepository {
 func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, error) {
 	var threads []Thread
 
-	query := "SELECT (id, title, body, date_created, author_id, category_id) FROM threads WHERE category_id = ? ORDER BY date_created ASC LIMIT ? OFFSET ?;"
+	query := "SELECT id, title, body, date_created, author_id, category_id FROM threads WHERE category_id = ? ORDER BY date_created ASC LIMIT ? OFFSET ?;"
 
 	rows, err := r.db.QueryContext(ctx, query, id, pagination.Limit(), pagination.Offset())
 	if err != nil {
