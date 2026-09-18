@@ -9,6 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 
 	"forum/internal/errs"
+	"forum/internal/pagination"
 )
 
 type CategoryHandler struct {
@@ -18,6 +19,24 @@ type CategoryHandler struct {
 
 func NewHandler(service *CategoryService, validator *validator.Validate) *CategoryHandler {
 	return &CategoryHandler{service: service, validator: validator}
+}
+
+func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	query := r.URL.Query()
+	pagination, err := pagination.Parse(query)
+	if err != nil {
+		errs.WriteError(w, err)
+		return
+	}
+
+	_, err = h.service.GetAll(ctx, pagination)
+	if err != nil {
+		errs.WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
