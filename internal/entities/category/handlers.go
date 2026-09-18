@@ -10,6 +10,7 @@ import (
 
 	"forum/internal/errs"
 	"forum/internal/pagination"
+	"forum/internal/utils"
 )
 
 type CategoryHandler struct {
@@ -30,13 +31,19 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.service.GetAll(ctx, pagination)
+	categories, err := h.service.GetAll(ctx, pagination)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	data := TemplateData{
+		Categories: categories,
+	}
+	if err := utils.Templates.ExecuteTemplate(w, "landing.html", data); err != nil {
+		errs.WriteError(w, err)
+		return
+	}
 }
 
 func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {

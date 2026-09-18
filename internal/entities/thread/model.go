@@ -8,3 +8,8 @@ type Thread struct {
 	AuthorID    int    `json:"author_id"`
 	CategoryID  int    `json:"category_id"`
 }
+
+type TemplateData struct {
+	Category int
+	Threads  []Thread
+}

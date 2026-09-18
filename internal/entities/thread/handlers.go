@@ -11,6 +11,7 @@ import (
 	"forum/internal/errs"
 	"forum/internal/pagination"
 	"forum/internal/session"
+	"forum/internal/utils"
 )
 
 type ThreadHandler struct {
@@ -37,13 +38,20 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//TODO: change _ to threads and send to front end
-	_, err = h.service.GetByCategory(ctx, id, pagination)
+	threads, err := h.service.GetByCategory(ctx, id, pagination)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	data := TemplateData{
+		Category: id,
+		Threads:  threads,
+	}
+	if err := utils.Templates.ExecuteTemplate(w, "threads.html", data); err != nil {
+		errs.WriteError(w, err)
+		return
+	}
 }
 
 func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
