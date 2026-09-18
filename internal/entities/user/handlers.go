@@ -5,15 +5,20 @@ import (
 	"fmt"
 	"forum/internal/errs"
 	"forum/internal/password"
+	"forum/internal/session"
 	"net/http"
 )
 
 type UserHandler struct {
 	service *UserService
+	sm      *session.SessionManager
 }
 
-func NewHandler(service *UserService) *UserHandler {
-	return &UserHandler{service: service}
+func NewHandler(service *UserService, sm *session.SessionManager) *UserHandler {
+	return &UserHandler{
+		service: service,
+		sm:      sm,
+	}
 }
 
 func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
@@ -57,12 +62,17 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Authenticate(ctx, input); err != nil {
+	userID, err := h.service.Authenticate(ctx, input)
+	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
-	// TODO: Create new session
+	// Create new session
+	if err := h.sm.Login(userID, w, r); err != nil {
+		errs.WriteError(w, err)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)

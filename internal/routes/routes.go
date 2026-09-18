@@ -1,10 +1,11 @@
 package routes
 
 import (
+	"forum/internal/session"
 	"net/http"
 )
 
-func GetRoutes(app *App) *http.ServeMux {
+func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	// User routes

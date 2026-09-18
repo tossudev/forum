@@ -5,19 +5,20 @@ import (
 	"net/http"
 	"time"
 
+	"forum/internal/entities/category"
 	"forum/internal/entities/like"
 	"forum/internal/entities/thread"
 	"forum/internal/entities/comment"
 	"forum/internal/entities/user"
-	"forum/internal/entities/category"
 	"forum/internal/middleware"
+	"forum/internal/session"
 
 	//"forum/internal/middleware"
 	"github.com/go-playground/validator/v10"
 )
 
 type App struct {
-	UserHandler   *user.UserHandler
+	UserHandler     *user.UserHandler
 	CategoryHandler *category.CategoryHandler
 	ThreadHandler *thread.ThreadHandler
 	CommentHandler *comment.CommentHandler
@@ -25,9 +26,12 @@ type App struct {
 }
 
 func InitHandlers(db *sql.DB, validate *validator.Validate) http.Handler {
+	sessionRepo := session.NewRepo(db)
+	sm := session.NewSessionManager(sessionRepo, "session_token", 30*24*time.Hour) // session expires after a 30 days of inactivity
+
 	userRepo := user.NewRepo(db)
 	userService := user.NewService(userRepo)
-	userHandler := user.NewHandler(userService)
+	userHandler := user.NewHandler(userService, sm)
 
 	categoryRepo := category.NewRepository(db)
 	categoryService := category.NewService(categoryRepo)
@@ -53,10 +57,11 @@ func InitHandlers(db *sql.DB, validate *validator.Validate) http.Handler {
 		LikeHandler:   	likeHandler,
 	}
 
-	mux := GetRoutes(&app)
+	mux := GetRoutes(&app, sm)
 
 	// Middleware
 	handler := middleware.Timeout(5 * time.Second)(mux)
+	handler = sm.Authenticate(handler)
 	handler = middleware.Logger(handler)
 	handler = middleware.RecoverPanic(handler)
 
