@@ -64,7 +64,7 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (User, erro
 	var createdAt int
 	if err := r.db.QueryRowContext(ctx, query, email).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.Password.Salt, &createdAt, &user.RoleID); err != nil {
 		if err == sql.ErrNoRows {
-			return User{}, fmt.Errorf("%w: invalid credentials", errs.ErrsUnauthorized)
+			return User{}, fmt.Errorf("%w: invalid credentials", errs.ErrUnauthorized)
 		}
 		return User{}, fmt.Errorf("GetUserByEmail: scanning row: %w", err)
 	}
