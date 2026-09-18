@@ -25,7 +25,7 @@ type App struct {
 
 func InitHandlers(db *sql.DB, validate *validator.Validate) http.Handler {
 	sessionRepo := session.NewRepo(db)
-	sm := session.NewSessionManager(sessionRepo, "session_token", 1*time.Minute)
+	sm := session.NewSessionManager(sessionRepo, "session_token", 30*24*time.Hour) // session expires after a 30 days of inactivity
 
 	userRepo := user.NewRepo(db)
 	userService := user.NewService(userRepo)
