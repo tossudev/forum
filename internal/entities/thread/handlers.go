@@ -25,13 +25,12 @@ func NewHandler(service *ThreadService, validator *validator.Validate) *ThreadHa
 func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	query := r.URL.Query()
-	idString := r.URL.Query().Get("id")
 	pagination, err := pagination.Parse(query)
 	if err != nil {
 		errs.WriteError(w, err)
 	}
 
-	id, err := strconv.Atoi(idString)
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		errs.WriteError(w, fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput))
 		return
