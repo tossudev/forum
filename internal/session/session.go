@@ -52,6 +52,7 @@ func (sm *SessionManager) Login(userID int, w http.ResponseWriter, r *http.Reque
 	}
 
 	sm.writeCookie(w, session)
+	fmt.Println("user logged in - new session:", session.id) // TEST
 	return nil
 }
 
@@ -101,6 +102,7 @@ func (sm *SessionManager) writeCookie(w http.ResponseWriter, session *Session) {
 		Value:    session.id,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
+		Path:     "/", // the path that must exist in the requested URL
 		// Secure: true, // TODO: Use when HTTPS is implemented
 		Expires: session.idleExpiresAt,
 		MaxAge:  int(sm.idleExpiration / time.Second),
@@ -117,9 +119,9 @@ func (sm *SessionManager) Authenticate(next http.Handler) http.Handler {
 
 		// Read session ID from cookie
 		cookie, err := r.Cookie(sm.cookieName)
+		fmt.Println("authentication middleware: reading cookie:", cookie) // TEST
 		if err == nil {
 			sessionID := cookie.Value
-			fmt.Println("session id from cookie:", sessionID) // for testing
 			session, err = sm.repo.getSessionByID(ctx, sessionID)
 			if err != nil && !errors.Is(err, errs.ErrNotFound) {
 				slog.Error("failed to get session from repo", "err", err)
@@ -145,6 +147,8 @@ func (sm *SessionManager) Authenticate(next http.Handler) http.Handler {
 		// Update cookie
 		if session != nil {
 			sm.writeCookie(w, session)
+		} else {
+			fmt.Println("UNAUTHENTICATED SESSION") // TEST
 		}
 
 		// Attach session to context
