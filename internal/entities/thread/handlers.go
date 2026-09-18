@@ -25,29 +25,25 @@ func NewHandler(service *ThreadService, validator *validator.Validate) *ThreadHa
 func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	query := r.URL.Query()
-	idString := r.URL.Query().Get("id")
 	pagination, err := pagination.Parse(query)
 	if err != nil {
 		errs.WriteError(w, err)
 	}
 
-	id, err := strconv.Atoi(idString)
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		errs.WriteError(w, fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput))
 		return
 	}
 
-	threads, err := h.service.GetByCategory(ctx, id, pagination)
+	//TODO: change _ to threads and send to front end
+	_, err = h.service.GetByCategory(ctx, id, pagination)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
-	//TODO: find out what front end needs this result to do/look like
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
-	json.NewEncoder(w).Encode(threads)
 }
 
 func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -59,16 +55,13 @@ func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	thread, err := h.service.GetByID(ctx, id)
+	//TODO: change _ to thread and send to front end
+	_, err = h.service.GetByID(ctx, id)
 	if err != nil {
 		errs.WriteError(w, err)
 	}
 
-	//TODO: find out what front end needs this result to do/look like
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
-	json.NewEncoder(w).Encode(thread)
 }
 
 func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +81,7 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	session, ok := session.GetSession(ctx)
 	if session == nil || !ok {
-		errs.WriteError(w, fmt.Errorf("%w: not authenticated", errs.ErrsUnauthorized))
+		errs.WriteError(w, fmt.Errorf("%w: not authenticated", errs.ErrUnauthorized))
 		return
 	}
 	authorID := session.UserID()
@@ -100,15 +93,13 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 		CategoryID: input.CategoryID,
 	}
 
-	newThread, err := h.service.Create(ctx, &thread)
+	err = h.service.Create(ctx, &thread)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
 	//TODO: find out what front end needs this result to do/look like
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 
-	json.NewEncoder(w).Encode(newThread)
+	w.WriteHeader(http.StatusOK)
 }

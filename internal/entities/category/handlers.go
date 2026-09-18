@@ -9,6 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 
 	"forum/internal/errs"
+	"forum/internal/pagination"
 )
 
 type CategoryHandler struct {
@@ -20,6 +21,24 @@ func NewHandler(service *CategoryService, validator *validator.Validate) *Catego
 	return &CategoryHandler{service: service, validator: validator}
 }
 
+func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	query := r.URL.Query()
+	pagination, err := pagination.Parse(query)
+	if err != nil {
+		errs.WriteError(w, err)
+		return
+	}
+
+	_, err = h.service.GetAll(ctx, pagination)
+	if err != nil {
+		errs.WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -29,13 +48,12 @@ func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	category, err := h.service.GetByID(ctx, id)
+	//TODO: change _ to category and send to front end
+	_, err = h.service.GetByID(ctx, id)
 
 	//TODO: find out what front end needs this result to do/look like
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 
-	json.NewEncoder(w).Encode(category)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -55,15 +73,13 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Name: input.Name,
 	}
 
-	newCategory, err := h.service.Create(ctx, &category)
+	err = h.service.Create(ctx, &category)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
 	//TODO: find out what front end needs this result to do/look like
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 
-	json.NewEncoder(w).Encode(newCategory)
+	w.WriteHeader(http.StatusOK)
 }
