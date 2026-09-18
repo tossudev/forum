@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+
+{{define "content"}}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Threads in {{.CategoryName}}</title>
+</head>
+<body>
+	{{range .Threads}}
+	<h2>{{.Title}}</h2>
+	<p>Created at {{.DateCreated}}</p>
+	<p>AuthorID: {{.AuthorID}}</p>
+</body>
+</html>
+{{end}}
