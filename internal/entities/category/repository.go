@@ -25,21 +25,12 @@ func (r *CategoryRepository) GetByID(ctx context.Context, id int) (*Category, er
 	return &category, nil
 }
 
-func (r *CategoryRepository) Create(ctx context.Context, category *Category) (*Category, error) {
+func (r *CategoryRepository) Create(ctx context.Context, category *Category) error {
 	query := "INSERT INTO categories (name) VALUES (?);"
-	result, err := r.db.ExecContext(ctx, query, category.Name)
+	_, err := r.db.ExecContext(ctx, query, category.Name)
 	if err != nil {
-		return nil, fmt.Errorf("Category Create: %w", err)
-	}
-	id, err := result.LastInsertId()
-	if err != nil {
-		return nil, fmt.Errorf("Category Create: %w", err)
+		return fmt.Errorf("Category Create: %w", err)
 	}
 
-	var newCategory *Category
-	newCategory, err = r.GetByID(ctx, int(id))
-	if err != nil {
-		return nil, fmt.Errorf("Category Create: %w", err)
-	}
-	return newCategory, nil
+	return nil
 }
