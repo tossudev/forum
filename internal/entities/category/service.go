@@ -23,6 +23,6 @@ func (s *CategoryService) GetByID(ctx context.Context, id int) (*Category, error
 	return s.repo.GetByID(ctx, id)
 }
 
-func (s *CategoryService) Create(ctx context.Context, category *Category) (*Category, error) {
+func (s *CategoryService) Create(ctx context.Context, category *Category) error {
 	return s.repo.Create(ctx, category)
 }

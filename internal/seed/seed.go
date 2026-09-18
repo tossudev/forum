@@ -176,7 +176,7 @@ func seedCategories(ctx context.Context, app *SeedApp) error {
 	}
 
 	for _, newCategory := range categories {
-		_, err := app.CategoryService.Create(ctx, &newCategory)
+		err := app.CategoryService.Create(ctx, &newCategory)
 		if err != nil {
 			return err
 		}
@@ -233,7 +233,7 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 	}
 
 	for _, newThread := range threads {
-		_, err := app.ThreadService.Create(ctx, &newThread)
+		err := app.ThreadService.Create(ctx, &newThread)
 		if err != nil {
 			return err
 		}

@@ -23,20 +23,18 @@ func NewHandler(service *CategoryService, validator *validator.Validate) *Catego
 func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	idString := r.PathValue("id")
-	id, err := strconv.Atoi(idString)
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
 		return
 	}
 
-	category, err := h.service.GetByID(ctx, id)
+	//TODO: change _ to category and send to front end
+	_, err = h.service.GetByID(ctx, id)
 
 	//TODO: find out what front end needs this result to do/look like
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 
-	json.NewEncoder(w).Encode(category)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -56,15 +54,13 @@ func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Name: input.Name,
 	}
 
-	newCategory, err := h.service.Create(ctx, &category)
+	err = h.service.Create(ctx, &category)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
 	//TODO: find out what front end needs this result to do/look like
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 
-	json.NewEncoder(w).Encode(newCategory)
+	w.WriteHeader(http.StatusOK)
 }

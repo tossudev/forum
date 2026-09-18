@@ -34,8 +34,7 @@ func (s *ThreadService) GetByID(ctx context.Context, id int) (*Thread, error) {
 	return s.repo.GetByID(ctx, id)
 }
 
-func (s *ThreadService) Create(ctx context.Context, thread *Thread) (*Thread, error) {
-
+func (s *ThreadService) Create(ctx context.Context, thread *Thread) error {
 	now := time.Now().Format(config.TimeFormat)
 
 	thread.DateCreated = now

@@ -10,6 +10,7 @@ import (
 
 	"forum/internal/errs"
 	"forum/internal/pagination"
+	"forum/internal/session"
 )
 
 type ThreadHandler struct {
@@ -24,61 +25,52 @@ func NewHandler(service *ThreadService, validator *validator.Validate) *ThreadHa
 func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	query := r.URL.Query()
-	idString := r.URL.Query().Get("id")
 	pagination, err := pagination.Parse(query)
 	if err != nil {
 		errs.WriteError(w, err)
 	}
 
-	id, err := strconv.Atoi(idString)
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		errs.WriteError(w, fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput))
 		return
 	}
 
-	threads, err := h.service.GetByCategory(ctx, id, pagination)
+	//TODO: change _ to threads and send to front end
+	_, err = h.service.GetByCategory(ctx, id, pagination)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
-	//TODO: find out what front end needs this result to do/look like
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
-	json.NewEncoder(w).Encode(threads)
 }
 
 func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	idString := r.PathValue("id")
-	id, err := strconv.Atoi(idString)
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
 		return
 	}
 
-	thread, err := h.service.GetByID(ctx, id)
+	//TODO: change _ to thread and send to front end
+	_, err = h.service.GetByID(ctx, id)
 	if err != nil {
 		errs.WriteError(w, err)
 	}
 
-	//TODO: find out what front end needs this result to do/look like
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
-	json.NewEncoder(w).Encode(thread)
 }
 
 func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var input struct {
-		Title string `json:"title"`
-		Body  string `json:"body"`
-		AuthorID int `json:"author_id"`
-		CategoryID int `json:"category_id"`
+		Title      string `json:"title"`
+		Body       string `json:"body"`
+		CategoryID int    `json:"category_id"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&input)
@@ -87,23 +79,27 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	session, ok := session.GetSession(ctx)
+	if session == nil || !ok {
+		errs.WriteError(w, fmt.Errorf("%w: not authenticated", errs.ErrUnauthorized))
+		return
+	}
+	authorID := session.UserID()
+
 	thread := Thread{
-		Title: input.Title,
-		Body:  input.Body,
-		AuthorID: input.AuthorID,
+		Title:      input.Title,
+		Body:       input.Body,
+		AuthorID:   authorID,
 		CategoryID: input.CategoryID,
 	}
 
-	newThread, err := h.service.Create(ctx, &thread)
+	err = h.service.Create(ctx, &thread)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
 	//TODO: find out what front end needs this result to do/look like
-	w.Header().Set("Content-Type", "application/json")
+
 	w.WriteHeader(http.StatusOK)
-
-	json.NewEncoder(w).Encode(newThread)
-
 }

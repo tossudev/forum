@@ -56,7 +56,7 @@ func (s *UserService) Authenticate(ctx context.Context, input CredentialsSubmiss
 	}
 
 	if !matches {
-		return 0, fmt.Errorf("%w: invalid credentials", errs.ErrsUnauthorized)
+		return 0, fmt.Errorf("%w: invalid credentials", errs.ErrUnauthorized)
 	}
 
 	return user.ID, nil
