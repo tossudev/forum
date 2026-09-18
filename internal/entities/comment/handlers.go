@@ -39,9 +39,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
-	threadIDstring := r.PathValue("id")
-	threadID, err := strconv.Atoi(threadIDstring)	
+	threadID, err := strconv.Atoi(r.PathValue("id"))	
 	if err != nil {
 		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
 		return
@@ -61,11 +59,10 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(newComment)
+	json.NewEncoder(w).Encode(newComment) //message: success and error (nil?)
 }
 
 func (h *CommentHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-
 	ctx := r.Context()
 	idString := r.PathValue("id")
 	id, err := strconv.Atoi(idString)
@@ -86,13 +83,12 @@ func (h *CommentHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *CommentHandler) GetByThread(w http.ResponseWriter, r *http.Request) {
-
 	pagination, err := pagination.Parse(r.URL.Query())	
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
-
+	
 	idString := r.PathValue("id")
 	id, err := strconv.Atoi(idString)
 	if err != nil {
@@ -110,7 +106,6 @@ func (h *CommentHandler) GetByThread(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(comments)
 }
-
 
 func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	//TODO
