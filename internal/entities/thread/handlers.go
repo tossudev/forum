@@ -82,7 +82,7 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	session, ok := session.GetSession(ctx)
 	if session == nil || !ok {
-		errs.WriteError(w, fmt.Errorf("%w: not authenticated", errs.ErrsUnauthorized))
+		errs.WriteError(w, fmt.Errorf("%w: not authenticated", errs.ErrUnauthorized))
 		return
 	}
 	authorID := session.UserID()
