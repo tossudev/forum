@@ -10,6 +10,7 @@ import (
 	"forum/internal/entities/thread"
 	"forum/internal/entities/user"
 	"forum/internal/middleware"
+	"forum/internal/render"
 	"forum/internal/session"
 
 	//"forum/internal/middleware"
@@ -23,7 +24,7 @@ type App struct {
 	LikeHandler     *like.LikeHandler
 }
 
-func InitHandlers(db *sql.DB, validate *validator.Validate) http.Handler {
+func InitHandlers(db *sql.DB, validate *validator.Validate, renderer *render.Renderer) http.Handler {
 	sessionRepo := session.NewRepo(db)
 	sm := session.NewSessionManager(sessionRepo, "session_token", 30*24*time.Hour) // session expires after a 30 days of inactivity
 
@@ -33,11 +34,11 @@ func InitHandlers(db *sql.DB, validate *validator.Validate) http.Handler {
 
 	categoryRepo := category.NewRepository(db)
 	categoryService := category.NewService(categoryRepo)
-	categoryHandler := category.NewHandler(categoryService, validate)
+	categoryHandler := category.NewHandler(categoryService, validate, renderer)
 
 	threadRepo := thread.NewRepository(db)
 	threadService := thread.NewService(threadRepo)
-	threadHandler := thread.NewHandler(threadService, validate)
+	threadHandler := thread.NewHandler(threadService, validate, renderer)
 
 	likeRepo := like.NewRepository(db)
 	likeService := like.NewService(likeRepo)

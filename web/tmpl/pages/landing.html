@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+
+{{ define "content" }}
+
+<div class="contents">
+	<p>{{.Path}}</p>
+
+	<table class="listing-container">
+		<tr class="listing-header">
+			<th>Category</th>
+			<th>Threads</th>
+		</tr>
+		
+		{{range .Categories}}
+		<tr class="listing" data-href="/categories/{{.ID}}">
+			<td>{{.Name}}</td>
+			<td>0</td>
+		</tr>
+		{{end}}
+	</table>
+</div>
+
+{{ end }}
