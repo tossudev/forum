@@ -8,6 +8,7 @@ import (
 
 	"forum/internal/config"
 	"forum/internal/database"
+	"forum/internal/render"
 	"forum/internal/routes"
 	"forum/internal/seed"
 	"forum/internal/validate"
@@ -26,7 +27,8 @@ func main() {
 	slog.Info("connected to database", "db", cfg.DbPath)
 
 	validator := validate.InitValidator()
-	handler := routes.InitHandlers(db, validator)
+	renderer := render.NewRenderer()
+	handler := routes.InitHandlers(db, validator, renderer)
 
 	err = setupDB(db, cfg.Reset, cfg.MigrationsPath)
 	if err != nil {

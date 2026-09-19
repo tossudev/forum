@@ -10,17 +10,22 @@ import (
 
 	"forum/internal/errs"
 	"forum/internal/pagination"
+	"forum/internal/render"
 	"forum/internal/session"
-	"forum/internal/utils"
 )
 
 type ThreadHandler struct {
 	service   *ThreadService
 	validator *validator.Validate
+	renderer  *render.Renderer
 }
 
-func NewHandler(service *ThreadService, validator *validator.Validate) *ThreadHandler {
-	return &ThreadHandler{service: service, validator: validator}
+func NewHandler(service *ThreadService, validator *validator.Validate, renderer *render.Renderer) *ThreadHandler {
+	return &ThreadHandler{
+		service:   service,
+		validator: validator,
+		renderer:  renderer,
+	}
 }
 
 func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
@@ -37,21 +42,20 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//TODO: change _ to threads and send to front end
 	threads, err := h.service.GetByCategory(ctx, id, pagination)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
-	data := TemplateData{
-		Category: id,
-		Threads:  threads,
+	data := ThreadsPage{
+		// TODO: use category name instead of ID
+		Path:    fmt.Sprintf("⌂ Home / CategoryID %d", id),
+		Threads: threads,
+		Page:    pagination.Page,
 	}
-	if err := utils.Templates.ExecuteTemplate(w, "threads.html", data); err != nil {
-		errs.WriteError(w, err)
-		return
-	}
+
+	h.renderer.RenderPage(w, "threads.html", data)
 }
 
 func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {

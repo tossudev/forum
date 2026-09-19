@@ -25,6 +25,9 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	mux.HandleFunc("POST /like/thread", app.LikeHandler.LikeThread)
 	mux.HandleFunc("POST /like/comment", app.LikeHandler.LikeComment)
 
+	fs := http.FileServer(http.Dir("./web/static"))
+	mux.Handle("GET /web/static/", http.StripPrefix("/web/static/", fs))
+
 	return mux
 
 }

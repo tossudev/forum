@@ -9,7 +9,8 @@ type Thread struct {
 	CategoryID  int    `json:"category_id"`
 }
 
-type TemplateData struct {
-	Category int
-	Threads  []Thread
+type ThreadsPage struct {
+	Path    string
+	Threads []Thread
+	Page    int
 }

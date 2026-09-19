@@ -5,6 +5,8 @@ type Category struct {
 	Name string `json:"name"`
 }
 
-type TemplateData struct {
+type CategoriesPage struct {
+	Path       string
 	Categories []Category
+	Page       int
 }
