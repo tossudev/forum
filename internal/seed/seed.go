@@ -211,11 +211,10 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 			## Yellowface
 			I read Yellowface first. For awhile there, I was hearing about it everywhere, and the premise semeed interesting, so I got it from the library. Despite how excellent the writing is (or perhaps
 			*because* of how excellent the writing is), it took me a long time to finish it. Kuang is very good at getting you into the headpsace of her characters, and this often makes me feel very 
-			uncomfortable. Because her characters are very human. They are relatable in the things that I try not to think about in myself. 
+			uncomfortable. Because her characters are very human.
 			
-			In Yellowface, the POV character starts out by doing something that I'd like to think I'd never be tempted to do. But her justifications to herself feel so convincing in the moment that I have to
-			put the book down and remind myself that she if Not A Good Person. Then throughout the book we are left with her crushing anxiety that she will be caught and her increasingly desperate actions to 
-			try to continue the ruse.
+			Yellowface puts you so deep into the main character's POV that, despite the fact that you could argue that everything causing her anxiety and paranoia is entirely her fault, that anxiety and paranoia
+			is contagious. If you described the character to someone else, she wouldn't seem very sympathetic. But you end up feeling for her anyway. That is skillful writing.
 			
 			## Surprise: Kuang is actually a fantasy writer
 			Because I started with Yellowface, I find myself continuously surprised to find that Kuang is actually a fantasy writer. Every other novel she has published (the Poppy War trilogy, Babel, and now Katabasis)
