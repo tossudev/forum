@@ -195,14 +195,58 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 			CategoryID: 2,
 		},
 		{
-			Title:      "The best book I've read this week",
-			Body:       "It's called There Is No Antimimetic Division. #scifi",
+			Title: "There Is No Antimimetics Divison",
+			Body: `I was not expecting this book to be scary. 
+			
+			Maybe a bit silly to be surprised that the book about paranormal phenomena that prevent you from remembering them is scary :satisfied:
+			
+			Have you read it? What did you think of it?`,
 			AuthorID:   4,
 			CategoryID: 2,
 		},
 		{
-			Title:      "My favourite author",
-			Body:       "",
+			Title: "My favourite author",
+			Body: `# RF Kuang, or How Many Excellent Books Does It To Make An All-Time Author
+			
+			## Yellowface
+			I read Yellowface first. For awhile there, I was hearing about it everywhere, and the premise semeed interesting, so I got it from the library. Despite how excellent the writing is (or perhaps
+			*because* of how excellent the writing is), it took me a long time to finish it. Kuang is very good at getting you into the headpsace of her characters, and this often makes me feel very 
+			uncomfortable. Because her characters are very human. They are relatable in the things that I try not to think about in myself. 
+			
+			In Yellowface, the POV character starts out by doing something that I'd like to think I'd never be tempted to do. But her justifications to herself feel so convincing in the moment that I have to
+			put the book down and remind myself that she if Not A Good Person. Then throughout the book we are left with her crushing anxiety that she will be caught and her increasingly desperate actions to 
+			try to continue the ruse.
+			
+			## Surprise: Kuang is actually a fantasy writer
+			Because I started with Yellowface, I find myself continuously surprised to find that Kuang is actually a fantasy writer. Every other novel she has published (the Poppy War trilogy, Babel, and now Katabasis)
+			is in the fantasy realm. This is fantastic for me, as she writes just the kind of fantasy I like. Worlds that are very much like our own, but with a twist that makes things interesting. I also 
+			love the way she does magic systems. They have rules and logic and, again, are intentionally built to serve the story she wants to tell. She is also interested in language and at least twice 
+			has incorporated that into her magic systems as well.
+			
+			### An Aside: Katabasis
+			Can I just say, I don't think I have read anyone who can write a toxic academic culture quite as well as Kuang. She really captures the kind of pressure that makes me feel like, yeah, I would
+			**literally go to hell** if that is what it took to complete my phd.
+			
+			## How Many Excellent Novels Does It Take?
+			Just on the strength of Babel and the first Poppy War book (I haven't yet read the other two), Kuang sat as my favourite author that I have discovered in the last couple years. This was not
+			an easy feat, as I have also discovered Jeff VanderMeer and China Mieville in that time, and all three are now ranked very highly in my all-time favourite authors.
+			
+			And now we have Katabasis, in which the aforementioned students literally go to hell to bring back their thesis advisor. I love the way Kuang uses real literature to inform the characters' 
+			knowledge of hell and how to get survive and navigate once there. I would love to see her research notes, haha.
+			
+			> Over the past month she had become a self-taught expert in Tartarology, which was not one of her subfields. These days it was not *anyone's* subfield, as Tartarologists rarely survived to 
+			> publish their work. Since Professor Grimes's demise she had spent her every waking moment reading every monograph, paper, and shred of correspondence she could find on the journey to Hell
+			> and back. At least a dozen scholars had made the trip and lived to credibly tell the tale, but very few in the past century. All existing sources were unreliable to different degrees and 
+			> devilishly tricky to translate besides. Dante's account was so distracted with spiteful potshots that the reportage got lost within. T.S. Eliot had supplied some of the more recent and 
+			> detailed landscape descriptions on record, but *The Waste Land* was so self-referential that its status as a sojourner's account was under serious dispute. Orpheus's notes, already in archaic 
+			> Greek, were largely in shreds like the rest of him. And Aeneas--well, that was all Roman propaganda. Possibly there were more accounts in lesser-known languages--Alice could have spent decades
+			> poring through the archives--but her funding clock could not wait. Her progress review loomed at the end of the term, and without a living and breathing advisor, the best Alice could hope for was
+			> an extension of funding sufficient to last until she transferred elsewhere and found a new advisor.
+			> 
+			> But she didn't want to transfer elsewhere, she wanted a Cambridge degree. And she didn't want any advisor, she wanted Professor Jacob Grimes, department chair, Nobel Prize laureate, and twice-elected
+			> president of the Royal Academy of Magick. She wanted the golden recommendation letter that opened every door. She wanted to be at the top of every pile. This meant Alice had to go to Hell, and she 
+			> had to go today.
+			And that's just page 2.`,
 			AuthorID:   2,
 			CategoryID: 4,
 		},
@@ -221,6 +265,12 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 			is half personal memoir and half biography of a natural history dude (natural historialist?) from the 1800's who attempted to chronicle every fish in the world. Most recently, I have
 			enjoyed a book called Beasts of the Sea (Iida Turpeinen), which details humanity's discovery, extermination of, and then retrospective fascination with the Stellar's sea cow. Beasts of the Sea
 			is listed as fiction, but it feels like a history, which brings me back to Moby Dick...`,
+			AuthorID:   1,
+			CategoryID: 1,
+		},
+		{
+			Title:      "",
+			Body:       "",
 			AuthorID:   1,
 			CategoryID: 1,
 		},
@@ -289,6 +339,34 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 			Body: "Do people read Dean Koontz in Europe?",
 			ThreadID: 3,
 			AuthorID: 5,
+		},
+		{
+			Body: `> "I am here to flense and render down the White Whale."
+			> "Flense." He scribbled. "Render down. White Whale. That would be *Moby Dick*, then?"
+			> "You read!" I cried, taking that book from under my arm.
+			> "When the mood is on me." He underlined his scribbles. "We've had the Beast in the house some twenty years. I fought it twice. It is overweight in pages and the author's intent."
+			> "It is," I agreed. "I picked it up and laid it down ten times until last month, when a movie studio signed me to it. Now I must win out for keeps."
+			Green Shadows, White Whale by Ray Bradbury
+
+			*Overweight in pages and the author's intent* indeed
+			`,
+			ThreadID: 5,
+			AuthorID: 3,
+		},
+		{
+			Body: `I think of the ..short story? novella?.. from Jeff VanderMeer's City of Saints & Madmen called The Hoegbotton Guide to the Early History of Ambergris, which is, ostensibly, a tourism pamphlet..
+			despite being nearly 100 pages long and containing many many footnotes.`,
+			ThreadID: 5,
+			AuthorID: 2,
+		},
+		{
+			Body: `The Bradbury quote above reminds me of a contemporary review of Moby Dick that I read in the Norton Classics edition that says, "We think he runs into the grave error of giving us altogether
+			too much for our money".
+
+			There is another that states "The idea of a connected and collected story has obviously visited and abandoned its writer again and again in the course of composition". Which, while perhaps
+			technically true, brings to mind the meme about Pride and Prejudice where it gets 1 star because it's just a bunch of people visiting each other's houses.`,
+			ThreadID: 5,
+			AuthorID: 2,
 		},
 		{
 			Body: "",
