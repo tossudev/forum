@@ -222,10 +222,6 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 			love the way she does magic systems. They have rules and logic and, again, are intentionally built to serve the story she wants to tell. She is also interested in language and at least twice 
 			has incorporated that into her magic systems as well.
 			
-			### An Aside: Katabasis
-			Can I just say, I don't think I have read anyone who can write a toxic academic culture quite as well as Kuang. She really captures the kind of pressure that makes me feel like, yeah, I would
-			**literally go to hell** if that is what it took to complete my phd.
-			
 			## How Many Excellent Novels Does It Take?
 			Just on the strength of Babel and the first Poppy War book (I haven't yet read the other two), Kuang sat as my favourite author that I have discovered in the last couple years. This was not
 			an easy feat, as I have also discovered Jeff VanderMeer and China Mieville in that time, and all three are now ranked very highly in my all-time favourite authors.
