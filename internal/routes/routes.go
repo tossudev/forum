@@ -25,7 +25,8 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	mux.HandleFunc("GET /comments/{id}", app.CommentHandler.GetByID)
 	mux.HandleFunc("GET /threads/{id}/comments", app.CommentHandler.GetByThread)
 	mux.HandleFunc("POST /threads/{id}/comments", app.CommentHandler.Create)
-	//TODO: on comments --> force delete
+	//TODO: fix the delete endpoint, test throughly
+	//mux.HandleFunc("DELETE /comments/{id}", app.CommentHandler.Delete)
 
 	// Like routes
 	mux.HandleFunc("POST /like/thread", app.LikeHandler.LikeThread)

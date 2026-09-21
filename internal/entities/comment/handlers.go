@@ -53,7 +53,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		ThreadID: threadID,
 		AuthorID: sess.UserID(),
 	}
-	_, err = h.service.Create(r.Context(), &req) 
+	_, err = h.service.Create(r.Context(), &req)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
@@ -70,13 +70,13 @@ func (h *CommentHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.service.GetByID(ctx, id) 
+	_, err = h.service.GetByID(ctx, id)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK) 
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *CommentHandler) GetByThread(w http.ResponseWriter, r *http.Request) {
