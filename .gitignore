@@ -12,6 +12,10 @@
 !/.gitignore
 
 !*.go
+!*.html
+!*.css
+!*.js
+
 !go.sum
 !go.mod
 

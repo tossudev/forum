@@ -14,6 +14,7 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 
 	// Category routes
 	mux.HandleFunc("POST /categories", app.CategoryHandler.Create)
+	mux.HandleFunc("GET /", app.CategoryHandler.GetAll)
 
 	// Thread routes
 	mux.HandleFunc("GET /categories/{id}", app.ThreadHandler.GetByCategory)
@@ -29,6 +30,9 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	// Like routes
 	mux.HandleFunc("POST /like/thread", app.LikeHandler.LikeThread)
 	mux.HandleFunc("POST /like/comment", app.LikeHandler.LikeComment)
+
+	fs := http.FileServer(http.Dir("./web/static"))
+	mux.Handle("GET /web/static/", http.StripPrefix("/web/static/", fs))
 
 	return mux
 
