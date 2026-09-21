@@ -55,7 +55,6 @@ CREATE TABLE IF NOT EXISTS comment_likes (
 	PRIMARY KEY (comment_id, user_id)
 );
 
-
 CREATE TABLE IF NOT EXISTS categories (
 	id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL
