@@ -69,8 +69,7 @@ func (r *ThreadRepository) Delete(ctx context.Context, threadID int, userID int)
 		return fmt.Errorf("Thread search: %w", err)
 	}
 
-	threadCreator := thread.AuthorID
-	if userID != threadCreator {
+	if userID != thread.AuthorID {
 		return fmt.Errorf("%w: user is not thread creator", errs.ErrUnauthorized)
 	}
 
