@@ -55,6 +55,13 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	// Redirect to home page if user is already logged in
+	session := session.GetSession(r)
+	if session != nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	var input CredentialsSubmission
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
