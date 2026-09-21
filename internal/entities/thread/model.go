@@ -8,3 +8,9 @@ type Thread struct {
 	AuthorID    int    `json:"author_id"`
 	CategoryID  int    `json:"category_id"`
 }
+
+type ThreadsPage struct {
+	Path    string
+	Threads []Thread
+	Page    int
+}

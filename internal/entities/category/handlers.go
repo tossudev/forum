@@ -10,15 +10,21 @@ import (
 
 	"forum/internal/errs"
 	"forum/internal/pagination"
+	"forum/internal/render"
 )
 
 type CategoryHandler struct {
 	service   *CategoryService
 	validator *validator.Validate
+	renderer  *render.Renderer
 }
 
-func NewHandler(service *CategoryService, validator *validator.Validate) *CategoryHandler {
-	return &CategoryHandler{service: service, validator: validator}
+func NewHandler(service *CategoryService, validator *validator.Validate, renderer *render.Renderer) *CategoryHandler {
+	return &CategoryHandler{
+		service:   service,
+		validator: validator,
+		renderer:  renderer,
+	}
 }
 
 func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
@@ -30,13 +36,19 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.service.GetAll(ctx, pagination)
+	categories, err := h.service.GetAll(ctx, pagination)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	data := CategoriesPage{
+		Path:       "⌂ Home",
+		Categories: categories,
+		Page:       pagination.Page,
+	}
+
+	h.renderer.RenderPage(w, "landing.html", data)
 }
 
 func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
