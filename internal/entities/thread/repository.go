@@ -61,3 +61,13 @@ func (r *ThreadRepository) Create(ctx context.Context, thread *Thread) error {
 
 	return nil
 }
+
+func (r *ThreadRepository) Delete(ctx context.Context, id int) error {
+	query := "DELETE from threads WHERE id = ?;"
+	_, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("Thread delete: %w", err)
+	}
+
+	return nil
+}

@@ -115,3 +115,21 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
+		return
+	}
+
+	err = h.service.Delete(ctx, id)
+	if err != nil {
+		errs.WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

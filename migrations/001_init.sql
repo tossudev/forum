@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS threads (
 	date_created TEXT NOT NULL,
 	author_id INTEGER NOT NULL,
 	category_id INTEGER NOT NULL,
-	FOREIGN KEY(author_id) REFERENCES users(id),
-	FOREIGN KEY(category_id) REFERENCES categories(id)
+	FOREIGN KEY(author_id) REFERENCES users(id) ON DELETE CASCADE,
+	FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS comments (
@@ -33,16 +33,16 @@ CREATE TABLE IF NOT EXISTS comments (
 	date_created TEXT NOT NULL,
 	thread_id INTEGER NOT NULL,
 	author_id INTEGER NOT NULL,
-	FOREIGN KEY(thread_id) REFERENCES threads(id),
-	FOREIGN KEY(author_id) REFERENCES users(id)
+	FOREIGN KEY(thread_id) REFERENCES threads(id) ON DELETE CASCADE,
+	FOREIGN KEY(author_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS thread_likes (
 	thread_id INTEGER NOT NULL,
 	user_id INTEGER NOT NULL,
 	thread_like BOOLEAN NOT NULL,
-	FOREIGN KEY(thread_id) REFERENCES threads(id),
-	FOREIGN KEY(user_id) REFERENCES users(id),
+	FOREIGN KEY(thread_id) REFERENCES threads(id) ON DELETE CASCADE,
+	FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
 	PRIMARY KEY (thread_id, user_id)
 );
 
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS comment_likes (
 	user_id INTEGER NOT NULL,
 	comment_like BOOLEAN NOT NULL,
 	FOREIGN KEY(comment_id) REFERENCES comments(id) ON DELETE CASCADE,
-	FOREIGN KEY(user_id) REFERENCES users(id),
+	FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
 	PRIMARY KEY (comment_id, user_id)
 );
 
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS images (
 	comment_id INTEGER,
 	thread_id INTEGER,
 	FOREIGN KEY(comment_id) REFERENCES comments(id) ON DELETE CASCADE,
-	FOREIGN KEY(thread_id) REFERENCES threads(id)
+	FOREIGN KEY(thread_id) REFERENCES threads(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
