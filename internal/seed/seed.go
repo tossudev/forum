@@ -138,6 +138,12 @@ func seedUsers(ctx context.Context, app *SeedApp) error {
 			RoleID:   1,
 		},
 		{
+			Username: "Stacey",
+			Email:    "laura@stacey.com",
+			Password: password.Password{},
+			RoleID:   1,
+		},
+		{
 			Username: "",
 			Email:    "",
 			Password: password.Password{},
@@ -198,22 +204,38 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 			Title: "There Is No Antimimetics Divison",
 			Body: `I was not expecting this book to be scary. 
 			
-			Maybe a bit silly to be surprised that the book about paranormal phenomena that prevent you from remembering them is scary :satisfied:
+			Maybe a bit silly to be surprised that the book about paranormal phenomena that prevent you from remembering them is scary :joy:
 			
 			Have you read it? What did you think of it?`,
 			AuthorID:   4,
 			CategoryID: 2,
 		},
 		{
-			Title:      "",
-			Body:       "",
-			AuthorID:   1,
-			CategoryID: 1,
+			Title: "Books that I would recommend just based on the first chapter: Katabasis by RF Kuang",
+			Body: `Would you go to hell to get a good grade?
+			
+			> Over the past month she had become a self-taught expert in Tartarology, which was not one of her subfields. These days it was not *anyone's* subfield, as Tartarologists rarely survived to 
+            > publish their work. Since Professor Grimes's demise she had spent her every waking moment reading every monograph, paper, and shred of correspondence she could find on the journey to Hell
+            > and back. At least a dozen scholars had made the trip and lived to credibly tell the tale, but very few in the past century. All existing sources were unreliable to different degrees and 
+            > devilishly tricky to translate besides. Dante's account was so distracted with spiteful potshots that the reportage got lost within. T.S. Eliot had supplied some of the more recent and 
+            > detailed landscape descriptions on record, but *The Waste Land* was so self-referential that its status as a sojourner's account was under serious dispute. Orpheus's notes, already in archaic 
+            > Greek, were largely in shreds like the rest of him. And Aeneas--well, that was all Roman propaganda. Possibly there were more accounts in lesser-known languages--Alice could have spent decades
+            > poring through the archives--but her funding clock could not wait. Her progress review loomed at the end of the term, and without a living and breathing advisor, the best Alice could hope for was
+            > an extension of funding sufficient to last until she transferred elsewhere and found a new advisor.
+            > 
+            > But she didn't want to transfer elsewhere, she wanted a Cambridge degree. And she didn't want any advisor, she wanted Professor Jacob Grimes, department chair, Nobel Prize laureate, and twice-elected
+            > president of the Royal Academy of Magick. She wanted the golden recommendation letter that opened every door. She wanted to be at the top of every pile. This meant Alice had to go to Hell, and she 
+            > had to go today.
+
+            And that's just page 2.
+			`,
+			AuthorID:   2,
+			CategoryID: 2,
 		},
 		{
 			Title:      "What are some good libraries in Helsinki???",
 			Body:       "Help! I am visiting Helsinki for the weekend and would like to know, what are your favourite libraries in the city?? I will be there for three days and want to visit any cool or unique libraries you have. Also, any cool bookstores? Thanks!",
-			AuthorID:   1,
+			AuthorID:   5,
 			CategoryID: 1,
 		},
 		{
@@ -226,7 +248,19 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 			enjoyed a book called Beasts of the Sea (Iida Turpeinen), which details humanity's discovery, extermination of, and then retrospective fascination with the Stellar's sea cow. Beasts of the Sea
 			is listed as fiction, but it feels like a history, which brings me back to Moby Dick...`,
 			AuthorID:   1,
-			CategoryID: 1,
+			CategoryID: 3,
+		},
+		{
+			Title:      "Nonfictin",
+			Body:       "What nonfiction are you guys reading right now? Anything interesting?",
+			AuthorID:   5,
+			CategoryID: 4,
+		},
+		{
+			Title:      "Music??",
+			Body:       "What kind of music do you guys listen to?",
+			AuthorID:   5,
+			CategoryID: 5,
 		},
 		{
 			Title:      "",
@@ -320,7 +354,12 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 			There is another that states "The idea of a connected and collected story has obviously visited and abandoned its writer again and again in the course of composition". Which, while perhaps
 			technically true, brings to mind the meme about Pride and Prejudice where it gets 1 star because it's just a bunch of people visiting each other's houses.`,
 			ThreadID: 5,
-			AuthorID: 2,
+			AuthorID: 6,
+		},
+		{
+			Body: "Man, Yellowface made me feel so anxious the whole time I was reading it..",
+			ThreadID: 3,
+			AuthorID: 5,
 		},
 		{
 			Body: "",
