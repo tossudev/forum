@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "de7ba9f7-351b-4246-86cf-696aa8236acc",
+    "_postman_id": "9b705cfc-2174-4ec9-96ea-635083308953",
     "name": "Literary-Lions-Forum",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "57480727",
-    "_collection_link": "https://go.postman.co/collection/57480727-de7ba9f7-351b-4246-86cf-696aa8236acc?source=collection_link"
+    "_exporter_id": "57299917",
+    "_collection_link": "https://go.postman.co/collection/57299917-9b705cfc-2174-4ec9-96ea-635083308953?source=collection_link"
   },
   "item": [
     {
@@ -199,6 +199,82 @@
               "path": [
                 "like",
                 "comment"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "comments",
+      "item": [
+        {
+          "name": "Get comments by thread ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/threads/1/comments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "threads",
+                "1",
+                "comments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get comment by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/comments/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "comments",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create comment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"body\": \"Testing from Postman\" }\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/threads/1/comments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "threads",
+                "1",
+                "comments"
               ]
             }
           },
