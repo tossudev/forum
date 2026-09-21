@@ -56,6 +56,34 @@ func (sm *SessionManager) Login(userID int, w http.ResponseWriter, r *http.Reque
 	return nil
 }
 
+func (sm *SessionManager) Logout(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+
+	session, ok := GetSession(ctx)
+	if session == nil || !ok {
+		return fmt.Errorf("getting session")
+	}
+
+	if err := sm.repo.deleteSession(ctx, session.id); err != nil {
+		return fmt.Errorf("deleting session: %w", err)
+	}
+
+	// delete cookie
+	cookie := &http.Cookie{
+		Name:     sm.cookieName,
+		Value:    "",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		// Secure: true, // TODO: Use when HTTPS is implemented
+		Expires: session.idleExpiresAt,
+		MaxAge:  -1, // delete cookie
+	}
+
+	http.SetCookie(w, cookie)
+	return nil
+}
+
 func (sm *SessionManager) NewSession(userID int) (*Session, error) {
 	sessionID, err := generateToken(32) // 32 bytes or 256 bits of randomness
 	if err != nil {

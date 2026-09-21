@@ -78,3 +78,14 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Logged in successfully"})
 }
+
+func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	if err := h.sm.Logout(w, r); err != nil {
+		errs.WriteError(w, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Logged out successfully"})
+}
