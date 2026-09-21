@@ -11,7 +11,7 @@ import (
 	"forum/internal/entities/thread"
 	"forum/internal/entities/user"
 
-	//"forum/internal/entities/comment"
+	"forum/internal/entities/comment"
 	"forum/internal/entities/like"
 	"forum/internal/password"
 )
@@ -54,8 +54,8 @@ type SeedApp struct {
 	UserService     *user.UserService
 	CategoryService *category.CategoryService
 	ThreadService   *thread.ThreadService
-	//CommentService *comment.CommentService
-	LikeService *like.LikeService
+	CommentService  *comment.CommentService
+	LikeService     *like.LikeService
 }
 
 func initSeedHandlers(db *sql.DB) SeedApp {
@@ -68,8 +68,8 @@ func initSeedHandlers(db *sql.DB) SeedApp {
 	threadRepo := thread.NewRepository(db)
 	threadService := thread.NewService(threadRepo)
 
-	/*commentRepo := comment.NewRepository(db)
-	commentService := comment.NewService(commentRepo)*/
+	commentRepo := comment.NewRepository(db)
+	commentService := comment.NewService(commentRepo)
 
 	likeRepo := like.NewRepository(db)
 	likeService := like.NewService(likeRepo)
@@ -78,8 +78,8 @@ func initSeedHandlers(db *sql.DB) SeedApp {
 		UserService:     userService,
 		CategoryService: categoryService,
 		ThreadService:   threadService,
-		//CommentService: commentService,
-		LikeService: likeService,
+		CommentService:  commentService,
+		LikeService:     likeService,
 	}
 
 	return app
@@ -95,9 +95,9 @@ func seedDatabase(ctx context.Context, app *SeedApp) error {
 	if err := seedThreads(ctx, app); err != nil {
 		return fmt.Errorf("seedThreads: %w", err)
 	}
-	/*if err := seedComments(ctx, app); err != nil {
+	if err := seedComments(ctx, app); err != nil {
 		return fmt.Errorf("seedComments: %w", err)
-	}*/
+	}
 	if err := seedLikes(ctx, app); err != nil {
 		return fmt.Errorf("seedLikes: %w", err)
 	}
@@ -242,30 +242,30 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 	return nil
 }
 
-/*func seedComments(ctx context.Context, app *SeedApp) error {
+func seedComments(ctx context.Context, app *SeedApp) error {
 	comments := []comment.Comment{
 		{
-			Body: "What book?",
+			Body:     "What book?",
 			ThreadID: 1,
 			AuthorID: 1,
 		},
 		{
-			Body: "What do you mean?",
+			Body:     "What do you mean?",
 			ThreadID: 1,
 			AuthorID: 3,
 		},
 		{
-			Body: "What was the book?",
+			Body:     "What was the book?",
 			ThreadID: 1,
 			AuthorID: 1,
 		},
 		{
-			Body: "What book??",
+			Body:     "What book??",
 			ThreadID: 1,
 			AuthorID: 3,
 		},
 		{
-			Body: "The name of the book that you read!!",
+			Body:     "The name of the book that you read!!",
 			ThreadID: 1,
 			AuthorID: 1,
 		},
@@ -276,22 +276,22 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 			AuthorID: 4,
 		},
 		{
-			Body: "Maybe Croatians just have good taste *shrug*",
+			Body:     "Maybe Croatians just have good taste *shrug*",
 			ThreadID: 3,
 			AuthorID: 2,
 		},
 		{
-			Body: "You may be right. There was also a beautiful version of Wuthering Heights that I was tempted to pick up. No Dean Koontz in Croatia, I guess.",
+			Body:     "You may be right. There was also a beautiful version of Wuthering Heights that I was tempted to pick up. No Dean Koontz in Croatia, I guess.",
 			ThreadID: 3,
 			AuthorID: 4,
 		},
 		{
-			Body: "Do people read Dean Koontz in Europe?",
+			Body:     "Do people read Dean Koontz in Europe?",
 			ThreadID: 3,
 			AuthorID: 5,
 		},
 		{
-			Body: "",
+			Body:     "",
 			ThreadID: 1,
 			AuthorID: 1,
 		},
@@ -305,7 +305,7 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 	}
 
 	return nil
-}*/
+}
 
 func seedLikes(ctx context.Context, app *SeedApp) error {
 	threadLikes := []like.ThreadLikeRequest{
@@ -321,13 +321,13 @@ func seedLikes(ctx context.Context, app *SeedApp) error {
 		},
 	}
 
-	/*commentLikes := []like.CommentLikeRequest{
+	commentLikes := []like.CommentLikeRequest{
 		{
 			CommentID: 1,
-			UserID: 1,
-			Like:
+			UserID:    1,
+			Like:      true,
 		},
-	}*/
+	}
 
 	for _, newThreadLike := range threadLikes {
 		err := app.LikeService.LikeThread(ctx, newThreadLike)
@@ -336,12 +336,12 @@ func seedLikes(ctx context.Context, app *SeedApp) error {
 		}
 	}
 
-	/*for _, newCommentLike := range commentLikes {
+	for _, newCommentLike := range commentLikes {
 		err := app.LikeService.LikeComment(ctx, newCommentLike)
 		if err != nil {
 			return err
 		}
-	}*/
+	}
 
 	return nil
 }
