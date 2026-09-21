@@ -50,7 +50,7 @@ func (r *CommentRepository) GetByID(ctx context.Context, id int) (Comment, error
 
 func (r *CommentRepository) GetByThread(ctx context.Context, id int, pag pagination.Pagination) ([]Comment, error) {
 
-  query := `SELECT id,
+	query := `SELECT id,
  				   body,
 				   date_created,
 				   thread_id,
@@ -62,7 +62,9 @@ func (r *CommentRepository) GetByThread(ctx context.Context, id int, pag paginat
 	comments := []Comment{}
 
 	rows, err := r.db.QueryContext(ctx, query, id, pag.Limit(), pag.Offset())
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 
 	for rows.Next() {
@@ -74,22 +76,28 @@ func (r *CommentRepository) GetByThread(ctx context.Context, id int, pag paginat
 		comments = append(comments, comment)
 	}
 	err = rows.Err()
-	if err != nil { 
-		return nil, err 
+	if err != nil {
+		return nil, err
 	}
-	
-	return comments, nil 
+
+	return comments, nil
 }
 
 func (r *CommentRepository) Delete(ctx context.Context, id int) error {
 
-	query := `DELETE FROM comments WHERE id = ?` 
+	query := `DELETE FROM comments WHERE id = ?`
 	res, err := r.db.ExecContext(ctx, query, id)
-	if err != nil { return err }
-	
-	amount, err := res.RowsAffected()
-	if err != nil { return err }
-	if amount == 0 { return errs.ErrNotFound }
+	if err != nil {
+		return err
+	}
 
-	return nil 
+	amount, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if amount == 0 {
+		return errs.ErrNotFound
+	}
+
+	return nil
 }
