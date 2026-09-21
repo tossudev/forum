@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"forum/internal/entities/category"
+	"forum/internal/entities/comment"
 	"forum/internal/entities/like"
 	"forum/internal/entities/thread"
 	"forum/internal/entities/user"
@@ -21,6 +22,7 @@ type App struct {
 	UserHandler     *user.UserHandler
 	CategoryHandler *category.CategoryHandler
 	ThreadHandler   *thread.ThreadHandler
+	CommentHandler  *comment.CommentHandler
 	LikeHandler     *like.LikeHandler
 }
 
@@ -40,6 +42,10 @@ func InitHandlers(db *sql.DB, validate *validator.Validate, renderer *render.Ren
 	threadService := thread.NewService(threadRepo)
 	threadHandler := thread.NewHandler(threadService, validate, renderer)
 
+	commentRepo := comment.NewRepository(db)
+	commentService := comment.NewService(commentRepo)
+	commentHandler := comment.NewHandler(commentService, validate)
+
 	likeRepo := like.NewRepository(db)
 	likeService := like.NewService(likeRepo)
 	likeHandler := like.NewHandler(likeService, validate)
@@ -48,6 +54,7 @@ func InitHandlers(db *sql.DB, validate *validator.Validate, renderer *render.Ren
 		UserHandler:     userHandler,
 		CategoryHandler: categoryHandler,
 		ThreadHandler:   threadHandler,
+		CommentHandler:  commentHandler,
 		LikeHandler:     likeHandler,
 	}
 
