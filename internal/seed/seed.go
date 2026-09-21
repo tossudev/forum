@@ -21,13 +21,13 @@ func ResetDatabase(db *sql.DB, path string) error {
 
 	query := `
 	DROP TABLE IF EXISTS sessions;
-	DROP TABLE IF EXISTS comments;
 	DROP TABLE IF EXISTS thread_likes;
 	DROP TABLE IF EXISTS comment_likes;
+	DROP TABLE IF EXISTS images;
+	DROP TABLE IF EXISTS comments;
 	DROP TABLE IF EXISTS threads;
 	DROP TABLE IF EXISTS users;
 	DROP TABLE IF EXISTS categories;
-	DROP TABLE IF EXISTS images;
 	`
 
 	_, err := db.ExecContext(ctx, query)
