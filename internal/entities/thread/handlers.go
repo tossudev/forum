@@ -119,13 +119,20 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	id, err := strconv.Atoi(r.PathValue("id"))
+	session, ok := session.GetSession(ctx)
+	if session == nil || !ok {
+		errs.WriteError(w, fmt.Errorf("%w: not authenticated", errs.ErrUnauthorized))
+		return
+	}
+	userID := session.UserID()
+
+	threadID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
 		return
 	}
 
-	err = h.service.Delete(ctx, id)
+	err = h.service.Delete(ctx, threadID, userID)
 	if err != nil {
 		errs.WriteError(w, err)
 		return

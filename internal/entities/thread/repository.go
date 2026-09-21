@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"forum/internal/errs"
 	"forum/internal/pagination"
 )
 
@@ -62,9 +63,19 @@ func (r *ThreadRepository) Create(ctx context.Context, thread *Thread) error {
 	return nil
 }
 
-func (r *ThreadRepository) Delete(ctx context.Context, id int) error {
+func (r *ThreadRepository) Delete(ctx context.Context, threadID int, userID int) error {
+	thread, err := r.GetByID(ctx, threadID)
+	if err != nil {
+		return fmt.Errorf("Thread search: %w", err)
+	}
+
+	threadCreator := thread.AuthorID
+	if userID != threadCreator {
+		return fmt.Errorf("%w: user is not thread creator", errs.ErrUnauthorized)
+	}
+
 	query := "DELETE from threads WHERE id = ?;"
-	_, err := r.db.ExecContext(ctx, query, id)
+	_, err = r.db.ExecContext(ctx, query, threadID)
 	if err != nil {
 		return fmt.Errorf("Thread delete: %w", err)
 	}
