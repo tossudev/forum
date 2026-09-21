@@ -1,8 +1,8 @@
 package validate
 
 import (
-	"strings"
 	"reflect"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
