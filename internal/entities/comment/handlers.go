@@ -23,8 +23,8 @@ func NewHandler(service *CommentService, validator *validator.Validate) *Comment
 }
 
 func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
-	sess, ok := session.GetSession(r.Context())
-	if !ok || sess == nil {
+	sess := session.GetSession(r)
+	if sess == nil {
 		errs.WriteError(w, fmt.Errorf("%w: login required", errs.ErrUnauthorized))
 		return
 	}
