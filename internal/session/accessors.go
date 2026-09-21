@@ -1,12 +1,18 @@
 package session
 
-import "context"
+import (
+	"log/slog"
+	"net/http"
+)
 
-// GetSession allows handlers to access a *Session stored in the context
-// under the key, sessionContextKey{}. Returns false if *Session is not found.
-func GetSession(ctx context.Context) (*Session, bool) {
-	session, ok := ctx.Value(sessionContextKey{}).(*Session) // type assertion
-	return session, ok
+// GetSession allows handlers to access a *Session stored in the request context
+// under the key, sessionContextKey{}.
+func GetSession(r *http.Request) *Session {
+	session, ok := r.Context().Value(sessionContextKey{}).(*Session) // type assertion
+	if !ok {
+		slog.Error("session not found in request context", "path", r.URL.Path, "method", r.Method)
+	}
+	return session
 }
 
 // UserID is a getter a Session's user ID

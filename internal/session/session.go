@@ -59,8 +59,8 @@ func (sm *SessionManager) Login(userID int, w http.ResponseWriter, r *http.Reque
 func (sm *SessionManager) Logout(w http.ResponseWriter, r *http.Request) error {
 	ctx := r.Context()
 
-	session, ok := GetSession(ctx)
-	if session == nil || !ok {
+	session := GetSession(r)
+	if session == nil {
 		return fmt.Errorf("getting session")
 	}
 

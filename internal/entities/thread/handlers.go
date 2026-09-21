@@ -91,8 +91,8 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, ok := session.GetSession(ctx)
-	if session == nil || !ok {
+	session := session.GetSession(r)
+	if session == nil {
 		errs.WriteError(w, fmt.Errorf("%w: not authenticated", errs.ErrUnauthorized))
 		return
 	}
@@ -119,8 +119,8 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	session, ok := session.GetSession(ctx)
-	if session == nil || !ok {
+	session := session.GetSession(r)
+	if session == nil {
 		errs.WriteError(w, fmt.Errorf("%w: not authenticated", errs.ErrUnauthorized))
 		return
 	}
