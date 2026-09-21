@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS images (
 CREATE TABLE IF NOT EXISTS sessions (
 	id TEXT PRIMARY KEY,
 	user_id INTEGER NOT NULL,
+	session_hash BLOB NOT NULL,
 	csrf_token TEXT NOT NULL,
 	date_created TEXT NOT NULL,
 	expires_at TEXT NOT NULL,
