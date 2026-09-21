@@ -41,3 +41,10 @@ func (s *ThreadService) Create(ctx context.Context, thread *Thread) error {
 
 	return s.repo.Create(ctx, thread)
 }
+
+func (s *ThreadService) Delete(ctx context.Context, threadID int, userID int) error {
+	if threadID <= 0 {
+		return fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput)
+	}
+	return s.repo.Delete(ctx, threadID, userID)
+}

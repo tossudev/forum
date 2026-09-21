@@ -21,6 +21,7 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	mux.HandleFunc("GET /categories/{id}", app.ThreadHandler.GetByCategory)
 	mux.HandleFunc("POST /threads", app.ThreadHandler.Create)
 	mux.HandleFunc("GET /threads/{id}", app.ThreadHandler.GetByID)
+	mux.HandleFunc("DELETE /threads/{id}", app.ThreadHandler.Delete)
 
 	//Comment routes
 	mux.HandleFunc("GET /comments/{id}", app.CommentHandler.GetByID)
