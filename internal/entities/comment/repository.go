@@ -86,24 +86,20 @@ func (r *CommentRepository) GetByThread(ctx context.Context, id int, pag paginat
 
 func (r *CommentRepository) Delete(ctx context.Context, commentID, userID int) error {
 
-	comment, err := r.GetByID(ctx, commentID)
-	if err != nil {
-		return fmt.Errorf("Comment id: %w", err)
-	}
+//	comment, err := r.GetByID(ctx, commentID)
+//	if err != nil {
+//		return fmt.Errorf("Comment id: %w", err)
+//	}
 
-	if comment.AuthorID != userID {
-		return fmt.Errorf("%w: cannot delete comment that does not belong to user", errs.ErrUnauthorized)
-	}
-
-	query := `DELETE FROM comments WHERE id = ?`
-	res, err := r.db.ExecContext(ctx, query, commentID)
+	query := `DELETE FROM comments WHERE id = ? AND author_id = ?`
+	res, err := r.db.ExecContext(ctx, query, commentID, userID)
 	if err != nil {
-		return err
+		return fmt.Errorf("delete comment: db query: %w", err) 
 	}
 
 	amount, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return fmt.Errorf("delete comment: rows affected: %w", err) 
 	}
 	if amount == 0 {
 		return errs.ErrNotFound
