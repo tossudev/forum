@@ -3,13 +3,17 @@ package session
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"forum/internal/errs"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
+	"uuid"
 )
 
 type SessionManager struct {
@@ -20,6 +24,8 @@ type SessionManager struct {
 
 type Session struct {
 	id            string
+	sessionToken  string
+	sessionHash   []byte
 	csrfToken     string
 	userID        int
 	createdAt     time.Time
@@ -85,10 +91,14 @@ func (sm *SessionManager) Logout(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (sm *SessionManager) NewSession(userID int) (*Session, error) {
-	sessionID, err := generateToken(32) // 32 bytes or 256 bits of randomness
+	sessionID := uuid.NewV7().String()
+
+	sessionToken, err := generateToken(32) // 32 bytes or 256 bits of randomness
 	if err != nil {
 		return nil, fmt.Errorf("creating new session: %w", err)
 	}
+
+	sessionHash := hashToken(sessionToken)
 
 	csrfToken, err := generateToken(32) // 32 bytes or 256 bits of randomness
 	if err != nil {
@@ -99,6 +109,8 @@ func (sm *SessionManager) NewSession(userID int) (*Session, error) {
 
 	s := &Session{
 		id:            sessionID,
+		sessionToken:  sessionToken,
+		sessionHash:   sessionHash,
 		csrfToken:     csrfToken,
 		userID:        userID,
 		createdAt:     now,
@@ -127,7 +139,7 @@ func (sm *SessionManager) writeCookie(w http.ResponseWriter, session *Session) {
 
 	cookie := &http.Cookie{
 		Name:     sm.cookieName,
-		Value:    session.id,
+		Value:    session.id + ":" + session.sessionToken,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/", // the path that must exist in the requested URL
@@ -149,10 +161,22 @@ func (sm *SessionManager) Authenticate(next http.Handler) http.Handler {
 		cookie, err := r.Cookie(sm.cookieName)
 		fmt.Println("authentication middleware: reading cookie:", cookie) // TEST
 		if err == nil {
-			sessionID := cookie.Value
+			sessionID, sessionToken, _ := strings.Cut(cookie.Value, ":")
 			session, err = sm.repo.getSessionByID(ctx, sessionID)
 			if err != nil && !errors.Is(err, errs.ErrNotFound) {
 				slog.Error("failed to get session from repo", "err", err)
+			}
+
+			// Compare session token from cookie with stored token
+			if session != nil {
+				cookieHash := hashToken(sessionToken)
+				if subtle.ConstantTimeCompare(cookieHash, session.sessionHash) == 1 {
+					// Store the session token obtained from the cookie. The database doesn't store the raw token, only the hash.
+					// This is needed for later updating the cookie (e.g. updating expiry).
+					session.sessionToken = sessionToken
+				} else {
+					session = nil
+				}
 			}
 		}
 
@@ -191,4 +215,8 @@ func (s *Session) isExpired() bool {
 	return s.idleExpiresAt.Before(time.Now())
 }
 
-// TODO: Logout
+func hashToken(token string) []byte {
+	sum := sha256.Sum256([]byte(token))
+	hashedToken := sum[:] // convert [32]byte into []byte
+	return hashedToken
+}
