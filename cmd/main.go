@@ -16,6 +16,8 @@ import (
 
 func main() {
 	cfg := config.Load()
+	slog.SetLogLoggerLevel(cfg.LogLevel)
+
 	slog.Info("config loaded:", "config", cfg)
 
 	db, err := database.Open(cfg.DbPath)
