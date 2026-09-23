@@ -56,6 +56,13 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) LoginPage(w http.ResponseWriter, r *http.Request) {
+	// Redirect to home page if user is already logged in
+	session := session.GetSession(r)
+	if session != nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	h.renderer.RenderPage(w, "login.html", struct{}{})
 }
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -68,11 +75,14 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var input CredentialsSubmission
-
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid request body", errs.ErrInvalidUserInput))
+	if err := r.ParseForm(); err != nil {
+		errs.WriteError(w, errs.ErrInvalidUserInput)
 		return
+	}
+
+	input := CredentialsSubmission{
+		Email:    r.PostFormValue("email"),
+		Password: r.PostFormValue("password"),
 	}
 
 	userID, err := h.service.Authenticate(ctx, input)
@@ -86,8 +96,6 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		errs.WriteError(w, err)
 		return
 	}
-
-	// h.renderer.RenderPage(w, "login.html")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)

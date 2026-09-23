@@ -136,6 +136,10 @@ form input {
 	margin-bottom: 24px;
 }
 
+form .error-msg {
+	color: red;
+}
+
 form p {
 	align-self: center;
 }
