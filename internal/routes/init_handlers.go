@@ -32,7 +32,7 @@ func InitHandlers(db *sql.DB, validate *validator.Validate, renderer *render.Ren
 
 	userRepo := user.NewRepo(db)
 	userService := user.NewService(userRepo)
-	userHandler := user.NewHandler(userService, sm)
+	userHandler := user.NewHandler(userService, sm, renderer)
 
 	categoryRepo := category.NewRepository(db)
 	categoryService := category.NewService(categoryRepo)
