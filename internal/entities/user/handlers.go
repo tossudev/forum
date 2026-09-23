@@ -5,19 +5,22 @@ import (
 	"fmt"
 	"forum/internal/errs"
 	"forum/internal/password"
+	"forum/internal/render"
 	"forum/internal/session"
 	"net/http"
 )
 
 type UserHandler struct {
-	service *UserService
-	sm      *session.SessionManager
+	service  *UserService
+	sm       *session.SessionManager
+	renderer *render.Renderer
 }
 
-func NewHandler(service *UserService, sm *session.SessionManager) *UserHandler {
+func NewHandler(service *UserService, sm *session.SessionManager, renderer *render.Renderer) *UserHandler {
 	return &UserHandler{
-		service: service,
-		sm:      sm,
+		service:  service,
+		sm:       sm,
+		renderer: renderer,
 	}
 }
 
@@ -52,6 +55,9 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": fmt.Sprintf("Welcome to Literary Lions, %s!", user.Username)})
 }
 
+func (h *UserHandler) LoginPage(w http.ResponseWriter, r *http.Request) {
+	h.renderer.RenderPage(w, "login.html", struct{}{})
+}
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -80,6 +86,8 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		errs.WriteError(w, err)
 		return
 	}
+
+	// h.renderer.RenderPage(w, "login.html")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
