@@ -45,13 +45,23 @@
             "method": "POST",
             "header": [],
             "body": {
-              "mode": "raw",
-              "raw": "{\n    \"email\": \"sam@fakemail.com\",\n    \"password\": \"ilovebooks\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "urlencoded",
+              "urlencoded": [
+				{
+                  "key": "email",
+                  "value": "sam@fakemail.com",
+                  "disabled": false,
+                  "type": "default",
+                  "description": ""
+                },
+                {
+                  "key": "password",
+                  "value": "ilovebooks",
+                  "disabled": false,
+                  "type": "default",
+                  "description": ""
                 }
-              }
+				]
             },
             "url": {
               "raw": "http://localhost:8080/users/login",
