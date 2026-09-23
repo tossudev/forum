@@ -22,12 +22,12 @@ func (r *LikeRepository) GetThreadLike(ctx context.Context, thread_id, user_id i
 
 	if err := row.Scan(&like); err != nil {
 		if err == sql.ErrNoRows {
-			return like, false, nil
+			return false, like, nil
 		}
-		return like, false, fmt.Errorf("get thread like: %w", err)
+		return false, like, fmt.Errorf("get thread like: %w", err)
 	}
 
-	return like, true, nil
+	return true, like, nil
 }
 
 func (r *LikeRepository) RemoveThreadLike(ctx context.Context, thread_id, user_id int) error {
@@ -68,12 +68,12 @@ func (r *LikeRepository) GetCommentLike(ctx context.Context, comment_id, user_id
 
 	if err := row.Scan(&like); err != nil {
 		if err == sql.ErrNoRows {
-			return like, false, nil
+			return false, like, nil
 		}
-		return like, false, fmt.Errorf("get comment like: %w", err)
+		return false, like, fmt.Errorf("get comment like: %w", err)
 	}
 
-	return like, true, nil
+	return true, like, nil
 }
 
 func (r *LikeRepository) RemoveCommentLike(ctx context.Context, comment_id, user_id int) error {

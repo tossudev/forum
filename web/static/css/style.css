@@ -1,0 +1,104 @@
+/* Add font files for Pixellari */
+@font-face {
+	font-family: 'pixel';
+	src: url('/web/static/Jersey15-Regular.ttf');
+	font-weight: normal;
+	font-style: normal;
+}
+
+* {
+	margin: 8px;
+	box-sizing: border-box;
+	font-family: pixel;
+	font-size: 24px;
+}
+
+header {
+	text-align: center;
+}
+
+body {
+	width: 100%;
+	min-height: 100vh;
+	overflow-x: hidden;
+	background: #FFE4B9;
+}
+
+img {
+	max-width: 100%;
+	height: auto;
+}
+
+/* Top navigation */
+.topnav {
+	overflow: hidden;
+	display: flex;
+	text-align: center;
+	border: 2px solid #000;
+	width: max-content;
+	margin: 0 auto;
+}
+
+.topnav a {
+	margin: 0px;
+	padding: 0.6rem 1rem;
+	color: #000;
+	flex: 0 0 auto;
+	white-space: nowrap;
+	text-align: center;
+	text-decoration: none;
+	border: solid #000;
+	border-width: 1px 1px 3px 1px;
+	background: #F0C682;
+}
+
+.topnav a:hover {
+	background: #FFE1B2;
+}
+
+.topnav a.active {
+	background: #C89E6E;
+}
+
+/* Listings (categories, threads) */
+.listing-container {
+	overflow: hidden;
+	width: 100%;
+	margin: 0 auto;
+	background: #FFF;
+	border: solid #000;
+	border-width: 1px 1px 3px 1px;
+}
+
+.listing-header {
+	line-height: 32px;
+	outline: 2px solid #000;
+	background: #FFFF00;
+	text-align: left;
+}
+
+.listing {
+	line-height: 64px;
+	outline: 2px solid #000;
+	text-align: left;
+	cursor: pointer;
+}
+
+.listing:hover,
+.listing:focus {
+    background: #DDDDDD;
+  }
+
+.contents {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.contents p {
+	text-align: left;
+}
+
+td, th {
+	padding: 10px;
+}

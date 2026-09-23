@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
 	password_hash BLOB NOT NULL,
 	password_salt BLOB NOT NULL,
 	avatar TEXT,
-	date_created INTEGER NOT NULL, 
+	date_created INTEGER NOT NULL,
 	role_id INTEGER NOT NULL,
 	signature TEXT
 	-- FOREIGN KEY(role_id) REFERENCES roles(id)
@@ -21,10 +21,10 @@ CREATE TABLE IF NOT EXISTS threads (
 	title TEXT NOT NULL,
 	body TEXT NOT NULL,
 	date_created TEXT NOT NULL,
-	author_id INTEGER NOT NULL,	
+	author_id INTEGER NOT NULL,
 	category_id INTEGER NOT NULL,
-	FOREIGN KEY(author_id) REFERENCES users(id),
-	FOREIGN KEY(category_id) REFERENCES categories(id)
+	FOREIGN KEY(author_id) REFERENCES users(id) ON DELETE CASCADE,
+	FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS comments (
@@ -33,25 +33,25 @@ CREATE TABLE IF NOT EXISTS comments (
 	date_created TEXT NOT NULL,
 	thread_id INTEGER NOT NULL,
 	author_id INTEGER NOT NULL,
-	FOREIGN KEY(thread_id) REFERENCES threads(id),
-	FOREIGN KEY(author_id) REFERENCES users(id)
+	FOREIGN KEY(thread_id) REFERENCES threads(id) ON DELETE CASCADE,
+	FOREIGN KEY(author_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS thread_likes (
 	thread_id INTEGER NOT NULL,
 	user_id INTEGER NOT NULL,
-	thread_like BOOLEAN NOT NULL, 
-	FOREIGN KEY(thread_id) REFERENCES threads(id),
-	FOREIGN KEY(user_id) REFERENCES users(id),
+	thread_like BOOLEAN NOT NULL,
+	FOREIGN KEY(thread_id) REFERENCES threads(id) ON DELETE CASCADE,
+	FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
 	PRIMARY KEY (thread_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS comment_likes (
 	comment_id INTEGER NOT NULL,
 	user_id INTEGER NOT NULL,
-	thread_like BOOLEAN NOT NULL,
-	FOREIGN KEY(comment_id) REFERENCES comments(id),
-	FOREIGN KEY(user_id) REFERENCES users(id),
+	comment_like BOOLEAN NOT NULL,
+	FOREIGN KEY(comment_id) REFERENCES comments(id) ON DELETE CASCADE,
+	FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
 	PRIMARY KEY (comment_id, user_id)
 );
 
@@ -59,28 +59,22 @@ CREATE TABLE IF NOT EXISTS categories (
 	id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL
 );
- 
+
 CREATE TABLE IF NOT EXISTS images (
 	id INTEGER PRIMARY KEY,
 	image_path TEXT NOT NULL,
 	comment_id INTEGER,
-	thread_id INTEGER, 
-	FOREIGN KEY(comment_id) REFERENCES comments(id),
-	FOREIGN KEY(thread_id) REFERENCES threads(id)
+	thread_id INTEGER,
+	FOREIGN KEY(comment_id) REFERENCES comments(id) ON DELETE CASCADE,
+	FOREIGN KEY(thread_id) REFERENCES threads(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
-	id INTEGER PRIMARY KEY,
-	session_id TEXT NOT NULL,
+	id TEXT PRIMARY KEY,
 	user_id INTEGER NOT NULL,
-	FOREIGN KEY(user_id) REFERENCES users(id)
+	session_hash BLOB NOT NULL,
+	csrf_token TEXT NOT NULL,
+	date_created TEXT NOT NULL,
+	expires_at TEXT NOT NULL,
+	FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
-
-
-
-
-
-
-
-

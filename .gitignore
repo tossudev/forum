@@ -12,11 +12,17 @@
 !/.gitignore
 
 !*.go
+!*.html
+!*.css
+!*.js
+
 !go.sum
 !go.mod
 
 !*.md
 !*.sql
+
+!forum.postman_collection.json
 
 !LICENSE
 !Makefile

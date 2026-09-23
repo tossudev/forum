@@ -1,0 +1,222 @@
+package session
+
+import (
+	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/base64"
+	"errors"
+	"fmt"
+	"forum/internal/errs"
+	"log/slog"
+	"net/http"
+	"strings"
+	"time"
+	"uuid"
+)
+
+type SessionManager struct {
+	repo           *SessionRepo
+	cookieName     string
+	idleExpiration time.Duration
+}
+
+type Session struct {
+	id            string
+	sessionToken  string
+	sessionHash   []byte
+	csrfToken     string
+	userID        int
+	createdAt     time.Time
+	idleExpiresAt time.Time
+}
+
+// sessionContextKey is used as a context key for getting the session from context
+// Having this separate type helps prevent potential key naming collisions
+type sessionContextKey struct{}
+
+func NewSessionManager(repo *SessionRepo, cookieName string, idleExpiration time.Duration) *SessionManager {
+	return &SessionManager{
+		repo:           repo,
+		cookieName:     cookieName,
+		idleExpiration: idleExpiration,
+	}
+}
+
+// Login creates a new session, adds it to the database, and sets a cookie with the session ID
+func (sm *SessionManager) Login(userID int, w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+
+	session, err := sm.NewSession(userID)
+	if err != nil {
+		return fmt.Errorf("session login: %w", err)
+	}
+
+	if err := sm.repo.addSession(ctx, session); err != nil {
+		return fmt.Errorf("session login: %w", err)
+	}
+
+	sm.writeCookie(w, session)
+	fmt.Println("user logged in - new session:", session.id) // TEST
+	return nil
+}
+
+func (sm *SessionManager) Logout(w http.ResponseWriter, r *http.Request) error {
+	ctx := r.Context()
+
+	session := GetSession(r)
+	if session == nil {
+		return fmt.Errorf("getting session")
+	}
+
+	if err := sm.repo.deleteSession(ctx, session.id); err != nil {
+		return fmt.Errorf("deleting session: %w", err)
+	}
+
+	// delete cookie
+	cookie := &http.Cookie{
+		Name:     sm.cookieName,
+		Value:    "",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		// Secure: true, // TODO: Use when HTTPS is implemented
+		Expires: session.idleExpiresAt,
+		MaxAge:  -1, // delete cookie
+	}
+
+	http.SetCookie(w, cookie)
+	return nil
+}
+
+func (sm *SessionManager) NewSession(userID int) (*Session, error) {
+	sessionID := uuid.NewV7().String()
+
+	sessionToken, err := generateToken(32) // 32 bytes or 256 bits of randomness
+	if err != nil {
+		return nil, fmt.Errorf("creating new session: %w", err)
+	}
+
+	sessionHash := hashToken(sessionToken)
+
+	csrfToken, err := generateToken(32) // 32 bytes or 256 bits of randomness
+	if err != nil {
+		return nil, fmt.Errorf("creating new session: %w", err)
+	}
+
+	now := time.Now()
+
+	s := &Session{
+		id:            sessionID,
+		sessionToken:  sessionToken,
+		sessionHash:   sessionHash,
+		csrfToken:     csrfToken,
+		userID:        userID,
+		createdAt:     now,
+		idleExpiresAt: now.Add(sm.idleExpiration),
+	}
+
+	return s, nil
+}
+
+func generateToken(length int) (string, error) {
+	token := make([]byte, length)
+
+	_, err := rand.Read(token)
+	if err != nil {
+		return "", fmt.Errorf("generating token: %w", err)
+	}
+
+	return base64.RawURLEncoding.EncodeToString(token), nil
+}
+
+func (sm *SessionManager) writeCookie(w http.ResponseWriter, session *Session) {
+	if session == nil {
+		slog.Error("writing cookie with nil session")
+		return
+	}
+
+	cookie := &http.Cookie{
+		Name:     sm.cookieName,
+		Value:    session.id + ":" + session.sessionToken,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/", // the path that must exist in the requested URL
+		// Secure: true, // TODO: Use when HTTPS is implemented
+		Expires: session.idleExpiresAt,
+		MaxAge:  int(sm.idleExpiration / time.Second),
+	}
+
+	http.SetCookie(w, cookie)
+}
+
+// Authenticate session middleware - check cookie for session ID, then validate it
+func (sm *SessionManager) Authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		var session *Session
+
+		// Read session ID from cookie
+		cookie, err := r.Cookie(sm.cookieName)
+		fmt.Println("authentication middleware: reading cookie:", cookie) // TEST
+		if err == nil {
+			sessionID, sessionToken, _ := strings.Cut(cookie.Value, ":")
+			session, err = sm.repo.getSessionByID(ctx, sessionID)
+			if err != nil && !errors.Is(err, errs.ErrNotFound) {
+				slog.Error("failed to get session from repo", "err", err)
+			}
+
+			// Compare session token from cookie with stored token
+			if session != nil {
+				cookieHash := hashToken(sessionToken)
+				if subtle.ConstantTimeCompare(cookieHash, session.sessionHash) == 1 {
+					// Store the session token obtained from the cookie. The database doesn't store the raw token, only the hash.
+					// This is needed for later updating the cookie (e.g. updating expiry).
+					session.sessionToken = sessionToken
+				} else {
+					session = nil
+				}
+			}
+		}
+
+		// If the the session is expired, delete session
+		if session != nil && session.isExpired() {
+			if err := sm.repo.deleteSession(ctx, session.id); err != nil {
+				slog.Error("failed to delete expired session", "err", err)
+			}
+			session = nil
+		}
+
+		// If the session is valid, update last idleExpiration
+		if session != nil && !session.isExpired() {
+			session.idleExpiresAt = time.Now().Add(sm.idleExpiration)
+			if err := sm.repo.updateExpiry(ctx, session); err != nil {
+				slog.Error("failed to update session expiry", "err", err)
+			}
+		}
+
+		// Update cookie
+		if session != nil {
+			sm.writeCookie(w, session)
+		} else {
+			fmt.Println("UNAUTHENTICATED SESSION") // TEST
+		}
+
+		// Attach session to context
+		ctx = context.WithValue(ctx, sessionContextKey{}, session)
+		r = r.WithContext(ctx)
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (s *Session) isExpired() bool {
+	return s.idleExpiresAt.Before(time.Now())
+}
+
+func hashToken(token string) []byte {
+	sum := sha256.Sum256([]byte(token))
+	hashedToken := sum[:] // convert [32]byte into []byte
+	return hashedToken
+}

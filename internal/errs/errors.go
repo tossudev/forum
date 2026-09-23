@@ -11,6 +11,7 @@ import (
 var ErrInvalidUserInput = errors.New("invalid input")
 var ErrNotFound = errors.New("record not found")
 var ErrDuplicate = errors.New("duplicate entry")
+var ErrUnauthorized = errors.New("unauthorized")
 
 // WriteError chooses the appropriate error response and writes to http.ResponseWrite
 func WriteError(w http.ResponseWriter, err error) {
@@ -41,6 +42,11 @@ func WriteError(w http.ResponseWriter, err error) {
 
 	if errors.Is(err, ErrDuplicate) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if errors.Is(err, ErrUnauthorized) {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
