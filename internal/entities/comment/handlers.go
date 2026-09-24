@@ -103,14 +103,23 @@ func (h *CommentHandler) GetByThread(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {
+
+	sess := session.GetSession(r)
+	if sess == nil {
+		errs.WriteError(w, fmt.Errorf("%w: login required", errs.ErrUnauthorized))
+		return
+	}
+
+	userID := sess.UserID()
+
 	idString := r.PathValue("id")
-	id, err := strconv.Atoi(idString)
+	commentID, err := strconv.Atoi(idString)
 	if err != nil {
 		errs.WriteError(w, fmt.Errorf("%w: invalid id", errs.ErrInvalidUserInput))
 		return
 	}
 
-	err = h.service.Delete(r.Context(), id)
+	err = h.service.Delete(r.Context(), commentID, userID)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
