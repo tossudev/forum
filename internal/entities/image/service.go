@@ -8,14 +8,18 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"slices"
 	"uuid"
+
+	"forum/internal/config"
+	"forum/internal/errs"
 )
 
-// TODO: probably put this in config/other?
-var (
-	validTypes []string = []string{"image/jpeg", "image/png", "image/gif"}
-)
+var validTypes = map[string]struct{}{
+	"image/jpeg": {},
+	"image/jpg":  {},
+	"image/png":  {},
+	"image/gif":  {},
+}
 
 type ImageService struct {
 	repo *ImageRepository
@@ -25,8 +29,7 @@ func NewService(r *ImageRepository) *ImageService {
 	return &ImageService{repo: r}
 }
 
-// TODO: upon db failure, remove the saved image from disk
-func (s *ImageService) UploadImage(ctx context.Context, r *http.Request, threadID, commentID int) (string, error) {
+func (s *ImageService) UploadImage(ctx context.Context, r *http.Request, req ImageRequest) (string, error) {
 	file, fileHeader, err := r.FormFile("file")
 	if err != nil {
 		return "", err
@@ -39,17 +42,22 @@ func (s *ImageService) UploadImage(ctx context.Context, r *http.Request, threadI
 	}
 
 	if !valid {
-		return "", fmt.Errorf("image is not a valid type")
+		return "", errs.ErrInvalidFiletype
 	}
 
-	path := uuid.NewV7().String() + filepath.Ext(fileHeader.Filename)
-	if err := createFile(file, path); err != nil {
+	imageName := uuid.NewV7().String() + filepath.Ext(fileHeader.Filename)
+	imagePath := filepath.Join(config.UploadsPath, imageName)
+	if err := createFile(file, imagePath); err != nil {
 		return "", fmt.Errorf("image creation failed: %w", err)
 	}
 
-	s.repo.Create(ctx, path, threadID, commentID)
+	// If database insertion fails, remove the image from disk
+	if err := s.repo.Create(ctx, imageName, req); err != nil {
+		_ = os.Remove(imagePath)
+		return "", fmt.Errorf("database image creation failed: %w", err)
+	}
 
-	return path, nil
+	return imagePath, nil
 }
 
 func validateImage(file multipart.File) (bool, error) {
@@ -61,20 +69,19 @@ func validateImage(file multipart.File) (bool, error) {
 
 	filetype := http.DetectContentType(buffer)
 
-	if !slices.Contains(validTypes, filetype) {
+	if _, ok := validTypes[filetype]; !ok {
 		return false, nil
 	}
 
 	return true, nil
 }
 
-func createFile(file multipart.File, filename string) error {
+func createFile(file multipart.File, imagePath string) error {
 	if _, err := file.Seek(0, io.SeekStart); err != nil {
 		return err
 	}
 
-	// TODO: remove hardcoded path
-	dst, err := os.Create(fmt.Sprintf("./uploads/%s", filename))
+	dst, err := os.Create(imagePath)
 	if err != nil {
 		return err
 	}

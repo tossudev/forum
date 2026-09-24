@@ -14,7 +14,7 @@ type ImageHandler struct {
 	validator *validator.Validate
 }
 
-const MaxUploadSize int64 = 10_000_000 // 10MB
+const MaxUploadSize int64 = 3_000_000 // 3MB
 
 func NewHandler(service *ImageService, validator *validator.Validate) *ImageHandler {
 	return &ImageHandler{service: service, validator: validator}
@@ -23,25 +23,27 @@ func NewHandler(service *ImageService, validator *validator.Validate) *ImageHand
 func (h *ImageHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// TODO: make a req struct instead of individual params
-	threadID, err := strconv.Atoi(r.PostFormValue("thread_id"))
-	if err != nil {
-		errs.WriteError(w, err)
-	}
-
-	commentID, err := strconv.Atoi(r.PostFormValue("comment_id"))
-	if err != nil {
-		errs.WriteError(w, err)
-	}
-
 	// Limit upload file size
 	r.Body = http.MaxBytesReader(w, r.Body, MaxUploadSize)
 	if err := r.ParseMultipartForm(MaxUploadSize); err != nil {
-		errs.WriteError(w, err)
+		errs.WriteError(w, errs.ErrFileTooLarge)
 		return
 	}
 
-	imagePath, err := h.service.UploadImage(ctx, r, threadID, commentID)
+	req := ImageRequest{}
+	var err error
+
+	req.ThreadID, err = strconv.Atoi(r.PostFormValue("thread_id"))
+	if err != nil {
+		errs.WriteError(w, err)
+	}
+
+	req.CommentID, err = strconv.Atoi(r.PostFormValue("comment_id"))
+	if err != nil {
+		errs.WriteError(w, err)
+	}
+
+	imagePath, err := h.service.UploadImage(ctx, r, req)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
