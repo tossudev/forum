@@ -34,7 +34,7 @@ func InitHandlers(db *sql.DB, validate *validator.Validate, renderer *render.Ren
 
 	userRepo := user.NewRepo(db)
 	userService := user.NewService(userRepo)
-	userHandler := user.NewHandler(userService, sm)
+	userHandler := user.NewHandler(userService, sm, renderer)
 
 	categoryRepo := category.NewRepository(db)
 	categoryService := category.NewService(categoryRepo)
@@ -69,6 +69,7 @@ func InitHandlers(db *sql.DB, validate *validator.Validate, renderer *render.Ren
 
 	// Middleware
 	handler := middleware.Timeout(5 * time.Second)(mux)
+	handler = userHandler.GetUserMiddleware(handler)
 	handler = sm.Authenticate(handler)
 	handler = middleware.Logger(handler)
 	handler = middleware.RecoverPanic(handler)

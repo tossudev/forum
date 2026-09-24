@@ -13,8 +13,13 @@
 	font-size: 24px;
 }
 
+h2 {
+	font-size: 48px;
+}
+
 header {
 	text-align: center;
+	margin-bottom: 36px;
 }
 
 body {
@@ -27,6 +32,7 @@ body {
 img {
 	max-width: 100%;
 	height: auto;
+	image-rendering: pixelated;
 }
 
 /* Top navigation */
@@ -39,7 +45,11 @@ img {
 	margin: 0 auto;
 }
 
-.topnav a {
+.logout-form {
+	margin: 0;
+}
+
+.topnav a, .logout-form button {
 	margin: 0px;
 	padding: 0.6rem 1rem;
 	color: #000;
@@ -52,7 +62,7 @@ img {
 	background: #F0C682;
 }
 
-.topnav a:hover {
+.topnav a:hover, .logout-form button:hover {
 	background: #FFE1B2;
 }
 
@@ -101,4 +111,45 @@ img {
 
 td, th {
 	padding: 10px;
+}
+
+.button {
+	border: 1px solid black;
+	background-color: orange;
+	padding: 8px 16px;
+	width: 200px;
+}
+
+/* Login */
+.center-content {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+form.login {
+	display: flex;
+	flex-direction: column;
+	width: 600px;
+	border: 1px solid black;
+	background-color: #F0C682;
+	padding: 16px;
+}
+
+form input {
+	margin-bottom: 24px;
+}
+
+form .error-msg {
+	color: red;
+}
+
+form p {
+	align-self: center;
+}
+
+form .button {
+	align-self: center;
+	margin-top: 24px;
 }

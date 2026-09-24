@@ -10,7 +10,8 @@ type Thread struct {
 }
 
 type ThreadsPage struct {
-	Path    string
-	Threads []Thread
-	Page    int
+	Path     string
+	Threads  []Thread
+	Page     int
+	Username string
 }

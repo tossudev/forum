@@ -1,0 +1,22 @@
+{{ define "js" }}
+<script src="/web/static/js/login.js" defer></script>
+{{ end }}
+
+{{ define "content" }}
+<div class="center-content">
+    <h2>Login</h2>
+    <form class="login" action="/users/login" method="post">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required />
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required />
+
+        <input class="button login-btn" type="submit" value="Login" />
+
+        <p class="error-msg"></p>
+        
+        <p>No account? <a href="/users/register">Sign up</a></p>
+    </form>
+</div>
+{{ end }}

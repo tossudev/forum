@@ -6,7 +6,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link rel="icon" type="image/x-icon" href="/static/icons/fav-icon.png">
 		<link rel="stylesheet" href="/web/static/css/style.css">
-
+		{{ block "js" . }}{{ end }}
 		<title>Literary Lions</title>
 	</head>
 
@@ -20,6 +20,13 @@
 				<a class="active" href="/">Home</a>
 				<a href="/categories">Forum</a>
 				<a href="/profile">Profile</a>
+				{{ if .Username }}
+					<form class="logout-form" action="/users/logout" method="POST">
+						<button type="submit">Logout</button>
+					</form>
+				{{ else }}
+					<a href="/users/login">Login</a>
+				{{ end }}
 			</div>
 		</header>
 

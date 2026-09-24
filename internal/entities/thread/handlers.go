@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
+	"forum/internal/entities/user"
 	"forum/internal/errs"
 	"forum/internal/pagination"
 	"forum/internal/render"
@@ -48,11 +49,18 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var username string
+	user := user.GetUser(r)
+	if user != nil {
+		username = user.Username
+	}
+
 	data := ThreadsPage{
 		// TODO: use category name instead of ID
-		Path:    fmt.Sprintf("⌂ Home / CategoryID %d", id),
-		Threads: threads,
-		Page:    pagination.Page,
+		Path:     fmt.Sprintf("⌂ Home / CategoryID %d", id),
+		Threads:  threads,
+		Page:     pagination.Page,
+		Username: username,
 	}
 
 	h.renderer.RenderPage(w, "threads.html", data)
