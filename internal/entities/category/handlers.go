@@ -8,22 +8,26 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
+	"forum/internal/entities/user"
 	"forum/internal/errs"
 	"forum/internal/pagination"
 	"forum/internal/render"
+	"forum/internal/session"
 )
 
 type CategoryHandler struct {
-	service   *CategoryService
-	validator *validator.Validate
-	renderer  *render.Renderer
+	service     *CategoryService
+	userService *user.UserService
+	validator   *validator.Validate
+	renderer    *render.Renderer
 }
 
-func NewHandler(service *CategoryService, validator *validator.Validate, renderer *render.Renderer) *CategoryHandler {
+func NewHandler(service *CategoryService, userService *user.UserService, validator *validator.Validate, renderer *render.Renderer) *CategoryHandler {
 	return &CategoryHandler{
-		service:   service,
-		validator: validator,
-		renderer:  renderer,
+		service:     service,
+		userService: userService,
+		validator:   validator,
+		renderer:    renderer,
 	}
 }
 
@@ -42,10 +46,24 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var userID int
+	var username string
+	session := session.GetSession(r)
+	if session != nil {
+		userID = session.UserID()
+		user, err := h.userService.GetUserByID(ctx, userID)
+		if err != nil {
+			// render internal server error page
+			return
+		}
+		username = user.Username
+	}
+
 	data := CategoriesPage{
 		Path:       "⌂ Home",
 		Categories: categories,
 		Page:       pagination.Page,
+		User:       username,
 	}
 
 	h.renderer.RenderPage(w, "landing.html", data)

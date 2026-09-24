@@ -9,4 +9,5 @@ type CategoriesPage struct {
 	Path       string
 	Categories []Category
 	Page       int
+	User       string
 }

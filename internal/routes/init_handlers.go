@@ -36,7 +36,7 @@ func InitHandlers(db *sql.DB, validate *validator.Validate, renderer *render.Ren
 
 	categoryRepo := category.NewRepository(db)
 	categoryService := category.NewService(categoryRepo)
-	categoryHandler := category.NewHandler(categoryService, validate, renderer)
+	categoryHandler := category.NewHandler(categoryService, userService, validate, renderer)
 
 	threadRepo := thread.NewRepository(db)
 	threadService := thread.NewService(threadRepo)
