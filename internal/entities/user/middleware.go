@@ -9,7 +9,8 @@ import (
 
 type userContextKey struct{}
 
-// UserMiddleware is a middleware that attaches the current *User to the request context if the session is authenticated (user is logged in)
+// GetUserMiddleware is a middleware that attaches the current *User to the request context.
+// *User will be nil if the session is unauthenticated.
 func (h *UserHandler) GetUserMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -25,7 +26,7 @@ func (h *UserHandler) GetUserMiddleware(next http.Handler) http.Handler {
 				return
 			}
 		}
-		// Attach username to context
+		// Attach user to context
 		ctx = context.WithValue(ctx, userContextKey{}, user)
 		r = r.WithContext(ctx)
 
