@@ -35,8 +35,15 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	mux.HandleFunc("POST /like/thread", app.LikeHandler.LikeThread)
 	mux.HandleFunc("POST /like/comment", app.LikeHandler.LikeComment)
 
+	// Image routes
+	mux.HandleFunc("POST /image", app.ImageHandler.UploadImage)
+
+	// TODO: consider using embedding for static
 	fs := http.FileServer(http.Dir("./web/static"))
 	mux.Handle("GET /web/static/", http.StripPrefix("/web/static/", fs))
+
+	fsUploads := http.FileServer(http.Dir("./uploads/"))
+	mux.Handle("GET /uploads/", http.StripPrefix("/uploads/", fsUploads))
 
 	return mux
 

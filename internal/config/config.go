@@ -13,7 +13,11 @@ type Config struct {
 	LogLevel       slog.Level
 }
 
-const TimeFormat string = "20060102T150405"
+// TODO: figure out better place for these, global constants are not idiomatic
+const (
+	TimeFormat  string = "20060102T150405"
+	UploadsPath string = "./uploads/"
+)
 
 func Load() Config {
 	cfg := Config{
