@@ -289,6 +289,26 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Delete comment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/comments/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "comments",
+                "1"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     }

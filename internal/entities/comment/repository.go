@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"forum/internal/errs"
 	"forum/internal/pagination"
@@ -83,17 +84,22 @@ func (r *CommentRepository) GetByThread(ctx context.Context, id int, pag paginat
 	return comments, nil
 }
 
-func (r *CommentRepository) Delete(ctx context.Context, id int) error {
+func (r *CommentRepository) Delete(ctx context.Context, commentID, userID int) error {
 
-	query := `DELETE FROM comments WHERE id = ?`
-	res, err := r.db.ExecContext(ctx, query, id)
+//	comment, err := r.GetByID(ctx, commentID)
+//	if err != nil {
+//		return fmt.Errorf("Comment id: %w", err)
+//	}
+
+	query := `DELETE FROM comments WHERE id = ? AND author_id = ?`
+	res, err := r.db.ExecContext(ctx, query, commentID, userID)
 	if err != nil {
-		return err
+		return fmt.Errorf("delete comment: db query: %w", err) 
 	}
 
 	amount, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return fmt.Errorf("delete comment: rows affected: %w", err) 
 	}
 	if amount == 0 {
 		return errs.ErrNotFound
