@@ -17,19 +17,24 @@ func NewRepo(db *sql.DB) *UserRepo {
 	return &UserRepo{db: db}
 }
 
-func (r *UserRepo) AddUser(ctx context.Context, user *User) error {
+func (r *UserRepo) AddUser(ctx context.Context, user *User) (*User, error) {
 	query := `INSERT INTO users (username, email, password_hash, password_salt, date_created, role_id)
  VALUES (?, ?, ?, ?, ?, ?);`
 
-	_, err := r.db.ExecContext(ctx, query, user.Username, user.Email, user.Password.Hash, user.Password.Salt, time.Now().Unix(), user.RoleID)
+	result, err := r.db.ExecContext(ctx, query, user.Username, user.Email, user.Password.Hash, user.Password.Salt, time.Now().Unix(), user.RoleID)
 	if err != nil {
 		if database.IsUniqueErr(err) {
-			return fmt.Errorf("%w: username or email already exists", errs.ErrDuplicate)
+			return nil, fmt.Errorf("%w: username or email already exists", errs.ErrDuplicate)
 		}
-		return err
+		return nil, err
 	}
 
-	return nil
+	userID, err := result.LastInsertId()
+	if err != nil {
+		return nil, fmt.Errorf("adding user: getting last insert ID: %w", err)
+	}
+
+	return r.GetUserByID(ctx, int(userID))
 }
 
 func (r *UserRepo) GetUserByID(ctx context.Context, id int) (*User, error) {

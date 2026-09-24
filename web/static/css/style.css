@@ -120,7 +120,7 @@ td, th {
 	width: 200px;
 }
 
-/* Login */
+/* Login and Register */
 .center-content {
 	display: flex;
 	flex-direction: column;
@@ -128,7 +128,7 @@ td, th {
 	align-items: center;
 }
 
-form.login {
+form.login, form.register {
 	display: flex;
 	flex-direction: column;
 	width: 600px;

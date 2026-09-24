@@ -9,8 +9,9 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	// User routes
-	mux.HandleFunc("POST /users/register", app.UserHandler.RegisterUser)
+	mux.HandleFunc("GET /users/register", app.UserHandler.RegisterPage)
 	mux.HandleFunc("GET /users/login", app.UserHandler.LoginPage)
+	mux.HandleFunc("POST /users/register", app.UserHandler.RegisterUser)
 	mux.HandleFunc("POST /users/login", app.UserHandler.Login)
 	mux.HandleFunc("POST /users/logout", app.UserHandler.Logout)
 
