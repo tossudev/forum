@@ -147,7 +147,7 @@ func seedUsers(ctx context.Context, app *SeedApp) error {
 
 	for _, newUser := range users {
 		password := "password"
-		err := app.UserService.RegisterUser(ctx, &newUser, password)
+		_, err := app.UserService.RegisterUser(ctx, &newUser, password)
 		if err != nil {
 			return err
 		}

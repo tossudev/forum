@@ -2,7 +2,6 @@ package user
 
 import (
 	"encoding/json"
-	"fmt"
 	"forum/internal/errs"
 	"forum/internal/password"
 	"forum/internal/render"
@@ -24,35 +23,49 @@ func NewHandler(service *UserService, sm *session.SessionManager, renderer *rend
 	}
 }
 
-func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var input struct {
-		Username string `json:"username"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid request body", errs.ErrInvalidUserInput))
+func (h *UserHandler) RegisterPage(w http.ResponseWriter, r *http.Request) {
+	// Redirect to home page if user is already logged in
+	session := session.GetSession(r)
+	if session != nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
-	user := User{
-		Username: input.Username,
-		Email:    input.Email,
+	type PageData struct {
+		Username string
+	}
+
+	h.renderer.RenderPage(w, "register.html", PageData{""})
+}
+
+func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	if err := r.ParseForm(); err != nil {
+		errs.WriteError(w, errs.ErrInvalidUserInput)
+		return
+	}
+
+	user := &User{
+		Username: r.PostFormValue("username"),
+		Email:    r.PostFormValue("email"),
 		Password: password.Password{},
 		RoleID:   1,
 	}
 
-	if err := h.service.RegisterUser(ctx, &user, input.Password); err != nil {
+	user, err := h.service.RegisterUser(ctx, user, r.PostFormValue("password"))
+	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"message": fmt.Sprintf("Welcome to Literary Lions, %s!", user.Username)})
+	// If registration successful, login user and redirect to home
+	// Create new session
+	if err := h.sm.Login(user.ID, w, r); err != nil {
+		errs.WriteError(w, err)
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (h *UserHandler) LoginPage(w http.ResponseWriter, r *http.Request) {
