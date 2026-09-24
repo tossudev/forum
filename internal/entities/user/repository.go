@@ -32,6 +32,25 @@ func (r *UserRepo) AddUser(ctx context.Context, user *User) error {
 	return nil
 }
 
+func (r *UserRepo) GetUserByID(ctx context.Context, id int) (*User, error) {
+	query := `SELECT id, username, email, password_hash, password_salt, date_created, role_id
+	FROM users WHERE id = ?;`
+
+	var user User
+	var createdAt int
+	if err := r.db.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.Password.Salt, &createdAt, &user.RoleID); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("%w: user not found", errs.ErrNotFound)
+		}
+		return nil, fmt.Errorf("GetUserByID: scanning row: %w", err)
+	}
+
+	user.CreatedAt = time.Unix(int64(createdAt), 0)
+
+	return &user, nil
+
+}
+
 func (r *UserRepo) UsernameExists(ctx context.Context, username string) (bool, error) {
 	// Query returns a single row containing 1 (true) or 0 (false)
 	query := `SELECT EXISTS(SELECT 1 FROM users WHERE username = ?);`

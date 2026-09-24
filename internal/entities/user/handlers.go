@@ -63,7 +63,11 @@ func (h *UserHandler) LoginPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.renderer.RenderPage(w, "login.html", struct{}{})
+	type PageData struct {
+		Username string
+	}
+
+	h.renderer.RenderPage(w, "login.html", PageData{""})
 }
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -108,7 +112,5 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusAccepted)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Logged out successfully"})
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
