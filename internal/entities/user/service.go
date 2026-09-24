@@ -61,3 +61,7 @@ func (s *UserService) Authenticate(ctx context.Context, input CredentialsSubmiss
 
 	return user.ID, nil
 }
+
+func (s *UserService) GetUserByID(ctx context.Context, id int) (*User, error) {
+	return s.repo.GetUserByID(ctx, id)
+}
