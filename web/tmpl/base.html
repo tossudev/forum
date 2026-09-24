@@ -20,7 +20,7 @@
 				<a class="active" href="/">Home</a>
 				<a href="/categories">Forum</a>
 				<a href="/profile">Profile</a>
-				{{ if .User }}
+				{{ if .Username }}
 					<form class="logout-form" action="/users/logout" method="POST">
 						<button type="submit">Logout</button>
 					</form>

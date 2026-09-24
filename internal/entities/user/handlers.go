@@ -64,7 +64,7 @@ func (h *UserHandler) LoginPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type PageData struct {
-		User string
+		Username string
 	}
 
 	h.renderer.RenderPage(w, "login.html", PageData{""})
