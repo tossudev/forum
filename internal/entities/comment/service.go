@@ -53,3 +53,8 @@ func (s *CommentService) Delete(ctx context.Context, id int) error {
 	//TODO: Logic for the service layer --> who gets to delete a comment (user, admin etc.)
 	return s.repo.Delete(ctx, id)
 }
+
+func (s *CommentService) Filter(ctx context.Context, input string) error {
+	//TODO
+	return nil
+}

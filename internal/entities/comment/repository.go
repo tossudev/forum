@@ -101,3 +101,8 @@ func (r *CommentRepository) Delete(ctx context.Context, id int) error {
 
 	return nil
 }
+
+func (r *CommentRepository) Filter(ctx context.Context, input string) error {
+	//TODO
+	return nil
+}

@@ -117,3 +117,12 @@ func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 }
+
+func (h *CommentHandler) Filter(w http.ResponseWriter, r *http.Request) {
+
+	//TODO what do we need to find the right things?
+	//I guess we only need input to make the filtering
+
+	return
+
+}
