@@ -2,6 +2,7 @@ package image
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -26,7 +27,14 @@ func (h *ImageHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 	// Limit upload file size
 	r.Body = http.MaxBytesReader(w, r.Body, MaxUploadSize)
 	if err := r.ParseMultipartForm(MaxUploadSize); err != nil {
-		errs.WriteError(w, errs.ErrFileTooLarge)
+		var maxBytesErr *http.MaxBytesError
+
+		if errors.As(err, &maxBytesErr) {
+			errs.WriteError(w, errs.ErrFileTooLarge)
+			return
+		}
+
+		errs.WriteError(w, err)
 		return
 	}
 

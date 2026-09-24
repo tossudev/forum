@@ -36,7 +36,7 @@ func (s *ImageService) UploadImage(ctx context.Context, r *http.Request, req Ima
 	}
 	defer file.Close()
 
-	valid, err := validateImage(file)
+	valid, err := validateFiletype(file)
 	if err != nil {
 		return "", fmt.Errorf("image validation failed: %w", err)
 	}
@@ -60,7 +60,7 @@ func (s *ImageService) UploadImage(ctx context.Context, r *http.Request, req Ima
 	return imagePath, nil
 }
 
-func validateImage(file multipart.File) (bool, error) {
+func validateFiletype(file multipart.File) (bool, error) {
 	buffer := make([]byte, 512)
 	_, err := file.Read(buffer)
 	if err != nil {
