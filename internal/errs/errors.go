@@ -4,52 +4,42 @@ import (
 	"context"
 	"errors"
 	"forum/internal/pagination"
-	"log"
+	"log/slog"
 	"net/http"
 )
 
-var ErrInvalidUserInput = errors.New("invalid input")
-var ErrNotFound = errors.New("record not found")
-var ErrDuplicate = errors.New("duplicate entry")
-var ErrUnauthorized = errors.New("unauthorized")
+var (
+	ErrInvalidUserInput = errors.New("invalid input")
+	ErrNotFound         = errors.New("record not found")
+	ErrDuplicate        = errors.New("duplicate entry")
+	ErrUnauthorized     = errors.New("unauthorized")
+)
 
 // WriteError chooses the appropriate error response and writes to http.ResponseWrite
 func WriteError(w http.ResponseWriter, err error) {
-	if errors.Is(err, context.Canceled) {
-		log.Println("user disconnected before response finished")
+	switch {
+	case errors.Is(err, context.Canceled):
+		slog.Info("user disconnected before response finished")
 		return
-	}
 
-	if errors.Is(err, context.DeadlineExceeded) {
+	case errors.Is(err, context.DeadlineExceeded):
 		http.Error(w, "request timed out", http.StatusGatewayTimeout)
 		return
-	}
 
-	if errors.Is(err, ErrNotFound) {
+	case errors.Is(err, ErrNotFound):
 		http.Error(w, ErrNotFound.Error(), http.StatusNotFound)
 		return
-	}
 
-	if errors.Is(err, ErrInvalidUserInput) {
+	case errors.Is(err, ErrInvalidUserInput), errors.Is(err, pagination.ErrPaginationParams), errors.Is(err, ErrDuplicate):
 		http.Error(w, err.Error(), http.StatusBadRequest) // Show detailed error so user can fix input
 		return
-	}
 
-	if errors.Is(err, pagination.ErrPaginationParams) {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if errors.Is(err, ErrDuplicate) {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if errors.Is(err, ErrUnauthorized) {
+	case errors.Is(err, ErrUnauthorized):
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
-	}
 
-	log.Println("internal server error:", err)
-	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	default:
+		slog.Error("internal server error:", "err", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
 }
