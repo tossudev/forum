@@ -10,8 +10,8 @@ import (
 
 var (
 	ErrInvalidUserInput = errors.New("invalid input")
-  ErrInvalidFiletype  = errors.New("invalid file type")
-  ErrFileTooLarge     = errors.New("file too large")
+	ErrInvalidFiletype  = errors.New("invalid file type")
+	ErrFileTooLarge     = errors.New("file too large")
 	ErrNotFound         = errors.New("record not found")
 	ErrDuplicate        = errors.New("duplicate entry")
 	ErrUnauthorized     = errors.New("unauthorized")
@@ -36,12 +36,12 @@ func WriteError(w http.ResponseWriter, err error) {
 		http.Error(w, err.Error(), http.StatusBadRequest) // Show detailed error so user can fix input
 		return
 
-  case errors.Is(err, ErrInvalidFiletype):
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	case errors.Is(err, ErrInvalidFiletype):
+		http.Error(w, err.Error(), http.StatusUnsupportedMediaType)
 		return
 
-  case errors.Is(err, ErrFileTooLarge):
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	case errors.Is(err, ErrFileTooLarge):
+		http.Error(w, err.Error(), http.StatusRequestEntityTooLarge)
 		return
 
 	case errors.Is(err, ErrUnauthorized):
