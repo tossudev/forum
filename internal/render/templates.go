@@ -31,7 +31,7 @@ func (r *Renderer) RenderPage(w http.ResponseWriter, templateName string, data a
 	var buf bytes.Buffer
 	err := tmpl.ExecuteTemplate(&buf, "base.html", data) // use buffer to prevent partial writing of response in case of execution failure
 	if err != nil {
-		errs.WriteError(w, err)
+		errs.WriteError(w, fmt.Errorf("template execution failed: %w", err))
 		return
 	}
 

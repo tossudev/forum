@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"fmt"
 	"forum/internal/errs"
 	"forum/internal/password"
 	"forum/internal/render"
@@ -21,6 +22,23 @@ func NewHandler(service *UserService, sm *session.SessionManager, renderer *rend
 		sm:       sm,
 		renderer: renderer,
 	}
+}
+
+func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	userSession := session.GetSession(r)
+	if userSession == nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	user, err := h.service.GetUserByID(ctx, userSession.UserID())
+	if err != nil {
+		errs.WriteError(w, fmt.Errorf("get user by id: %w", err))
+	}
+
+	h.renderer.RenderPage(w, "profile.html", user)
 }
 
 func (h *UserHandler) RegisterPage(w http.ResponseWriter, r *http.Request) {
