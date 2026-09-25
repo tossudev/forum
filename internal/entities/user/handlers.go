@@ -39,6 +39,7 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		errs.WriteError(w, fmt.Errorf("get user by id: %w", err))
 	}
 
+	// TODO: figure out roles
 	data := ProfilePage{
 		Username:    user.Username,
 		Role:        "Member",
