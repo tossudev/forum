@@ -30,7 +30,7 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 
 	userSession := session.GetSession(r)
 	if userSession == nil {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
 		return
 	}
 
