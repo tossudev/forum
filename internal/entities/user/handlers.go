@@ -3,11 +3,12 @@ package user
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"forum/internal/errs"
 	"forum/internal/password"
 	"forum/internal/render"
 	"forum/internal/session"
-	"net/http"
 )
 
 type UserHandler struct {
@@ -38,7 +39,13 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		errs.WriteError(w, fmt.Errorf("get user by id: %w", err))
 	}
 
-	h.renderer.RenderPage(w, "profile.html", user)
+	data := ProfilePage{
+		Username:    user.Username,
+		Role:        "Member",
+		DateCreated: user.CreatedAt.Format("02 Jan 2006"),
+	}
+
+	h.renderer.RenderPage(w, "profile.html", data)
 }
 
 func (h *UserHandler) RegisterPage(w http.ResponseWriter, r *http.Request) {

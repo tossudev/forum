@@ -164,4 +164,30 @@ form .button {
 /* Profile view */
 .profile-view {
 	display: flex;
+	width: 600px;
+	border: solid #000;
+	border-width: 1px 1px 3px 1px;
+	background-color: #FFF;
+	padding: 16px;
+}
+
+.profile-view .left {
+	width: 150px;
+	float: left;
+	right: 0px;
+}
+
+.profile-view .right {
+	width: 450px;
+	float: right;
+	left: 0px;
+}
+
+.avatar {
+	border: solid #000;
+	border-width: 1px 1px 3px 1px;
+}
+
+.role {
+	color: chocolate;
 }

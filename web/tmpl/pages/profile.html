@@ -1,9 +1,16 @@
 {{ define "content" }}
 <div class="center-content">
 	<div class="profile-view">
-		<img src="/web/static/img/default-avatar.png" alt="Avatar">
-		<p>{{.Username}}</p>
-		<p>{{.Email}}</p>
+		<div class="left">
+			<img class="avatar" src="/web/static/img/default-avatar.png" alt="Avatar">
+		</div>
+
+		
+		<div class="right">
+			<h2>{{.Username}}</h2>
+			<p class="role">{{.Role}}</p>
+			<p>Registered since {{.DateCreated}}</p>
+		</div>
 	</div>
 </div>
 {{ end }}
