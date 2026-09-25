@@ -19,3 +19,9 @@ type CredentialsSubmission struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+type ProfilePage struct {
+	Username    string
+	Role        string
+	DateCreated string
+}
