@@ -12,6 +12,7 @@ import (
 	"forum/internal/pagination"
 	"forum/internal/render"
 	"forum/internal/session"
+	//"forum/internal/entities/user"
 )
 
 type ThreadHandler struct {
@@ -139,4 +140,44 @@ func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *ThreadHandler) SearchThreads(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	query := r.URL.Query()
+	pagination, err := pagination.Parse(query)
+	if err != nil {
+		errs.WriteError(w, err)
+	}
+
+	//TODO: how will search term actually be sent from front end??
+	term := r.PathValue("search")
+
+	threads, err := h.service.SearchThreads(ctx, term, pagination)
+	if err != nil {
+		errs.WriteError(w, err)
+	}
+
+	var username string
+	//will need this after merge with main, where all responses to front end must contain username
+	//user := user.GetUser(r)
+	//if user != nil {
+	//		username = user.Username
+	//}
+
+	type SearchResults struct {
+		Threads  []Thread
+		Page     int
+		Username string
+	}
+
+	data := SearchResults{
+		Threads:  threads,
+		Page:     pagination.Page,
+		Username: username,
+	}
+
+	//TODO: sub actual frontent page when it exists (if not "searchresults.html")
+	h.renderer.RenderPage(w, "searchresults.html", data)
 }
