@@ -27,6 +27,41 @@ CREATE TABLE IF NOT EXISTS threads (
 	FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS thread_likes (
+	thread_id INTEGER NOT NULL,
+	user_id INTEGER NOT NULL,
+	thread_like BOOLEAN NOT NULL,
+	FOREIGN KEY(thread_id) REFERENCES threads(id) ON DELETE CASCADE,
+	FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+	PRIMARY KEY (thread_id, user_id)
+);
+
+/*---------------------------threads fts table and triggers--------------------------*/
+CREATE VIRTUAL TABLE IF NOT EXISTS threads_fts USING fts5(
+	title, 
+	body, 
+	date_created, 
+	content='threads', 
+	content_rowid='id'
+	);
+
+CREATE TRIGGER IF NOT EXISTS threads_insert AFTER 
+INSERT ON threads BEGIN
+INSERT INTO threads_fts (rowid, title, body, date_created)
+VALUES (new.id, new.title, new.body, new.date_created); END;
+
+CREATE TRIGGER IF NOT EXISTS threads_update AFTER 
+UPDATE ON threads BEGIN
+INSERT INTO threads_fts (rowid, title, body, date_created)
+VALUES (new.id, new.title, new.body, new.date_created); END;
+
+CREATE TRIGGER IF NOT EXISTS threads_delete AFTER 
+DELETE ON threads BEGIN
+DELETE 
+FROM threads_fts
+WHERE rowid = old.id; END;
+/*-----------------------------------------------------------------------------------*/
+
 CREATE TABLE IF NOT EXISTS comments (
 	id INTEGER PRIMARY KEY,
 	body TEXT NOT NULL,
@@ -37,15 +72,6 @@ CREATE TABLE IF NOT EXISTS comments (
 	FOREIGN KEY(author_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS thread_likes (
-	thread_id INTEGER NOT NULL,
-	user_id INTEGER NOT NULL,
-	thread_like BOOLEAN NOT NULL,
-	FOREIGN KEY(thread_id) REFERENCES threads(id) ON DELETE CASCADE,
-	FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-	PRIMARY KEY (thread_id, user_id)
-);
-
 CREATE TABLE IF NOT EXISTS comment_likes (
 	comment_id INTEGER NOT NULL,
 	user_id INTEGER NOT NULL,
@@ -54,6 +80,32 @@ CREATE TABLE IF NOT EXISTS comment_likes (
 	FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
 	PRIMARY KEY (comment_id, user_id)
 );
+
+/*---------------------------comments fts table and triggers--------------------------*/
+
+CREATE VIRTUAL TABLE IF NOT EXISTS comments_fts USING fts5(
+	body, 
+	date_created, 
+	content='comments', 
+	content_rowid='id'
+	);
+
+CREATE TRIGGER IF NOT EXISTS comments_insert AFTER 
+INSERT ON comments BEGIN
+INSERT INTO comments_fts(rowid, body, date_created)
+VALUES (new.id, new.body, new.date_created); END;
+
+CREATE TRIGGER IF NOT EXISTS comments_update AFTER 
+UPDATE ON comments BEGIN
+INSERT INTO comments_fts(rowid, body, date_created)
+VALUES (new.id, new.body, new.date_created); END;
+
+CREATE TRIGGER IF NOT EXISTS comments_delete AFTER 
+DELETE ON comments BEGIN
+DELETE 
+FROM comments_fts
+WHERE rowid = old.id; END;
+/*----------------------------------------------------------------------------------*/
 
 CREATE TABLE IF NOT EXISTS categories (
 	id INTEGER PRIMARY KEY,

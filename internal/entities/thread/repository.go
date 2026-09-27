@@ -81,3 +81,34 @@ func (r *ThreadRepository) Delete(ctx context.Context, threadID int, userID int)
 
 	return nil
 }
+
+func (r *ThreadRepository) SearchThreads(ctx context.Context, term string, pagination pagination.Pagination) ([]Thread, error) {
+
+	//TODO: add JOIN to get author name and category name by id from those tables
+	query := `SELECT title, body, date_created, author_id, category_id
+	FROM threads_fts
+	WHERE threads_fts MATCH ?
+	ASC LIMIT ? OFFSET ?;`
+
+	rows, err := r.db.QueryContext(ctx, query, term, pagination.Limit(), pagination.Offset())
+	if err != nil {
+		return nil, fmt.Errorf("Thread search: %w", err)
+	}
+
+	//TODO what do we actually need to return?
+	//what does the search results page look like?
+
+	var threads []Thread
+	for rows.Next() {
+		var thread Thread
+		if err := rows.Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
+			return nil, fmt.Errorf("Thread search: %w", err)
+		}
+		threads = append(threads, thread)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("Thread search: %w", err)
+	}
+
+	return threads, nil
+}

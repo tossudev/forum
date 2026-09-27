@@ -48,3 +48,8 @@ func (s *ThreadService) Delete(ctx context.Context, threadID int, userID int) er
 	}
 	return s.repo.Delete(ctx, threadID, userID)
 }
+
+func (s *ThreadService) SearchThreads(ctx context.Context, term string, pagination pagination.Pagination) ([]Thread, error) {
+
+	return s.repo.SearchThreads(ctx, term, pagination)
+}
