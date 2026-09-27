@@ -66,6 +66,7 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 	h.renderer.RenderPage(w, "threads.html", data)
 }
 
+// TODO: if not being used by front end, make this func repo only??
 func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -147,4 +148,31 @@ func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
+		return
+	}
+
+	//TODO: change _ to thread and send to front end
+	data, err := h.service.DisplayThreadPage(ctx, id)
+	if err != nil {
+		errs.WriteError(w, err)
+	}
+
+	var username string
+	user := user.GetUser(r)
+	if user != nil {
+		username = user.Username
+	}
+	data.Username = username
+
+	fmt.Println(data)
+
+	h.renderer.RenderPage(w, "threads.html", data)
 }

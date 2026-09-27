@@ -23,7 +23,7 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	// Thread routes
 	mux.HandleFunc("GET /categories/{id}", app.ThreadHandler.GetByCategory)
 	mux.HandleFunc("POST /threads", app.ThreadHandler.Create)
-	mux.HandleFunc("GET /threads/{id}", app.ThreadHandler.GetByID)
+	mux.HandleFunc("GET /threads/{id}", app.ThreadHandler.DisplayThreadPage)
 	mux.HandleFunc("DELETE /threads/{id}", app.ThreadHandler.Delete)
 
 	//Comment routes
