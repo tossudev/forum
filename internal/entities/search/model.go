@@ -6,6 +6,7 @@ import (
 )
 
 type SearchResult struct {
+	UserName 	string
 	InputQuery	string
 	Threads 	*[]thread.Thread
 	Comments 	*[]comment.Comments

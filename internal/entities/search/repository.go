@@ -2,6 +2,8 @@ package search
 
 import (
 //here goes the repo layers of the other packages
+	"database/sql"
+	"forum/internal/pagination"
 )
 
 
