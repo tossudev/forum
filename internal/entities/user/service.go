@@ -16,7 +16,10 @@ func NewService(repo *UserRepo) *UserService {
 }
 
 func (s *UserService) RegisterUser(ctx context.Context, user *User, inputPassword string) (*User, error) {
-	// TODO: Validate user fields and password
+	// Server-side validation of credentials in case a potentially malicious actor bypasses validation check in UI
+	if !validateRegistrationCredentials(user, inputPassword) {
+		return nil, fmt.Errorf("%w: invalid credentials", errs.ErrInvalidUserInput)
+	}
 
 	// Check if username already exists
 	if exists, err := s.repo.UsernameExists(ctx, user.Username); err != nil {
