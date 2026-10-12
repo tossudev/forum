@@ -118,7 +118,7 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int) 
 	}
 
 	//get all comments for this thread plus username of comment author
-	threadCommentsQuery := `SELECT comments.id, comments.body, comments.thread_id, username FROM comments INNER JOIN users ON comments.author_id = users.id WHERE comments.thread_id = ?;`
+	threadCommentsQuery := `SELECT comments.id, comments.body, comments.thread_id, username, comments.date_created FROM comments INNER JOIN users ON comments.author_id = users.id WHERE comments.thread_id = ?;`
 	commentRows, err := r.db.QueryContext(ctx, threadCommentsQuery, threadID)
 	if err != nil {
 		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
@@ -126,7 +126,7 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int) 
 	var comments []CommentData
 	for commentRows.Next() {
 		var comment CommentData
-		if err := commentRows.Scan(&comment.ID, &comment.Body, &comment.ThreadID, &comment.AuthorName); err != nil {
+		if err := commentRows.Scan(&comment.ID, &comment.Body, &comment.ThreadID, &comment.AuthorName, &comment.DateCreated); err != nil {
 			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 		}
 		comments = append(comments, comment)

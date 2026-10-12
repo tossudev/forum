@@ -218,6 +218,16 @@ form .button {
 	margin: 0px 0px 32px 0px;
 }
 
+.thread-footer {
+	display: flex;
+	font-size: 22px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	cursor: pointer;
+	margin-top: auto;
+}
+
 .comment-container {
 	display: flex;
 	flex-flow: column;
@@ -232,6 +242,26 @@ form .button {
 	flex-flow: row;
 }
 
+.comment .content {
+	display: flex;
+	flex-direction: column;
+}
+
+.reaction-btn {
+	background-color: #ffffff;
+	border: solid #000;
+	border-width: 1px 1px 3px 1px;
+	font-size: 22px;
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	margin: 0px;
+}
+
+.reaction-btn:hover {
+  background-color: #F0F0F0;
+}
+
 /* Sidebar with Avatars & Username info */
 .user-sidebar {
   width: 160px;
@@ -242,7 +272,10 @@ form .button {
   flex-shrink: 0;
 }
 
-/* Avatars styling */
+.user-sidebar:hover {
+	background-color: #F0F0F0;
+}
+
 .user-avatar {
   width: 140px;
   border-radius: 50%;
@@ -253,12 +286,3 @@ form .button {
   margin-bottom: 8px;
   image-rendering: smooth;
 }
-
-.user:hover {
-	background-color: #FEFF7A;
-}
-
-.comment .content {
-	padding: 16px;
-}
-

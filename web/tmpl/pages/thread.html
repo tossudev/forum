@@ -20,6 +20,9 @@
 						{{.Thread.Title}}
 					</div>
 					{{.Thread.Body}}
+					<div class="thread-footer">
+						{{.Thread.DateCreated}}
+					</div>
 				</div>
 			</div>
 		</div>
@@ -36,6 +39,11 @@
 
 				<div class="content">
 					{{.Body}}
+					<div class="thread-footer">
+						<button class="reaction-btn"><span class="count">{{.NumLikes}} 👍</span></button>
+						<button class="reaction-btn"><span class="count">{{.NumDislikes}} 👎</span></button>
+						<div>{{.DateCreated}}</div>
+					</div>
 				</div>
 			</div>
 		</div>
