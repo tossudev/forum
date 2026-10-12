@@ -159,7 +159,6 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	//TODO: change _ to thread and send to front end
 	data, err := h.service.DisplayThreadPage(ctx, id)
 	if err != nil {
 		errs.WriteError(w, err)
