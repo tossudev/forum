@@ -259,17 +259,18 @@ form .button {
 }
 
 .reaction-btn:hover {
-  background-color: #F0F0F0;
+	background-color: #F0F0F0;
 }
 
 /* Sidebar with Avatars & Username info */
 .user-sidebar {
-  width: 160px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  flex-shrink: 0;
+	width: 160px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	flex-shrink: 0;
+	cursor: pointer;
 }
 
 .user-sidebar:hover {
@@ -277,12 +278,12 @@ form .button {
 }
 
 .user-avatar {
-  width: 140px;
-  border-radius: 50%;
-  border: 2px solid #000000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 8px;
-  image-rendering: smooth;
+	width: 140px;
+	border-radius: 50%;
+	border: 2px solid #000000;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: 8px;
+	image-rendering: smooth;
 }
