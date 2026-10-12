@@ -17,6 +17,7 @@ type ThreadsPage struct {
 }
 
 type ThreadData struct {
+	Path         string
 	Thread       Thread
 	AuthorName   string
 	AuthorAvatar string

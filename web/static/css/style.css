@@ -191,3 +191,40 @@ form .button {
 .role {
 	color: chocolate;
 }
+
+/* Threads & comments */
+.thread-container {
+	overflow: hidden;
+	width: 100%;
+	margin: 0 auto;
+	background: #FFF;
+	border: solid #000;
+	border-width: 1px 1px 3px 1px;
+}
+
+.thread-header {
+	line-height: 32px;
+	outline: 2px solid #000;
+	background: #FFFF00;
+	text-align: left;
+}
+
+.comment {
+	display: flex;
+	border: solid #000;
+	border-width: 1px 1px 3px 1px;
+	background-color: #FFF;
+	padding: 16px;
+}
+
+.comment .left {
+	width: 150px;
+	float: left;
+	right: 0px;
+}
+
+.comment .right {
+	float: right;
+	left: 0px;
+}
+
