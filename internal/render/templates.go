@@ -9,15 +9,20 @@ import (
 	"os"
 
 	"forum/internal/errs"
+
+	"github.com/microcosm-cc/bluemonday"
+	"github.com/russross/blackfriday/v2"
 )
 
 type Renderer struct {
 	Templates map[string]*template.Template
+	policy    *bluemonday.Policy
 }
 
 func NewRenderer() *Renderer {
 	return &Renderer{
 		Templates: parseTemplates(),
+		policy:    bluemonday.UGCPolicy(),
 	}
 }
 
@@ -37,6 +42,15 @@ func (r *Renderer) RenderPage(w http.ResponseWriter, templateName string, data a
 
 	w.WriteHeader(http.StatusOK)
 	buf.WriteTo(w)
+}
+
+func (r *Renderer) SanitizeHTML(input string) (string, error) {
+	out := r.policy.Sanitize(string(blackfriday.Run([]byte(input))))
+	if out == "" {
+		return "", fmt.Errorf("HTML sanitization failed")
+	}
+
+	return out, nil
 }
 
 // Prepare all templates and cache page templates in map

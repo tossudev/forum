@@ -1,7 +1,6 @@
 package thread
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -57,7 +56,7 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 
 	data := ThreadsPage{
 		// TODO: use category name instead of ID
-		Path:     fmt.Sprintf("⌂ Home / CategoryID %d", id),
+		Path:     fmt.Sprintf("⌂ Home / Category: %d", id),
 		Threads:  threads,
 		Page:     pagination.Page,
 		Username: username,
@@ -87,14 +86,30 @@ func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var input struct {
-		Title      string `json:"title"`
-		Body       string `json:"body"`
-		CategoryID int    `json:"category_id"`
+	if err := r.ParseForm(); err != nil {
+		errs.WriteError(w, errs.ErrInvalidUserInput)
+		return
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&input)
+	type submission struct {
+		Title      string
+		Body       string
+		CategoryID int
+	}
+
+	// TODO: FIX IDIOT
+	input := submission{
+		Title:      r.PostFormValue("title"),
+		Body:       r.PostFormValue("body"),
+		CategoryID: 1,
+	}
+
+	// TODO: sanitizing SHOULD be done only upon displaying it
+	// so instead of doing it here, we should store the raw input in db
+	// and sanitize the body when we want to display it
+	sanitizedBody, err := h.renderer.SanitizeHTML(input.Body)
 	if err != nil {
+		// Could be status 422: Unprocessable Content
 		errs.WriteError(w, fmt.Errorf("%w: invalid request body", errs.ErrInvalidUserInput))
 		return
 	}
@@ -108,20 +123,19 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	thread := Thread{
 		Title:      input.Title,
-		Body:       input.Body,
+		Body:       sanitizedBody,
 		AuthorID:   authorID,
 		CategoryID: input.CategoryID,
 	}
 
-	err = h.service.Create(ctx, &thread)
+	id, err := h.service.Create(ctx, &thread)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
 
-	//TODO: find out what front end needs this result to do/look like
-
-	w.WriteHeader(http.StatusOK)
+	// Redirect user to newly created thread page
+	http.Redirect(w, r, fmt.Sprintf("/threads/%d", id), http.StatusSeeOther)
 }
 
 func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {

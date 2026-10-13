@@ -1,9 +1,30 @@
 <!DOCTYPE html>
 
+{{ define "js" }}
+<script src="/web/static/js/texteditor.js" defer></script>
+{{ end }}
+
 {{ define "content" }}
 
 <div class="contents">
 	<p>{{.Path}}</p>
+
+	{{ if .Username }}
+	<button class="create-btn" onclick="toggleEditorVisible()">New thread</button>
+	{{ end }}
+
+	<form hidden class="texteditor" method="POST" action="/threads">
+		<label>Title</label>
+		<input placeholder="Write title..." type="text" name="title"></input>
+
+		<label>Body</label>
+		<textarea placeholder="Write body..." rows="15" cols="60" name="body"></textarea>
+
+		<div style="margin: auto;">
+			<button onclick="toggleEditorVisible()" class="button-cancel" type="button">Cancel</button>
+			<button class="button" type="submit">Submit</button>
+		</div>
+	</form>
 
 	<table class="listing-container">
 		<tr class="listing-header">

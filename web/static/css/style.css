@@ -114,7 +114,7 @@ td, th {
 	padding: 10px;
 }
 
-.button {
+.button, .create-btn {
 	border: solid #000;
 	border-width: 1px 1px 3px 1px;
 	background-color: #FFD500;
@@ -122,8 +122,26 @@ td, th {
 	width: 200px;
 }
 
-.button:hover {
+.button[hidden], .create-btn[hidden] {
+	display: none;
+}
+
+.button-cancel {
+	border: solid #000;
+	border-width: 1px 1px 3px 1px;
+	background-color: #EB564B;
+	padding: 8px 16px;
+	width: 150px;
+}
+
+.button:hover, .create-btn:hover {
 	background-color: #FEFF7A;
+	cursor: pointer;
+}
+
+.button-cancel:hover {
+	background-color: #FFB8B3;
+	cursor: pointer;
 }
 
 /* Login and Register */
@@ -190,4 +208,20 @@ form .button {
 
 .role {
 	color: chocolate;
+}
+
+/* Texteditor */
+.texteditor {
+	display: flex;
+	align-self: center;
+	flex-direction: column;
+	width: 600px;
+	border: solid #000;
+	border-width: 1px 1px 3px 1px;
+	background-color: #F0C682;
+	padding: 16px;
+}
+
+.texteditor[hidden] {
+	display: none;
 }

@@ -233,7 +233,8 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 	}
 
 	for _, newThread := range threads {
-		err := app.ThreadService.Create(ctx, &newThread)
+		var err error
+		_, err = app.ThreadService.Create(ctx, &newThread)
 		if err != nil {
 			return err
 		}
