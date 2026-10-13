@@ -1,5 +1,9 @@
 <!DOCTYPE html>
 
+{{ define "js" }}
+<script src="/web/static/js/like.js" defer></script>
+{{ end }}
+
 {{ define "content" }}
 
 <div class="contents">
@@ -40,8 +44,12 @@
 				<div class="content">
 					{{.Body}}
 					<div class="thread-footer">
-						<button class="reaction-btn"><span class="count">{{.NumLikes}} 👍</span></button>
-						<button class="reaction-btn"><span class="count">{{.NumDislikes}} 👎</span></button>
+						<button name="{{.ID}}" class="reaction-btn" onclick="likeComment(this, true)">
+							<span class="count-likes">{{.NumLikes}} 👍</span>
+						</button>
+						<button name="{{.ID}}" class="reaction-btn" onclick="likeComment(this, false)">
+							<span class="count-dislikes">{{.NumDislikes}} 👎</span>
+						</button>
 						<div>{{.DateCreated}}</div>
 					</div>
 				</div>
