@@ -172,7 +172,5 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 	data.Username = username
 	data.Path = "Thread > " + data.Thread.Title
 
-	fmt.Println(data)
-
 	h.renderer.RenderPage(w, "thread.html", data)
 }
