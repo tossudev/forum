@@ -81,3 +81,66 @@ func (r *ThreadRepository) Delete(ctx context.Context, threadID int, userID int)
 
 	return nil
 }
+
+func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int) (*ThreadData, error) {
+	threadQuery := `SELECT threads.id, title, body, threads.date_created, threads.author_id, threads.category_id, username FROM users INNER JOIN threads ON users.id = threads.author_id WHERE threads.id = ?;`
+	//query := `SELECT threads.id, title, body, date_created, username, thread_like, thread_likes.user_id FROM threads INNER JOIN users ON users.id = threads.author_id LEFT JOIN thread_likes ON threads.id = thread_likes.thread_id;`
+	//query := "SELECT id, title, body, date_created, author_id, category_id FROM threads WHERE id = ?;"
+
+	var authorName string
+	var thread Thread
+
+	err := r.db.QueryRowContext(ctx, threadQuery, threadID).Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID, &authorName)
+	if err != nil {
+		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
+	}
+
+	//this is a separate query because otherwise there would be a distinct row in the above query for every like on every thread
+	threadLikesQuery := `SELECT username, thread_like FROM thread_likes INNER JOIN users ON users.id = thread_likes.user_id WHERE thread_id = ?`
+
+	rows, err := r.db.QueryContext(ctx, threadLikesQuery, threadID)
+	if err != nil {
+		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
+	}
+	var likeUsers []string
+	var dislikeUsers []string
+	for rows.Next() {
+		var likeUser string
+		var like bool
+		if err := rows.Scan(&likeUser, &like); err != nil {
+			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
+		}
+		if like {
+			likeUsers = append(likeUsers, likeUser)
+		} else {
+			dislikeUsers = append(dislikeUsers, likeUser)
+		}
+	}
+
+	//get all comments for this thread plus username of comment author
+	threadCommentsQuery := `SELECT comments.id, comments.body, comments.thread_id, username, comments.date_created FROM comments INNER JOIN users ON comments.author_id = users.id WHERE comments.thread_id = ?;`
+	commentRows, err := r.db.QueryContext(ctx, threadCommentsQuery, threadID)
+	if err != nil {
+		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
+	}
+	var comments []CommentData
+	for commentRows.Next() {
+		var comment CommentData
+		if err := commentRows.Scan(&comment.ID, &comment.Body, &comment.ThreadID, &comment.AuthorName, &comment.DateCreated); err != nil {
+			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
+		}
+		comments = append(comments, comment)
+	}
+
+	data := ThreadData{
+		Thread:       thread,
+		AuthorName:   authorName,
+		NumLikes:     len(likeUsers),
+		LikeUsers:    likeUsers,
+		NumDislikes:  len(dislikeUsers),
+		DislikeUsers: dislikeUsers,
+		Comments:     comments,
+	}
+
+	return &data, nil
+}

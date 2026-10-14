@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+
+{{ define "content" }}
+
+<div class="contents">
+	<p>{{.Path}}</p>
+
+	<p class="thread-container" data-href="/threads/{{.Thread.ID}}">
+		<div class="comment-container">
+			<div class="comment">
+				<div class="user-sidebar">
+					<img class="user-avatar" src="/web/static/img/default-avatar.png" alt="Avatar">
+					<div class="username">{{.AuthorName}}</div>
+					<!-- TODO: add role -->
+					<div class="role">Member</div> 
+				</div>
+
+				<div class="content">
+					<div class="thread-header">
+						{{.Thread.Title}}
+					</div>
+					{{.Thread.Body}}
+					<div class="thread-footer">
+						{{.Thread.DateCreated}}
+					</div>
+				</div>
+			</div>
+		</div>
+
+		{{ range .Comments }}
+		<div class="comment-container">
+			<div class="comment">
+				<div class="user-sidebar">
+					<img class="user-avatar" src="/web/static/img/default-avatar.png" alt="Avatar">
+					<div class="username">{{.AuthorName}}</div>
+					<!-- TODO: add role -->
+					<div class="role">Member</div> 
+				</div>
+
+				<div class="content">
+					{{.Body}}
+					<div class="thread-footer">
+						<button class="reaction-btn"><span class="count">{{.NumLikes}} 👍</span></button>
+						<button class="reaction-btn"><span class="count">{{.NumDislikes}} 👎</span></button>
+						<div>{{.DateCreated}}</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		{{ end }}
+	</p>
+</div>
+
+{{ end }}
