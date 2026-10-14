@@ -59,16 +59,7 @@ func (h *UserHandler) RegisterPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type PageData struct {
-		Username    string
-		Email       string
-		UsernameErr string
-		EmailErr    string
-		PasswordErr string
-		ServerErr   string
-	}
-
-	h.renderer.RenderPage(w, "register.html", PageData{})
+	h.renderer.RenderPage(w, "register.html", RegistrationPage{})
 }
 
 func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
@@ -88,25 +79,16 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.service.RegisterUser(ctx, user, r.PostFormValue("password"))
 	if err != nil {
-
-		type PageData struct {
-			Username    string
-			Email       string
-			UsernameErr string
-			EmailErr    string
-			PasswordErr string
-			ServerErr   string
-		}
-		pageData := PageData{Username: r.PostFormValue("username"), Email: r.PostFormValue("email")} // service.RegisterUser returns a nil user on error, so values are taken from the form
+		pageData := RegistrationPage{Username: r.PostFormValue("username"), Email: r.PostFormValue("email")} // service.RegisterUser returns a nil user on error, so values are taken from the form
 
 		if errors.Is(err, errs.ErrInvalidUsername) {
-			pageData.UsernameErr = "Usernames must be 2-20 characters long and only contain the following characters: a-z, A-Z, 0-9, and underscores (_). Must start with a letter."
+			pageData.UsernameErr = "Username must be 2-20 characters, start with a letter, and only contain letters, numbers, or underscores (_)."
 		}
 		if errors.Is(err, errs.ErrDuplicateUsername) {
 			pageData.UsernameErr = "Username already taken."
 		}
 		if errors.Is(err, errs.ErrInvalidEmail) {
-			pageData.EmailErr = "Emails must be in the following format: example@email.com"
+			pageData.EmailErr = "Email must be in the following format: example@email.com"
 		}
 		if errors.Is(err, errs.ErrDuplicateEmail) {
 			pageData.EmailErr = "Email already taken."

@@ -25,3 +25,12 @@ type ProfilePage struct {
 	Role        string
 	DateCreated string
 }
+
+type RegistrationPage struct {
+	Username    string
+	Email       string
+	UsernameErr string
+	EmailErr    string
+	PasswordErr string
+	ServerErr   string
+}
