@@ -144,22 +144,20 @@ form.login, form.register {
 	padding: 16px;
 }
 
-form input {
-	margin-bottom: 24px;
-}
-
 form .error-msg {
+	font-family: sans-serif;
+	font-size: 16px;
+	margin-bottom: 16px;
 	color: red;
+	align-self: flex-start;
 }
 
-form p {
+form .error-msg.server-error {
 	align-self: center;
 }
 
 form .button {
-	align-self: center;
-	margin-top: 24px;
-}
+	align-self: center;}
 
 /* Profile view */
 .profile-view {

@@ -9,12 +9,17 @@ import (
 )
 
 var (
-	ErrInvalidUserInput = errors.New("invalid input")
-	ErrInvalidFiletype  = errors.New("invalid file type")
-	ErrFileTooLarge     = errors.New("file too large")
-	ErrNotFound         = errors.New("record not found")
-	ErrDuplicate        = errors.New("duplicate entry")
-	ErrUnauthorized     = errors.New("unauthorized")
+	ErrInvalidUserInput  = errors.New("invalid input")
+	ErrInvalidFiletype   = errors.New("invalid file type")
+	ErrInvalidUsername   = errors.New("invalid username")
+	ErrInvalidEmail      = errors.New("invalid email")
+	ErrInvalidPassword   = errors.New("invalid password")
+	ErrFileTooLarge      = errors.New("file too large")
+	ErrNotFound          = errors.New("record not found")
+	ErrDuplicate         = errors.New("duplicate entry")
+	ErrDuplicateUsername = errors.New("username already exists")
+	ErrDuplicateEmail    = errors.New("email already exists")
+	ErrUnauthorized      = errors.New("unauthorized")
 )
 
 // WriteError chooses the appropriate error response and writes to http.ResponseWrite

@@ -35,7 +35,6 @@ func (r *Renderer) RenderPage(w http.ResponseWriter, templateName string, data a
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 	buf.WriteTo(w)
 }
 

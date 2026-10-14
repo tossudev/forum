@@ -2,7 +2,9 @@ package user
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"forum/internal/errs"
@@ -58,10 +60,15 @@ func (h *UserHandler) RegisterPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type PageData struct {
-		Username string
+		Username    string
+		Email       string
+		UsernameErr string
+		EmailErr    string
+		PasswordErr string
+		ServerErr   string
 	}
 
-	h.renderer.RenderPage(w, "register.html", PageData{""})
+	h.renderer.RenderPage(w, "register.html", PageData{})
 }
 
 func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
@@ -81,7 +88,40 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.service.RegisterUser(ctx, user, r.PostFormValue("password"))
 	if err != nil {
-		errs.WriteError(w, err)
+
+		type PageData struct {
+			Username    string
+			Email       string
+			UsernameErr string
+			EmailErr    string
+			PasswordErr string
+			ServerErr   string
+		}
+		pageData := PageData{Username: r.PostFormValue("username"), Email: r.PostFormValue("email")} // service.RegisterUser returns a nil user on error, so values are taken from the form
+
+		if errors.Is(err, errs.ErrInvalidUsername) {
+			pageData.UsernameErr = "Usernames must be 2-20 characters long and only contain the following characters: a-z, A-Z, 0-9, and underscores (_). Must start with a letter."
+		}
+		if errors.Is(err, errs.ErrDuplicateUsername) {
+			pageData.UsernameErr = "Username already taken."
+		}
+		if errors.Is(err, errs.ErrInvalidEmail) {
+			pageData.EmailErr = "Emails must be in the following format: example@email.com"
+		}
+		if errors.Is(err, errs.ErrDuplicateEmail) {
+			pageData.EmailErr = "Email already taken."
+		}
+		if errors.Is(err, errs.ErrInvalidPassword) {
+			pageData.PasswordErr = "Passwords must be at least 8 characters long."
+		}
+		if !errors.Is(err, errs.ErrInvalidUserInput) && !errors.Is(err, errs.ErrDuplicateUsername) && !errors.Is(err, errs.ErrDuplicateEmail) {
+			pageData.ServerErr = "Sorry, we're unable to process user registration at the moment. Please try again later."
+			slog.Error("internal server error:", "err", err)
+		}
+
+		w.WriteHeader(http.StatusBadRequest) //TODO: determine status code based on error
+		h.renderer.RenderPage(w, "register.html", pageData)
+		//errs.WriteError(w, err)
 		return
 	}
 

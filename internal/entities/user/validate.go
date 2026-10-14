@@ -1,6 +1,8 @@
 package user
 
 import (
+	"errors"
+	"forum/internal/errs"
 	"regexp"
 )
 
@@ -10,20 +12,22 @@ var (
 
 // validateRegistrationCredentials validates the submitted username, email, and password for user registration.
 // Returns false if any of the validation checks fails.
-func validateRegistrationCredentials(user *User, password string) bool {
+func validateRegistrationCredentials(user *User, password string) error {
+	var e []error
+
 	if !validateUsername(user.Username) {
-		return false
+		e = append(e, errs.ErrInvalidUsername)
 	}
 
 	if !validatePassword(password) {
-		return false
+		e = append(e, errs.ErrInvalidPassword)
 	}
 
 	if !validateEmail(user.Email, emailRX) {
-		return false
+		e = append(e, errs.ErrInvalidEmail)
 	}
 
-	return true
+	return errors.Join(e...)
 }
 
 // validateUsername checks that the username has 2-20 characters.
