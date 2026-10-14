@@ -81,21 +81,25 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		pageData := RegistrationPage{Username: r.PostFormValue("username"), Email: r.PostFormValue("email")} // service.RegisterUser returns a nil user on error, so values are taken from the form
 
-		if errors.Is(err, errs.ErrInvalidUsername) {
+		switch { // Username field errors
+		case errors.Is(err, errs.ErrInvalidUsername):
 			pageData.UsernameErr = "Username must be 2-20 characters, start with a letter, and only contain letters, numbers, or underscores (_)."
-		}
-		if errors.Is(err, errs.ErrDuplicateUsername) {
+		case errors.Is(err, errs.ErrDuplicateUsername):
 			pageData.UsernameErr = "Username already taken."
 		}
-		if errors.Is(err, errs.ErrInvalidEmail) {
+
+		switch { // Email field errors
+		case errors.Is(err, errs.ErrInvalidEmail):
 			pageData.EmailErr = "Enter a valid email address, such as example@email.com."
-		}
-		if errors.Is(err, errs.ErrDuplicateEmail) {
+		case errors.Is(err, errs.ErrDuplicateEmail):
 			pageData.EmailErr = "Email already taken."
 		}
+
+		// Password field errors
 		if errors.Is(err, errs.ErrInvalidPassword) {
 			pageData.PasswordErr = "Passwords must be at least 8 characters long."
 		}
+
 		if !errors.Is(err, errs.ErrInvalidUserInput) && !errors.Is(err, errs.ErrDuplicateUsername) && !errors.Is(err, errs.ErrDuplicateEmail) {
 			pageData.ServerErr = "Sorry, we're unable to process user registration at the moment. Please try again later."
 			slog.Error("internal server error:", "err", err)
