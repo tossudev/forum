@@ -88,7 +88,7 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 			pageData.UsernameErr = "Username already taken."
 		}
 		if errors.Is(err, errs.ErrInvalidEmail) {
-			pageData.EmailErr = "Email must be in the following format: example@email.com"
+			pageData.EmailErr = "Enter a valid email address, such as example@email.com."
 		}
 		if errors.Is(err, errs.ErrDuplicateEmail) {
 			pageData.EmailErr = "Email already taken."
