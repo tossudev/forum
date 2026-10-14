@@ -16,20 +16,23 @@ func NewService(repo *UserRepo) *UserService {
 }
 
 func (s *UserService) RegisterUser(ctx context.Context, user *User, inputPassword string) (*User, error) {
-	// TODO: Validate user fields and password
+	// Server-side validation of credentials in case a potentially malicious actor bypasses validation check in UI
+	if err := validateRegistrationCredentials(user, inputPassword); err != nil {
+		return nil, fmt.Errorf("%w: %w", errs.ErrInvalidUserInput, err)
+	}
 
 	// Check if username already exists
 	if exists, err := s.repo.UsernameExists(ctx, user.Username); err != nil {
 		return nil, err
 	} else if exists {
-		return nil, fmt.Errorf("%w: username already exists", errs.ErrDuplicate)
+		return nil, errs.ErrDuplicateUsername
 	}
 
 	// Check if email already exists
 	if exists, err := s.repo.EmailExists(ctx, user.Email); err != nil {
 		return nil, err
 	} else if exists {
-		return nil, fmt.Errorf("%w: email already exists", errs.ErrDuplicate)
+		return nil, errs.ErrDuplicateEmail
 	}
 
 	// Set password
