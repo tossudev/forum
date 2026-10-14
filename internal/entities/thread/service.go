@@ -48,3 +48,31 @@ func (s *ThreadService) Delete(ctx context.Context, threadID int, userID int) er
 	}
 	return s.repo.Delete(ctx, threadID, userID)
 }
+
+func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int) (*ThreadData, error) {
+	if threadID <= 0 {
+		return nil, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput)
+	}
+
+	data, err := s.repo.DisplayThreadPage(ctx, threadID)
+
+	timeThread, errTime := time.Parse(config.TimeFormat, data.Thread.DateCreated)
+	if errTime != nil {
+		return nil, errTime
+	}
+	timeFormatted := timeThread.Format(config.TimeFormatFrontEnd)
+	data.Thread.DateCreated = timeFormatted
+
+	for i, comment := range data.Comments {
+		timeComment, errTime := time.Parse(config.TimeFormat, comment.DateCreated)
+		if errTime != nil {
+			return nil, errTime
+		}
+		timeCommentFormatted := timeComment.Format(config.TimeFormatFrontEnd)
+		data.Comments[i].DateCreated = timeCommentFormatted
+	}
+
+	fmt.Println(data.Comments)
+
+	return data, err
+}

@@ -184,8 +184,104 @@ form .button {
 .avatar {
 	border: solid #000;
 	border-width: 1px 1px 3px 1px;
+	image-rendering: smooth;
+}
+
+.username {
+	color: #000;
+	margin: 0px 8px 0px 8px;
 }
 
 .role {
 	color: chocolate;
+	font-size: 20px;
+	margin: 0px 8px 0px 8px;
+}
+
+/* Threads & comments */
+.thread-container {
+	overflow: hidden;
+	width: 100%;
+	margin: 0 auto;
+	background: #FFF;
+	border: solid #000;
+	border-width: 1px 1px 3px 1px;
+}
+
+.thread-header {
+	width: 100%;
+	line-height: 32px;
+	text-align: left;
+	font-size: 40px;
+	margin: 0px 0px 32px 0px;
+}
+
+.thread-footer {
+	display: flex;
+	font-size: 22px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	cursor: pointer;
+	margin-top: auto;
+}
+
+.comment-container {
+	display: flex;
+	flex-flow: column;
+	border: solid #000;
+	border-width: 1px 1px 3px 1px;
+	background-color: #FFF;
+	padding: 16px;
+}
+
+.comment {
+	display: flex;
+	flex-flow: row;
+}
+
+.comment .content {
+	display: flex;
+	flex-direction: column;
+}
+
+.reaction-btn {
+	background-color: #ffffff;
+	border: solid #000;
+	border-width: 1px 1px 3px 1px;
+	font-size: 22px;
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	margin: 0px;
+}
+
+.reaction-btn:hover {
+	background-color: #F0F0F0;
+}
+
+/* Sidebar with Avatars & Username info */
+.user-sidebar {
+	width: 160px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	flex-shrink: 0;
+	cursor: pointer;
+}
+
+.user-sidebar:hover {
+	background-color: #F0F0F0;
+}
+
+.user-avatar {
+	width: 140px;
+	border-radius: 50%;
+	border: 2px solid #000000;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: 8px;
+	image-rendering: smooth;
 }
