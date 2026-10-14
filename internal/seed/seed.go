@@ -327,6 +327,16 @@ func seedLikes(ctx context.Context, app *SeedApp) error {
 			UserID:    1,
 			Like:      true,
 		},
+		{
+			CommentID: 1,
+			UserID:    2,
+			Like:      false,
+		},
+		{
+			CommentID: 1,
+			UserID:    3,
+			Like:      true,
+		},
 	}
 
 	for _, newThreadLike := range threadLikes {

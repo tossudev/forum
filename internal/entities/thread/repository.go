@@ -123,12 +123,45 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int) 
 	if err != nil {
 		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 	}
+
+	//query for comment likes/dislikes
+	commentLikesQuery := `SELECT username, comment_like FROM comment_likes INNER JOIN users ON users.id = comment_likes.user_id WHERE comment_id = ?`
+
 	var comments []CommentData
+
+	//for every comment on thread:
 	for commentRows.Next() {
 		var comment CommentData
 		if err := commentRows.Scan(&comment.ID, &comment.Body, &comment.ThreadID, &comment.AuthorName, &comment.DateCreated); err != nil {
 			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 		}
+
+		//get comment likes/dislikes
+		likeRows, err := r.db.QueryContext(ctx, commentLikesQuery, comment.ID)
+		if err != nil {
+			return nil, fmt.Errorf("DispleyThreadPage: %w", err)
+		}
+		var commentLikeUsers []string
+		var commentDislikeUsers []string
+		for likeRows.Next() {
+			var commentLikeUser string
+			var commentLike bool
+			if err := likeRows.Scan(&commentLikeUser, &commentLike); err != nil {
+				return nil, fmt.Errorf("DisplayThreadPage: %w", err)
+			}
+			if commentLike {
+				commentLikeUsers = append(commentLikeUsers, commentLikeUser)
+			} else {
+				commentDislikeUsers = append(commentDislikeUsers, commentLikeUser)
+			}
+		}
+
+		comment.NumLikes = len(commentLikeUsers)
+		comment.LikeUsers = commentLikeUsers
+		comment.NumDislikes = len(commentDislikeUsers)
+		comment.DislikeUsers = commentDislikeUsers
+
+		//append comment to comments
 		comments = append(comments, comment)
 	}
 
