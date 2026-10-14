@@ -21,7 +21,9 @@
 					</div>
 					{{.Thread.Body}}
 					<div class="thread-footer">
-						{{.Thread.DateCreated}}
+						<button class="reaction-btn"><span class="count">{{.NumLikes}} 👍</span></button>
+						<button class="reaction-btn"><span class="count">{{.NumDislikes}} 👎</span></button>
+						<div>{{.Thread.DateCreated}}</div>
 					</div>
 				</div>
 			</div>
