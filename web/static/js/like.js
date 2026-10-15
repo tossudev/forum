@@ -1,3 +1,11 @@
+// Send like request to server and wait for approval
+// Upon success, update the frontend to match user action
+
+// Frontend acts like a fake mirror,
+// it does not request the real data from the server
+// but since it is only updated on server acceptance,
+// it should always display correctly
+
 async function likeComment(elementRef, like) {
 	const commentID = elementRef.dataset.commentId
 
