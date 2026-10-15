@@ -152,7 +152,7 @@ form .error-msg {
 	align-self: flex-start;
 }
 
-form .error-msg.server-error {
+form .error-msg.other-error {
 	align-self: center;
 }
 

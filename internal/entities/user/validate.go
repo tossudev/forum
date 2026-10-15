@@ -81,7 +81,7 @@ func validatePasswordLength(password string) bool {
 
 // validateEmailFormat checks that the email matches the email regexp. Returns false if validation fails.
 func validateEmailFormat(email string, rx *regexp.Regexp) bool {
-	return rx.MatchString(email)
+	return len(email) >= 6 && len(email) <= 254 && rx.MatchString(email)
 }
 
 func isLetter(r rune) bool {
