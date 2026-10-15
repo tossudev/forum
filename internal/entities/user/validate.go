@@ -11,29 +11,45 @@ var (
 )
 
 // validateRegistrationCredentials validates the submitted username, email, and password for user registration.
-// Returns false if any of the validation checks fails.
+// Returns an error combining all validation errors (if any).
 func validateRegistrationCredentials(user *User, password string) error {
-	var e []error
+	var allErrs []error
 
-	if !validateUsername(user.Username) {
-		e = append(e, errs.ErrInvalidUsername)
+	if !validateUsernameFormat(user.Username) {
+		allErrs = append(allErrs, errs.ErrInvalidUsername)
 	}
 
-	if !validatePassword(password) {
-		e = append(e, errs.ErrInvalidPassword)
+	if !validateEmailFormat(user.Email, emailRX) {
+		allErrs = append(allErrs, errs.ErrInvalidEmail)
 	}
 
-	if !validateEmail(user.Email, emailRX) {
-		e = append(e, errs.ErrInvalidEmail)
+	if !validatePasswordLength(password) {
+		allErrs = append(allErrs, errs.ErrInvalidPassword)
 	}
 
-	return errors.Join(e...)
+	return errors.Join(allErrs...)
 }
 
-// validateUsername checks that the username has 2-20 characters.
+// validateLoginCredentials validates the submitted email and password for correct format.
+// Returns an error combining all validation errors (if any).
+func validateLoginCredentials(input LoginSubmission) error {
+	var allErrs []error
+
+	if !validateEmailFormat(input.Email, emailRX) {
+		allErrs = append(allErrs, errs.ErrInvalidEmail)
+	}
+
+	if !validatePasswordLength(input.Password) {
+		allErrs = append(allErrs, errs.ErrInvalidPassword)
+	}
+
+	return errors.Join(allErrs...)
+}
+
+// validateUsernameFormat checks that the username has 2-20 characters.
 // Characters must be a letter (a-z, case insensitive), number, or underscore.
 // Username must start with a letter. Returns false if validation fails.
-func validateUsername(username string) bool {
+func validateUsernameFormat(username string) bool {
 	if len(username) < 2 || len(username) > 20 {
 		return false
 	}
@@ -52,8 +68,8 @@ func validateUsername(username string) bool {
 	return true
 }
 
-// validatePassword checks that the password has 8-128 characters. Returns false if validation fails.
-func validatePassword(password string) bool {
+// validatePasswordLength checks that the password has 8-128 characters. Returns false if validation fails.
+func validatePasswordLength(password string) bool {
 	n := len([]rune(password))
 
 	if n < 8 || n > 128 {
@@ -63,9 +79,9 @@ func validatePassword(password string) bool {
 	return true
 }
 
-// validateEmail checks that the email matches the email regexp. Returns false if validation fails.
-func validateEmail(email string, rx *regexp.Regexp) bool {
-	return rx.MatchString(email)
+// validateEmailFormat checks that the email matches the email regexp. Returns false if validation fails.
+func validateEmailFormat(email string, rx *regexp.Regexp) bool {
+	return len(email) >= 6 && len(email) <= 254 && rx.MatchString(email)
 }
 
 func isLetter(r rune) bool {

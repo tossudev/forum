@@ -137,12 +137,6 @@ func seedUsers(ctx context.Context, app *SeedApp) error {
 			Password: password.Password{},
 			RoleID:   1,
 		},
-		{
-			Username: "",
-			Email:    "",
-			Password: password.Password{},
-			RoleID:   1,
-		},
 	}
 
 	for _, newUser := range users {

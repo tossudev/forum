@@ -46,7 +46,14 @@ func (s *UserService) RegisterUser(ctx context.Context, user *User, inputPasswor
 	return s.repo.AddUser(ctx, user)
 }
 
-func (s *UserService) Authenticate(ctx context.Context, input CredentialsSubmission) (int, error) {
+// Authenticate checks if the submitted user credentials for login is valid.
+// Returns the user ID and nil error if valid. Failed authentication returns 0 and an error.
+func (s *UserService) Authenticate(ctx context.Context, input LoginSubmission) (int, error) {
+	// Validate email format and password length before further processing
+	if err := validateLoginCredentials(input); err != nil {
+		return 0, fmt.Errorf("%w: %w", errs.ErrInvalidUserInput, err)
+	}
+
 	user, err := s.repo.GetUserByEmail(ctx, input.Email)
 	if err != nil {
 		return 0, err
