@@ -61,6 +61,7 @@ img {
 	border: solid #000;
 	border-width: 1px 1px 3px 1px;
 	background: #F0C682;
+	cursor: pointer;
 }
 
 .topnav a:hover, .logout-form button:hover {
@@ -78,7 +79,8 @@ img {
 	margin: 0 auto;
 	background: #FFF;
 	border: solid #000;
-	border-width: 1px 1px 3px 1px;
+	border-width: 3px 3px 5px 3px;
+	border-collapse: collapse;
 }
 
 .listing-header {
@@ -90,7 +92,7 @@ img {
 
 .listing {
 	line-height: 64px;
-	outline: 2px solid #000;
+	outline: 1px solid #000;
 	text-align: left;
 	cursor: pointer;
 }
@@ -120,6 +122,7 @@ td, th {
 	background-color: #FFD500;
 	padding: 8px 16px;
 	width: 200px;
+	cursor: pointer;
 }
 
 .button:hover {
@@ -157,7 +160,9 @@ form .error-msg.other-error {
 }
 
 form .button {
-	align-self: center;}
+	align-self: center;
+	cursor: pointer;
+}
 
 /* Profile view */
 .profile-view {
@@ -219,10 +224,7 @@ form .button {
 .thread-footer {
 	display: flex;
 	font-size: 22px;
-	display: flex;
 	align-items: center;
-	gap: 8px;
-	cursor: pointer;
 	margin-top: auto;
 }
 
