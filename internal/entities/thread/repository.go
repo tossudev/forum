@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"slices"
 
 	"forum/internal/errs"
 	"forum/internal/pagination"
@@ -82,7 +83,7 @@ func (r *ThreadRepository) Delete(ctx context.Context, threadID int, userID int)
 	return nil
 }
 
-func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int) (*ThreadData, error) {
+func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, username string) (*ThreadData, error) {
 	threadQuery := `SELECT threads.id, title, body, threads.date_created, threads.author_id, threads.category_id, username FROM users INNER JOIN threads ON users.id = threads.author_id WHERE threads.id = ?;`
 	//query := `SELECT threads.id, title, body, date_created, username, thread_like, thread_likes.user_id FROM threads INNER JOIN users ON users.id = threads.author_id LEFT JOIN thread_likes ON threads.id = thread_likes.thread_id;`
 	//query := "SELECT id, title, body, date_created, author_id, category_id FROM threads WHERE id = ?;"
@@ -160,6 +161,13 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int) 
 		comment.LikeUsers = commentLikeUsers
 		comment.NumDislikes = len(commentDislikeUsers)
 		comment.DislikeUsers = commentDislikeUsers
+
+		if len(username) > 0 && slices.Contains(comment.LikeUsers, username) {
+			comment.LoggedUserLiked = true
+		}
+		if len(username) > 0 && slices.Contains(comment.DislikeUsers, username) {
+			comment.LoggedUserDisliked = true
+		}
 
 		//append comment to comments
 		comments = append(comments, comment)

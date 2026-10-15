@@ -25,8 +25,6 @@
 					</div>
 					{{.Thread.Body}}
 					<div class="thread-footer">
-						<button class="reaction-btn"><span class="count">{{.NumLikes}} 👍</span></button>
-						<button class="reaction-btn"><span class="count">{{.NumDislikes}} 👎</span></button>
 						<div>{{.Thread.DateCreated}}</div>
 					</div>
 				</div>
@@ -46,11 +44,25 @@
 				<div class="content">
 					{{.Body}}
 					<div class="thread-footer">
-						<button name="{{.ID}}" class="reaction-btn" onclick="likeComment(this, true)">
-							<span class="count-likes">{{.NumLikes}} 👍</span>
+						<button name="likebtn-{{.ID}}"
+							{{ if .LoggedUserLiked }}
+							class="reaction-btn-pressed"
+							{{ else }}
+							class="reaction-btn"
+							{{ end }}
+							onclick="likeComment(this, true)">
+							<span name="{{.LoggedUserLiked}}" class="likes-{{.ID}}">{{.NumLikes}}</span>
+							<span>👍</span>
 						</button>
-						<button name="{{.ID}}" class="reaction-btn" onclick="likeComment(this, false)">
-							<span class="count-dislikes">{{.NumDislikes}} 👎</span>
+						<button name="dislikebtn-{{.ID}}"
+							{{ if .LoggedUserDisliked }}
+							class="reaction-btn-pressed"
+							{{ else }}
+							class="reaction-btn"
+							{{ end }}
+							onclick="likeComment(this, false)">
+							<span name="{{.LoggedUserDisliked}}" class="dislikes-{{.ID}}">{{.NumDislikes}}</span>
+							<span>👎</span>
 						</button>
 						<div>{{.DateCreated}}</div>
 					</div>

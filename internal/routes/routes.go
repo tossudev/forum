@@ -33,7 +33,6 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	mux.HandleFunc("DELETE /comments/{id}", app.CommentHandler.Delete)
 
 	// Like routes
-	mux.HandleFunc("POST /like/thread", app.LikeHandler.LikeThread)
 	mux.HandleFunc("POST /like/comment", app.LikeHandler.LikeComment)
 
 	// Image routes

@@ -43,15 +43,3 @@ func (h *LikeHandler) LikeComment(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
-
-func (h *LikeHandler) GetCommentLikes(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	if err := h.service.GetCommentLikes(ctx, req); err != nil {
-		errs.WriteError(w, err)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-
-}
