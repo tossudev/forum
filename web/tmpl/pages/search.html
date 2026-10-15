@@ -31,11 +31,14 @@
 		{{ range .Comments }}
 		<div class="comment-container">
 			<div class="comment">
+				<div class="clickable">
+				<a href="/threads/{{.ThreadID}}" class="hidden-link"></a>
 
-				<div class="content">
-					{{.Body}}
-					<div class="thread-footer">
-						<div>{{.DateCreated}}</div>
+					<div class="content">
+						{{.Body}}
+						<div class="thread-footer">
+							<div>{{.DateCreated}}</div>
+						</div>
 					</div>
 				</div>
 			</div>

@@ -86,19 +86,20 @@ CREATE TABLE IF NOT EXISTS comment_likes (
 CREATE VIRTUAL TABLE IF NOT EXISTS comments_fts USING fts5(
 	body, 
 	date_created, 
+	thread_id,
 	content='comments', 
 	content_rowid='id'
 	);
 
 CREATE TRIGGER IF NOT EXISTS comments_insert AFTER 
 INSERT ON comments BEGIN
-INSERT INTO comments_fts(rowid, body, date_created)
-VALUES (new.id, new.body, new.date_created); END;
+INSERT INTO comments_fts(rowid, body, date_created, thread_id)
+VALUES (new.id, new.body, new.date_created, new.thread_id); END;
 
 CREATE TRIGGER IF NOT EXISTS comments_update AFTER 
 UPDATE ON comments BEGIN
-INSERT INTO comments_fts(rowid, body, date_created)
-VALUES (new.id, new.body, new.date_created); END;
+INSERT INTO comments_fts(rowid, body, date_created, thread_id)
+VALUES (new.id, new.body, new.date_created, new.thread_id); END;
 
 CREATE TRIGGER IF NOT EXISTS comments_delete AFTER 
 DELETE ON comments BEGIN
