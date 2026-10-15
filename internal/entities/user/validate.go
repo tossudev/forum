@@ -11,23 +11,39 @@ var (
 )
 
 // validateRegistrationCredentials validates the submitted username, email, and password for user registration.
-// Returns false if any of the validation checks fails.
+// Returns an error combining all validation errors (if any).
 func validateRegistrationCredentials(user *User, password string) error {
-	var e []error
+	var allErrs []error
 
 	if !validateUsernameFormat(user.Username) {
-		e = append(e, errs.ErrInvalidUsername)
-	}
-
-	if !validatePasswordLength(password) {
-		e = append(e, errs.ErrInvalidPassword)
+		allErrs = append(allErrs, errs.ErrInvalidUsername)
 	}
 
 	if !validateEmailFormat(user.Email, emailRX) {
-		e = append(e, errs.ErrInvalidEmail)
+		allErrs = append(allErrs, errs.ErrInvalidEmail)
 	}
 
-	return errors.Join(e...)
+	if !validatePasswordLength(password) {
+		allErrs = append(allErrs, errs.ErrInvalidPassword)
+	}
+
+	return errors.Join(allErrs...)
+}
+
+// validateLoginCredentials validates the submitted email and password for correct format.
+// Returns an error combining all validation errors (if any).
+func validateLoginCredentials(input LoginSubmission) error {
+	var allErrs []error
+
+	if !validateEmailFormat(input.Email, emailRX) {
+		allErrs = append(allErrs, errs.ErrInvalidEmail)
+	}
+
+	if !validatePasswordLength(input.Password) {
+		allErrs = append(allErrs, errs.ErrInvalidPassword)
+	}
+
+	return errors.Join(allErrs...)
 }
 
 // validateUsernameFormat checks that the username has 2-20 characters.

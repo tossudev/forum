@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log/slog"
-	"net/http"
-
 	"forum/internal/errs"
 	"forum/internal/password"
 	"forum/internal/render"
 	"forum/internal/session"
+	"log/slog"
+	"net/http"
+	"strings"
 )
 
 type UserHandler struct {
@@ -149,9 +149,12 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	inputEmail := strings.TrimSpace(r.PostFormValue("email"))
+	inputPassword := r.PostFormValue("password")
+
 	input := LoginSubmission{
-		Email:    r.PostFormValue("email"),
-		Password: r.PostFormValue("password"),
+		Email:    inputEmail,
+		Password: inputPassword,
 	}
 
 	userID, err := h.service.Authenticate(ctx, input)
