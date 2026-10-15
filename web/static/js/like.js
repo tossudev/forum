@@ -1,35 +1,7 @@
-// Editor's note:
-// This code is really spaghetti-y and could be fixed in the future
-// also worth considering just fetching the data from backend after action
-// although it's better UX to update the likes realtime
-
-// Element name in HTML is comment ID
-// use it to send like post req to backend
 async function likeComment(elementRef, like) {
-	const commentName = elementRef.name
 	const commentID = elementRef.dataset.commentId
 
-	const likeButton = document.querySelector(
-	  `button[data-comment-id="${commentID}"][data-action="like"]`
-	);
-
-	const dislikeButton = document.querySelector(
-	  `button[data-comment-id="${commentID}"][data-action="dislike"]`
-	);
-
-	const likeCounter = document.querySelector(`span.likes-${commentID}`)
-	const dislikeCounter = document.querySelector(`span.dislikes-${commentID}`)
-
-	let initialLikes = Number(likeCounter.textContent)
-	let initialDislikes = Number(dislikeCounter.textContent)
-
-	if (likeButton.classList.contains("reaction-btn-pressed")) {
-		initialLikes -= 1
-	}
-	if (dislikeButton.classList.contains("reaction-btn-pressed")) {
-		initialDislikes -= 1
-	}
-
+	// Send request to server and await response
     let response;
     try {
         response = await fetch('/like/comment', {
@@ -43,31 +15,49 @@ async function likeComment(elementRef, like) {
         console.log('Error:', err);
     }
 
+	// Action accepted by server, update frontend
     if (response.ok) {
+		const likeButton = document.querySelector(
+		  `button[data-comment-id="${commentID}"][data-action="like"]`
+		);
+
+		const dislikeButton = document.querySelector(
+		  `button[data-comment-id="${commentID}"][data-action="dislike"]`
+		);
+
+		const likeCounter = document.querySelector(`span.likes-${commentID}`)
+		const dislikeCounter = document.querySelector(`span.dislikes-${commentID}`)
+
+		// Likes and dislikes without current users input
+		// eg. initial values before action
+		let initialLikes = Number(likeCounter.textContent)
+		let initialDislikes = Number(dislikeCounter.textContent)
+		if (likeButton.classList.contains("pressed")) {
+			initialLikes -= 1
+		}
+		if (dislikeButton.classList.contains("pressed")) {
+			initialDislikes -= 1
+		}
+
+		let addReaction = !elementRef.classList.contains("pressed")
+
+		// Reset buttons & counters to intial states
 		likeCounter.textContent = Number(initialLikes)
 		dislikeCounter.textContent = Number(initialDislikes)
 
-		likeCounter.name = "false"
-		dislikeCounter.name = "false"
+		likeButton.classList.remove("pressed")
+		dislikeButton.classList.remove("pressed")
 
-		let addReaction = elementRef.classList.contains("reaction-btn")
-
-		likeButton.classList.remove("reaction-btn-pressed")
-		dislikeButton.classList.remove("reaction-btn-pressed")
-
-		likeButton.classList.add("reaction-btn")
-		dislikeButton.classList.add("reaction-btn")
-
-		if (addReaction) {
-			if (like) {
-				likeCounter.textContent = Number(initialLikes) + 1
-				likeCounter.name = "true"
-			} else {
-				dislikeCounter.textContent = Number(initialDislikes) + 1
-				dislikeCounter.name = "true"
-			}
-			elementRef.classList.remove("reaction-btn")
-			elementRef.classList.add("reaction-btn-pressed")
+		// If user removed like/dislike we only need to reset buttons
+		if (!addReaction) {
+			return;
 		}
+
+		if (like) {
+			likeCounter.textContent = Number(initialLikes) + 1
+		} else {
+			dislikeCounter.textContent = Number(initialDislikes) + 1
+		}
+		elementRef.classList.add("pressed")
     }
 }

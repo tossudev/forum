@@ -46,7 +46,7 @@
 					<div class="thread-footer">
 						<button data-comment-id="{{.ID}}" data-action="like"
 							{{ if .LoggedUserLiked }}
-							class="reaction-btn-pressed"
+							class="reaction-btn pressed"
 							{{ else }}
 							class="reaction-btn"
 							{{ end }}
@@ -56,7 +56,7 @@
 						</button>
 						<button data-comment-id="{{.ID}}" data-action="dislike"
 							{{ if .LoggedUserDisliked }}
-							class="reaction-btn-pressed"
+							class="reaction-btn pressed"
 							{{ else }}
 							class="reaction-btn"
 							{{ end }}

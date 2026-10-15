@@ -258,22 +258,15 @@ form .button {
 	margin: 0px;
 }
 
-.reaction-btn-pressed {
+.reaction-btn.pressed {
 	background-color: #F0C682;
-	border: solid #000;
-	border-width: 1px 1px 3px 1px;
-	font-size: 22px;
-	display: flex;
-	align-items: center;
-	cursor: pointer;
-	margin: 0px;
 }
 
 .reaction-btn:hover {
 	background-color: #F0F0F0;
 }
 
-.reaction-btn-pressed:hover {
+.reaction-btn.pressed:hover {
 	background-color: #E8A73E;
 }
 
