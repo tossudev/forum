@@ -6,28 +6,31 @@
 // Element name in HTML is comment ID
 // use it to send like post req to backend
 async function likeComment(elementRef, like) {
-    let response;
-	var commentName = elementRef.name
+	const commentName = elementRef.name
+	const commentID = elementRef.dataset.commentId
 
-	let matches = commentName.match(/(\d+)/);
-	let commentID = matches[0]
+	const likeButton = document.querySelector(
+	  `button[data-comment-id="${commentID}"][data-action="like"]`
+	);
 
-	let likeButton = document.querySelector('button[name="likebtn-' + commentID + '"]')
-	let dislikeButton = document.querySelector('button[name="dislikebtn-' + commentID + '"]')
+	const dislikeButton = document.querySelector(
+	  `button[data-comment-id="${commentID}"][data-action="dislike"]`
+	);
 
-	let likeCounter = document.querySelector('span.likes-' + commentID)
-	let dislikeCounter = document.querySelector('span.dislikes-' + commentID)
+	const likeCounter = document.querySelector(`span.likes-${commentID}`)
+	const dislikeCounter = document.querySelector(`span.dislikes-${commentID}`)
 
-	let likeAmount = Number(likeCounter.innerHTML)
-	let dislikeAmount = Number(dislikeCounter.innerHTML)
+	let initialLikes = Number(likeCounter.textContent)
+	let initialDislikes = Number(dislikeCounter.textContent)
 
 	if (likeButton.classList.contains("reaction-btn-pressed")) {
-		likeAmount -= 1
+		initialLikes -= 1
 	}
 	if (dislikeButton.classList.contains("reaction-btn-pressed")) {
-		dislikeAmount -= 1
+		initialDislikes -= 1
 	}
 
+    let response;
     try {
         response = await fetch('/like/comment', {
             method: 'POST',
@@ -41,8 +44,8 @@ async function likeComment(elementRef, like) {
     }
 
     if (response.ok) {
-		likeCounter.innerHTML = Number(likeAmount)
-		dislikeCounter.innerHTML = Number(dislikeAmount)
+		likeCounter.textContent = Number(initialLikes)
+		dislikeCounter.textContent = Number(initialDislikes)
 
 		likeCounter.name = "false"
 		dislikeCounter.name = "false"
@@ -57,10 +60,10 @@ async function likeComment(elementRef, like) {
 
 		if (addReaction) {
 			if (like) {
-				likeCounter.innerHTML = Number(likeAmount) + 1
+				likeCounter.textContent = Number(initialLikes) + 1
 				likeCounter.name = "true"
 			} else {
-				dislikeCounter.innerHTML = Number(dislikeAmount) + 1
+				dislikeCounter.textContent = Number(initialDislikes) + 1
 				dislikeCounter.name = "true"
 			}
 			elementRef.classList.remove("reaction-btn")
