@@ -32,5 +32,13 @@ type RegistrationPage struct {
 	UsernameErr string
 	EmailErr    string
 	PasswordErr string
-	ServerErr   string
+	OtherErr    string
+}
+
+type LoginPage struct {
+	Username    string // Only needed because this field is required by the base layout
+	Email       string
+	EmailErr    string
+	PasswordErr string
+	OtherErr    string
 }

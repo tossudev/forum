@@ -1,7 +1,6 @@
 package user
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"forum/internal/errs"
@@ -100,11 +99,11 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 		// Password field errors
 		if errors.Is(err, errs.ErrInvalidPassword) {
-			pageData.PasswordErr = "Passwords must be at least 8 characters long."
+			pageData.PasswordErr = "Password must be 8-128 characters."
 		}
 
 		if !errors.Is(err, errs.ErrInvalidUserInput) && !errors.Is(err, errs.ErrDuplicateUsername) && !errors.Is(err, errs.ErrDuplicateEmail) {
-			pageData.ServerErr = "Sorry, we're unable to process user registration at the moment. Please try again later."
+			pageData.OtherErr = "Sorry, we're unable to process user registration at the moment. Please try again later."
 			slog.Error("internal server error:", "err", err)
 		}
 
@@ -131,11 +130,7 @@ func (h *UserHandler) LoginPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type PageData struct {
-		Username string
-	}
-
-	h.renderer.RenderPage(w, "login.html", PageData{""})
+	h.renderer.RenderPage(w, "login.html", LoginPage{})
 }
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -162,7 +157,26 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := h.service.Authenticate(ctx, input)
 	if err != nil {
-		errs.WriteError(w, err)
+		pageData := LoginPage{Email: inputEmail}
+
+		switch {
+		case errors.Is(err, errs.ErrInvalidUserInput):
+			if errors.Is(err, errs.ErrInvalidEmail) {
+				pageData.EmailErr = "Enter a valid email address, such as example@email.com."
+			}
+			if errors.Is(err, errs.ErrInvalidPassword) {
+				pageData.PasswordErr = "Password must be 8-128 characters."
+			}
+			w.WriteHeader(http.StatusBadRequest)
+		case errors.Is(err, errs.ErrUnauthorized):
+			pageData.OtherErr = "Invalid credentials."
+			w.WriteHeader(http.StatusUnauthorized)
+		default:
+			pageData.OtherErr = "Sorry, we're unable to process user login at the moment. Please try again later."
+			slog.Error("internal server error:", "err", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		h.renderer.RenderPage(w, "login.html", pageData)
 		return
 	}
 
@@ -172,9 +186,8 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusAccepted)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Logged in successfully"})
+	// Redirect to home on successful login
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
