@@ -6,10 +6,11 @@ import (
 )
 
 type SearchResult struct {
-	Path       string
-	InputQuery string
-	Threads    []thread.Thread
-	Comments   []comment.Comment
-	Page       int
-	Username   string
+	ThreadPath  string
+	CommentPath string
+	InputQuery  string
+	Threads     []thread.Thread
+	Comments    []comment.Comment
+	Page        int
+	Username    string
 }

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+
+{{ define "content" }}
+
+<div class="contents">
+	<p>{{.ThreadPath}}</p>
+	
+	{{range .Threads}}
+	<p class="thread-container" data-href="/threads/{{.ID}}">
+		<div class="comment-container">
+			<div class="comment">
+				<div class="clickable">
+				<a href="/threads/{{.ID}}" class="hidden-link"></a>
+
+					<div class="content">
+						<div class="thread-header">
+							{{.Title}}
+						</div>
+						{{.Body}}
+						<div class="thread-footer">
+							<div>{{.DateCreated}}</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	{{ end }}
+
+	<p>{{.CommentPath}}</p>
+
+		{{ range .Comments }}
+		<div class="comment-container">
+			<div class="comment">
+
+				<div class="content">
+					{{.Body}}
+					<div class="thread-footer">
+						<div>{{.DateCreated}}</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		{{ end }}
+	</p>
+
+</div>
+
+{{ end }}

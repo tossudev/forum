@@ -22,12 +22,14 @@ func (r *SearchRepository) Search(ctx context.Context, input string, pagination 
 	//TODO: look at query parameters (ex: search partial words, etc)
 	//TODO: add a note on search page for user that search works for title and body in threads, comments
 
-	queryThread := `SELECT title, body, date_created
-	FROM threads_fts
-	WHERE threads_fts MATCH ?
-	ASC LIMIT ? OFFSET ?`
+	fmt.Println(pagination)
 
-	rowsThread, err := r.db.QueryContext(ctx, queryThread, input, pagination.Limit(), pagination.Offset())
+	queryThread := `SELECT rowid, title, body, date_created
+	FROM threads_fts
+	WHERE threads_fts MATCH ?;`
+	//ASC LIMIT ? OFFSET ?;`
+
+	rowsThread, err := r.db.QueryContext(ctx, queryThread, input) //, pagination.Limit(), pagination.Offset())
 	if err != nil {
 		return nil, fmt.Errorf("Thread Search: %w", err)
 	}
@@ -39,6 +41,7 @@ func (r *SearchRepository) Search(ctx context.Context, input string, pagination 
 		if err := rowsThread.Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated); err != nil {
 			return nil, fmt.Errorf("Thread Search: %w", err)
 		}
+		fmt.Println(thread)
 		threads = append(threads, thread)
 	}
 	if err = rowsThread.Err(); err != nil {
@@ -49,10 +52,10 @@ func (r *SearchRepository) Search(ctx context.Context, input string, pagination 
 
 	queryComment := `SELECT body, date_created
 	FROM comments_fts
-	WHERE comments_fts MATCH ?
-	ASC LIMIT ? OFFSET ?`
+	WHERE comments_fts MATCH ?;`
+	//ASC LIMIT ? OFFSET ?;`
 
-	rowsComment, err := r.db.QueryContext(ctx, queryComment, input, pagination.Limit(), pagination.Offset())
+	rowsComment, err := r.db.QueryContext(ctx, queryComment, input) //, pagination.Limit(), pagination.Offset())
 	if err != nil {
 		return nil, fmt.Errorf("Comment Search: %w", err)
 	}

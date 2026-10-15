@@ -14,11 +14,11 @@ import (
 
 type SearchHandler struct {
 	service   *SearchService
-	renderer  *render.Renderer
 	validator *validator.Validate
+	renderer  *render.Renderer
 }
 
-func NewHandler(service *SearchService, renderer *render.Renderer, validator *validator.Validate) *SearchHandler {
+func NewHandler(service *SearchService, validator *validator.Validate, renderer *render.Renderer) *SearchHandler {
 	return &SearchHandler{service: service,
 		renderer:  renderer,
 		validator: validator}
@@ -35,7 +35,7 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//TODO: How does input come from front end??
-	input := r.URL.Query().Get("query")
+	input := r.URL.Query().Get("q")
 	if input == "" || len(input) > 1000 {
 		errs.WriteError(w, fmt.Errorf("%w: invalid search length", errs.ErrInvalidUserInput))
 		return
@@ -57,9 +57,8 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	data.Page = pagination.Page
 
 	//TODO: what is Path?
+	data.ThreadPath = "Thread > Search"
+	data.CommentPath = "Comment > Search"
 
-	h.renderer.RenderPage(w, "searchresults.html", data)
-
-	// in the repo layer the query will be.... what? need to figure that out first.
-
+	h.renderer.RenderPage(w, "search.html", data)
 }
