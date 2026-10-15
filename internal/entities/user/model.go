@@ -14,8 +14,8 @@ type User struct {
 	RoleID    int               `json:"role_id"`
 }
 
-// CredentialsSubmission contains the user input during login before credential verification
-type CredentialsSubmission struct {
+// LoginSubmission contains the user input during login before credential verification
+type LoginSubmission struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }

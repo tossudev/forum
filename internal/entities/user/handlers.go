@@ -149,7 +149,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input := CredentialsSubmission{
+	input := LoginSubmission{
 		Email:    r.PostFormValue("email"),
 		Password: r.PostFormValue("password"),
 	}

@@ -15,25 +15,25 @@ var (
 func validateRegistrationCredentials(user *User, password string) error {
 	var e []error
 
-	if !validateUsername(user.Username) {
+	if !validateUsernameFormat(user.Username) {
 		e = append(e, errs.ErrInvalidUsername)
 	}
 
-	if !validatePassword(password) {
+	if !validatePasswordLength(password) {
 		e = append(e, errs.ErrInvalidPassword)
 	}
 
-	if !validateEmail(user.Email, emailRX) {
+	if !validateEmailFormat(user.Email, emailRX) {
 		e = append(e, errs.ErrInvalidEmail)
 	}
 
 	return errors.Join(e...)
 }
 
-// validateUsername checks that the username has 2-20 characters.
+// validateUsernameFormat checks that the username has 2-20 characters.
 // Characters must be a letter (a-z, case insensitive), number, or underscore.
 // Username must start with a letter. Returns false if validation fails.
-func validateUsername(username string) bool {
+func validateUsernameFormat(username string) bool {
 	if len(username) < 2 || len(username) > 20 {
 		return false
 	}
@@ -52,8 +52,8 @@ func validateUsername(username string) bool {
 	return true
 }
 
-// validatePassword checks that the password has 8-128 characters. Returns false if validation fails.
-func validatePassword(password string) bool {
+// validatePasswordLength checks that the password has 8-128 characters. Returns false if validation fails.
+func validatePasswordLength(password string) bool {
 	n := len([]rune(password))
 
 	if n < 8 || n > 128 {
@@ -63,8 +63,8 @@ func validatePassword(password string) bool {
 	return true
 }
 
-// validateEmail checks that the email matches the email regexp. Returns false if validation fails.
-func validateEmail(email string, rx *regexp.Regexp) bool {
+// validateEmailFormat checks that the email matches the email regexp. Returns false if validation fails.
+func validateEmailFormat(email string, rx *regexp.Regexp) bool {
 	return rx.MatchString(email)
 }
 
