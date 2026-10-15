@@ -72,7 +72,5 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int) (*T
 		data.Comments[i].DateCreated = timeCommentFormatted
 	}
 
-	fmt.Println(data.Comments)
-
 	return data, err
 }
