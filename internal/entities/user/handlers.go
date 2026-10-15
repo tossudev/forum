@@ -70,16 +70,19 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	inputUsername := strings.TrimSpace(r.PostFormValue("username"))
+	inputEmail := strings.TrimSpace(r.PostFormValue("email"))
+
 	user := &User{
-		Username: r.PostFormValue("username"),
-		Email:    r.PostFormValue("email"),
+		Username: inputUsername,
+		Email:    inputEmail,
 		Password: password.Password{},
 		RoleID:   1,
 	}
 
 	user, err := h.service.RegisterUser(ctx, user, r.PostFormValue("password"))
 	if err != nil {
-		pageData := RegistrationPage{Username: r.PostFormValue("username"), Email: r.PostFormValue("email")} // service.RegisterUser returns a nil user on error, so values are taken from the form
+		pageData := RegistrationPage{Username: inputUsername, Email: inputEmail} // service.RegisterUser returns a nil user on error, so values are taken from the form
 
 		switch { // Username field errors
 		case errors.Is(err, errs.ErrInvalidUsername):
