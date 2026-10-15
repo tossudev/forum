@@ -137,12 +137,6 @@ func seedUsers(ctx context.Context, app *SeedApp) error {
 			Password: password.Password{},
 			RoleID:   1,
 		},
-		{
-			Username: "",
-			Email:    "",
-			Password: password.Password{},
-			RoleID:   1,
-		},
 	}
 
 	for _, newUser := range users {
@@ -325,6 +319,16 @@ func seedLikes(ctx context.Context, app *SeedApp) error {
 		{
 			CommentID: 1,
 			UserID:    1,
+			Like:      true,
+		},
+		{
+			CommentID: 1,
+			UserID:    2,
+			Like:      false,
+		},
+		{
+			CommentID: 1,
+			UserID:    3,
 			Like:      true,
 		},
 	}

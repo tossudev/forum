@@ -15,3 +15,28 @@ type ThreadsPage struct {
 	Page     int
 	Username string
 }
+
+type ThreadData struct {
+	Path         string
+	Thread       Thread
+	AuthorName   string
+	AuthorAvatar string
+	NumLikes     int
+	LikeUsers    []string
+	NumDislikes  int
+	DislikeUsers []string
+	Comments     []CommentData
+	Username     string
+}
+
+type CommentData struct {
+	ID           int
+	Body         string
+	DateCreated  string
+	ThreadID     int
+	AuthorName   string
+	NumLikes     int
+	LikeUsers    []string
+	NumDislikes  int
+	DislikeUsers []string
+}

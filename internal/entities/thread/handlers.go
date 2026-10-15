@@ -67,6 +67,7 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 	h.renderer.RenderPage(w, "threads.html", data)
 }
 
+// TODO: if not being used by front end, make this func repo only??
 func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -150,42 +151,27 @@ func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *ThreadHandler) SearchThreads(w http.ResponseWriter, r *http.Request) {
+func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	query := r.URL.Query()
-	pagination, err := pagination.Parse(query)
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		errs.WriteError(w, err)
+		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
+		return
 	}
 
-	//TODO: how will search term actually be sent from front end??
-	term := r.PathValue("search")
-
-	threads, err := h.service.SearchThreads(ctx, term, pagination)
+	data, err := h.service.DisplayThreadPage(ctx, id)
 	if err != nil {
 		errs.WriteError(w, err)
 	}
 
 	var username string
-	//will need this after merge with main, where all responses to front end must contain username
-	//user := user.GetUser(r)
-	//if user != nil {
-	//		username = user.Username
-	//}
-
-	type SearchResults struct {
-		Threads  []Thread
-		Page     int
-		Username string
+	user := user.GetUser(r)
+	if user != nil {
+		username = user.Username
 	}
+	data.Username = username
+	data.Path = "Thread > " + data.Thread.Title
 
-	data := SearchResults{
-		Threads:  threads,
-		Page:     pagination.Page,
-		Username: username,
-	}
-
-	//TODO: sub actual frontent page when it exists (if not "searchresults.html")
-	h.renderer.RenderPage(w, "searchresults.html", data)
+	h.renderer.RenderPage(w, "thread.html", data)
 }
