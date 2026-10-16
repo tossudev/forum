@@ -218,14 +218,20 @@ form .button {
 	line-height: 32px;
 	text-align: left;
 	font-size: 40px;
-	margin: 0px 0px 32px 0px;
+	margin: 16px 0px 16px 0px;
 }
 
 .thread-footer {
 	display: flex;
 	font-size: 22px;
-	align-items: center;
+	align-items: end;
 	margin-top: auto;
+}
+
+.date {
+	color: #888;
+	font-size: 20px;
+	margin-left: auto;
 }
 
 .comment-container {
@@ -234,17 +240,20 @@ form .button {
 	border: solid #000;
 	border-width: 1px 1px 3px 1px;
 	background-color: #FFF;
-	padding: 16px;
+	padding: 8px;
 }
 
 .comment {
 	display: flex;
 	flex-flow: row;
+	margin: 0px;
 }
 
 .comment .content {
 	display: flex;
 	flex-direction: column;
+	flex-grow: 1;
+	margin: 4px;
 }
 
 .reaction-btn {
