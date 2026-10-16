@@ -67,7 +67,7 @@ func (sm *SessionManager) Logout(w http.ResponseWriter, r *http.Request) error {
 
 	session := GetSession(r)
 	if session == nil {
-		return fmt.Errorf("getting session")
+		return fmt.Errorf("logout: no session")
 	}
 
 	if err := sm.repo.deleteSession(ctx, session.id); err != nil {
