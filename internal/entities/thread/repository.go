@@ -60,14 +60,19 @@ func (r *ThreadRepository) GetByID(ctx context.Context, id int) (*Thread, error)
 
 }
 
-func (r *ThreadRepository) Create(ctx context.Context, thread *Thread) error {
+func (r *ThreadRepository) Create(ctx context.Context, thread *Thread) (int, error) {
 	query := "INSERT INTO threads (title, body, date_created, author_id, category_id) VALUES (?, ?, ?, ?, ?);"
-	_, err := r.db.ExecContext(ctx, query, thread.Title, thread.Body, thread.DateCreated, thread.AuthorID, thread.CategoryID)
+	result, err := r.db.ExecContext(ctx, query, thread.Title, thread.Body, thread.DateCreated, thread.AuthorID, thread.CategoryID)
 	if err != nil {
-		return fmt.Errorf("Thread Create: %w", err)
+		return 0, fmt.Errorf("Thread Create: %w", err)
 	}
 
-	return nil
+	threadID, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("Thread Create: getting last insert id: %w", err)
+	}
+
+	return int(threadID), nil
 }
 
 func (r *ThreadRepository) Delete(ctx context.Context, threadID int, userID int) error {

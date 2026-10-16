@@ -11,10 +11,17 @@ type Thread struct {
 }
 
 type ThreadsPage struct {
-	Path     string
-	Threads  []Thread
-	Page     int
-	Username string
+	CategoryID int
+	Path       string
+	Threads    []Thread
+	Page       int
+	Username   string
+}
+
+type CreateThreadsPage struct {
+	CategoryID   int
+	CategoryName string
+	Username     string
 }
 
 type ThreadData struct {
