@@ -2,6 +2,13 @@
 
 {{ define "content" }}
 
+<div class="search">
+	<form class="search" action="/search" method="GET" role="search">
+	<input type="search" name="search" placeholder="Search thread or comment...">
+	<button class="search" type="submit">Search</button>
+	</form>
+</div>
+
 <div class="contents">
 	<p>{{.Path}}</p>
 

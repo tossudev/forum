@@ -28,6 +28,8 @@ func ResetDatabase(db *sql.DB, path string) error {
 	DROP TABLE IF EXISTS threads;
 	DROP TABLE IF EXISTS users;
 	DROP TABLE IF EXISTS categories;
+	DROP TABLE IF EXISTS threads_fts;
+	DROP TABLE IF EXISTS comments_fts;
 	`
 
 	_, err := db.ExecContext(ctx, query)

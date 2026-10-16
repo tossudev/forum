@@ -13,6 +13,7 @@ import (
 	"forum/internal/pagination"
 	"forum/internal/render"
 	"forum/internal/session"
+	//"forum/internal/entities/user"
 )
 
 type ThreadHandler struct {

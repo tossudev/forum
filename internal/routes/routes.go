@@ -38,6 +38,9 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	// Image routes
 	mux.HandleFunc("POST /image", app.ImageHandler.UploadImage)
 
+	//Search routes
+	mux.HandleFunc("GET /search", app.SearchHandler.Search)
+
 	// TODO: consider using embedding for static
 	fs := http.FileServer(http.Dir("./web/static"))
 	mux.Handle("GET /web/static/", http.StripPrefix("/web/static/", fs))

@@ -13,6 +13,7 @@ import (
 	"forum/internal/entities/user"
 	"forum/internal/middleware"
 	"forum/internal/render"
+	"forum/internal/search"
 	"forum/internal/session"
 
 	//"forum/internal/middleware"
@@ -26,6 +27,7 @@ type App struct {
 	CommentHandler  *comment.CommentHandler
 	LikeHandler     *like.LikeHandler
 	ImageHandler    *image.ImageHandler
+	SearchHandler   *search.SearchHandler
 }
 
 func InitHandlers(db *sql.DB, validate *validator.Validate, renderer *render.Renderer) http.Handler {
@@ -56,6 +58,10 @@ func InitHandlers(db *sql.DB, validate *validator.Validate, renderer *render.Ren
 	imageService := image.NewService(imageRepo)
 	imageHandler := image.NewHandler(imageService, validate)
 
+	searchRepo := search.NewRepository(db)
+	searchService := search.NewService(searchRepo)
+	searchHandler := search.NewHandler(searchService, validate, renderer)
+
 	app := App{
 		UserHandler:     userHandler,
 		CategoryHandler: categoryHandler,
@@ -63,6 +69,7 @@ func InitHandlers(db *sql.DB, validate *validator.Validate, renderer *render.Ren
 		CommentHandler:  commentHandler,
 		LikeHandler:     likeHandler,
 		ImageHandler:    imageHandler,
+		SearchHandler:   searchHandler,
 	}
 
 	mux := GetRoutes(&app, sm)
