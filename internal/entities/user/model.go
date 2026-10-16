@@ -27,12 +27,13 @@ type ProfilePage struct {
 }
 
 type RegistrationPage struct {
-	Username    string
-	Email       string
-	UsernameErr string
-	EmailErr    string
-	PasswordErr string
-	OtherErr    string
+	Username      string // Logged in user, if any (for toggling login/logout button)
+	InputUsername string // From registration form
+	InputEmail    string
+	UsernameErr   string
+	EmailErr      string
+	PasswordErr   string
+	OtherErr      string
 }
 
 type LoginPage struct {
