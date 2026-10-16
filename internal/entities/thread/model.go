@@ -10,10 +10,17 @@ type Thread struct {
 }
 
 type ThreadsPage struct {
-	Path     string
-	Threads  []Thread
-	Page     int
-	Username string
+	CategoryID int
+	Path       string
+	Threads    []Thread
+	Page       int
+	Username   string
+}
+
+type CreateThreadsPage struct {
+	CategoryID   int
+	CategoryName string
+	Username     string
 }
 
 type ThreadData struct {
@@ -30,15 +37,15 @@ type ThreadData struct {
 }
 
 type CommentData struct {
-	ID           		int
-	Body         		string
-	DateCreated  		string
-	ThreadID     		int
-	AuthorName   		string
-	NumLikes     		int
-	LikeUsers    		[]string
-	NumDislikes  		int
-	DislikeUsers 		[]string
-	LoggedUserLiked		bool
-	LoggedUserDisliked	bool
+	ID                 int
+	Body               string
+	DateCreated        string
+	ThreadID           int
+	AuthorName         string
+	NumLikes           int
+	LikeUsers          []string
+	NumDislikes        int
+	DislikeUsers       []string
+	LoggedUserLiked    bool
+	LoggedUserDisliked bool
 }

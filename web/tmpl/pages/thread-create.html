@@ -1,0 +1,19 @@
+{{ define "content" }}
+<div class="center-content">
+    <h2>Create new thread</h2>
+    <form class="register" action="/threads" method="post">
+
+        <label for="category">Category: ~category name~</label>
+        <input type="hidden" id="category" name="categoryID" value="{{ .CategoryID }}" />
+
+        <lable for="title">Title</lable>
+        <input type="text" id="title" name="title" maxlength="100" required />
+
+        <lable for="body">Body text</lable>
+        <textarea id="body" name="body" placeholder="Write your post..." minlength="1" maxlength="3000" required></textarea>
+
+
+        <button class="button register-btn" type="submit">Publish thread</button>
+    </form>
+</div>
+{{ end }}

@@ -1,10 +1,10 @@
 package thread
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 
@@ -57,10 +57,11 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 
 	data := ThreadsPage{
 		// TODO: use category name instead of ID
-		Path:     fmt.Sprintf("⌂ Home / CategoryID %d", id),
-		Threads:  threads,
-		Page:     pagination.Page,
-		Username: username,
+		CategoryID: id,
+		Path:       fmt.Sprintf("⌂ Home / CategoryID %d", id),
+		Threads:    threads,
+		Page:       pagination.Page,
+		Username:   username,
 	}
 
 	h.renderer.RenderPage(w, "threads.html", data)
@@ -85,44 +86,71 @@ func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (h *ThreadHandler) CreatePage(w http.ResponseWriter, r *http.Request) {
+	user := user.GetUser(r)
+	if user == nil {
+		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
+	}
+
+	categoryID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		//TODO: display error message that the category doesn't exist
+	}
+	//TODO: Check that categoryID exists
+
+	//TODO: Get category name
+
+	pageData := CreateThreadsPage{
+		CategoryID: categoryID,
+		// CategoryName: ,
+		Username: user.Username,
+	}
+
+	// Need to get the category ID the new thread will be in
+
+	h.renderer.RenderPage(w, "thread-create.html", pageData)
+}
+
 func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var input struct {
-		Title      string `json:"title"`
-		Body       string `json:"body"`
-		CategoryID int    `json:"category_id"`
-	}
-
-	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid request body", errs.ErrInvalidUserInput))
-		return
-	}
-
 	session := session.GetSession(r)
 	if session == nil {
+		//TODO: show user friendly error
 		errs.WriteError(w, fmt.Errorf("%w: not authenticated", errs.ErrUnauthorized))
 		return
 	}
 	authorID := session.UserID()
 
-	thread := Thread{
-		Title:      input.Title,
-		Body:       input.Body,
-		AuthorID:   authorID,
-		CategoryID: input.CategoryID,
+	if err := r.ParseForm(); err != nil {
+		//TODO: show user friendly error
+		errs.WriteError(w, errs.ErrInvalidUserInput)
+		return
 	}
 
-	err = h.service.Create(ctx, &thread)
+	categoryID, err := strconv.Atoi(r.PostFormValue("categoryID"))
 	if err != nil {
+		//TODO: show user friendly error
+		errs.WriteError(w, errs.ErrInvalidUserInput)
+		return
+	}
+
+	thread := Thread{
+		Title:      strings.TrimSpace(r.PostFormValue("title")),
+		Body:       strings.TrimSpace(r.PostFormValue("body")),
+		AuthorID:   authorID,
+		CategoryID: categoryID,
+	}
+
+	threadID, err := h.service.Create(ctx, &thread)
+	if err != nil {
+		//TODO: show user friendly error
 		errs.WriteError(w, err)
 		return
 	}
 
-	//TODO: find out what front end needs this result to do/look like
-
-	w.WriteHeader(http.StatusOK)
+	// TODO: On successful submission, redirect to newly created thread
+	http.Redirect(w, r, "threads/"+strconv.Itoa(threadID), http.StatusSeeOther)
 }
 
 func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
