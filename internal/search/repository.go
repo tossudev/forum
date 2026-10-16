@@ -34,19 +34,16 @@ func (r *SearchRepository) Search(ctx context.Context, input string, pagination 
 	}
 
 	var data SearchResult
-	var threads []thread.Thread
 	for rowsThread.Next() {
 		var thread thread.Thread
 		if err := rowsThread.Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated); err != nil {
 			return nil, fmt.Errorf("Thread Search: %w", err)
 		}
-		threads = append(threads, thread)
+		data.Threads = append(data.Threads, thread)
 	}
 	if err = rowsThread.Err(); err != nil {
 		return nil, fmt.Errorf("Thread Search: %w", err)
 	}
-
-	data.Threads = threads
 
 	queryComment := `SELECT body, date_created, thread_id
 	FROM comments_fts
@@ -59,19 +56,19 @@ func (r *SearchRepository) Search(ctx context.Context, input string, pagination 
 		return nil, fmt.Errorf("Comment Search: %w", err)
 	}
 
-	var comments []comment.Comment
+	//	var comments []comment.Comment
 	for rowsComment.Next() {
 		var comment comment.Comment
 		if err := rowsComment.Scan(&comment.Body, &comment.DateCreated, &comment.ThreadID); err != nil {
 			return nil, fmt.Errorf("Comment Search: %w", err)
 		}
-		comments = append(comments, comment)
+		data.Comments = append(data.Comments, comment)
 	}
 	if err = rowsComment.Err(); err != nil {
 		return nil, fmt.Errorf("Comment Search: %w", err)
 	}
 
-	data.Comments = comments
+	//	data.Comments = comments
 
 	data.InputQuery = input
 
