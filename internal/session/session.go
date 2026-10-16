@@ -58,7 +58,7 @@ func (sm *SessionManager) Login(userID int, w http.ResponseWriter, r *http.Reque
 	}
 
 	sm.writeCookie(w, session)
-	fmt.Println("user logged in - new session:", session.id) // TEST
+	// fmt.Println("user logged in - new session:", session.id) // TEST
 	return nil
 }
 
@@ -159,7 +159,7 @@ func (sm *SessionManager) Authenticate(next http.Handler) http.Handler {
 
 		// Read session ID from cookie
 		cookie, err := r.Cookie(sm.cookieName)
-		fmt.Println("authentication middleware: reading cookie:", cookie) // TEST
+		// fmt.Println("authentication middleware: reading cookie:", cookie) // TEST
 		if err == nil {
 			sessionID, sessionToken, _ := strings.Cut(cookie.Value, ":")
 			session, err = sm.repo.getSessionByID(ctx, sessionID)
@@ -199,8 +199,6 @@ func (sm *SessionManager) Authenticate(next http.Handler) http.Handler {
 		// Update cookie
 		if session != nil {
 			sm.writeCookie(w, session)
-		} else {
-			fmt.Println("UNAUTHENTICATED SESSION") // TEST
 		}
 
 		// Attach session to context
