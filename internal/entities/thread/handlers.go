@@ -159,16 +159,17 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	data, err := h.service.DisplayThreadPage(ctx, id)
-	if err != nil {
-		errs.WriteError(w, err)
-	}
-
 	var username string
 	user := user.GetUser(r)
 	if user != nil {
 		username = user.Username
 	}
+
+	data, err := h.service.DisplayThreadPage(ctx, id, username)
+	if err != nil {
+		errs.WriteError(w, err)
+	}
+
 	data.Username = username
 	data.Path = "Thread > " + data.Thread.Title
 

@@ -256,8 +256,16 @@ form .button {
 	margin: 0px;
 }
 
+.reaction-btn.pressed {
+	background-color: #F0C682;
+}
+
 .reaction-btn:hover {
 	background-color: #F0F0F0;
+}
+
+.reaction-btn.pressed:hover {
+	background-color: #E8A73E;
 }
 
 /* Sidebar with Avatars & Username info */

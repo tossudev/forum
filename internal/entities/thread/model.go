@@ -30,13 +30,15 @@ type ThreadData struct {
 }
 
 type CommentData struct {
-	ID           int
-	Body         string
-	DateCreated  string
-	ThreadID     int
-	AuthorName   string
-	NumLikes     int
-	LikeUsers    []string
-	NumDislikes  int
-	DislikeUsers []string
+	ID           		int
+	Body         		string
+	DateCreated  		string
+	ThreadID     		int
+	AuthorName   		string
+	NumLikes     		int
+	LikeUsers    		[]string
+	NumDislikes  		int
+	DislikeUsers 		[]string
+	LoggedUserLiked		bool
+	LoggedUserDisliked	bool
 }
