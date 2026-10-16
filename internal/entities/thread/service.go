@@ -23,7 +23,17 @@ func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pa
 		return nil, fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput)
 	}
 
-	return s.repo.GetByCategory(ctx, id, pagination)
+	threads, err := s.repo.GetByCategory(ctx, id, pagination)
+
+	for i, thread := range threads {
+		var errFormat error
+		threads[i].DateCreated, errFormat = config.FormatTime(thread.DateCreated)
+		if errFormat != nil {
+			return nil, errFormat
+		}
+	}
+
+	return threads, err
 }
 
 func (s *ThreadService) GetByID(ctx context.Context, id int) (*Thread, error) {
@@ -56,20 +66,17 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int) (*T
 
 	data, err := s.repo.DisplayThreadPage(ctx, threadID)
 
-	timeThread, errTime := time.Parse(config.TimeFormat, data.Thread.DateCreated)
-	if errTime != nil {
-		return nil, errTime
+	var errFormat error
+	data.Thread.DateCreated, errFormat = config.FormatTime(data.Thread.DateCreated)
+	if errFormat != nil {
+		return nil, errFormat
 	}
-	timeFormatted := timeThread.Format(config.TimeFormatFrontEnd)
-	data.Thread.DateCreated = timeFormatted
 
 	for i, comment := range data.Comments {
-		timeComment, errTime := time.Parse(config.TimeFormat, comment.DateCreated)
-		if errTime != nil {
-			return nil, errTime
+		data.Comments[i].DateCreated, errFormat = config.FormatTime(comment.DateCreated)
+		if errFormat != nil {
+			return nil, errFormat
 		}
-		timeCommentFormatted := timeComment.Format(config.TimeFormatFrontEnd)
-		data.Comments[i].DateCreated = timeCommentFormatted
 	}
 
 	return data, err

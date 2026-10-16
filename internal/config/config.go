@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"log/slog"
+	"time"
 )
 
 type Config struct {
@@ -32,4 +33,13 @@ func Load() Config {
 	flag.Parse()
 
 	return cfg
+}
+
+func FormatTime(timeString string) (string, error) {
+	time, err := time.Parse(TimeFormat, timeString)
+	if err != nil {
+		return "", err
+	}
+	formattedTime := time.Format(TimeFormatFrontEnd)
+	return formattedTime, nil
 }

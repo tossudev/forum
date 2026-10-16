@@ -2,7 +2,6 @@ package search
 
 import (
 	"context"
-	"time"
 
 	"forum/internal/config"
 	"forum/internal/pagination"
@@ -19,22 +18,19 @@ func NewService(r *SearchRepository) *SearchService {
 func (s *SearchService) Search(ctx context.Context, input string, pagination pagination.Pagination) (*SearchResult, error) {
 	data, err := s.repo.Search(ctx, input, pagination)
 
+	var errFormat error
 	for i, thread := range data.Threads {
-		timeThread, errTime := time.Parse(config.TimeFormat, thread.DateCreated)
-		if errTime != nil {
-			return nil, errTime
+		data.Threads[i].DateCreated, errFormat = config.FormatTime(thread.DateCreated)
+		if errFormat != nil {
+			return nil, errFormat
 		}
-		timeFormatted := timeThread.Format(config.TimeFormatFrontEnd)
-		data.Threads[i].DateCreated = timeFormatted
 	}
 
 	for j, comment := range data.Comments {
-		timeComment, errTime := time.Parse(config.TimeFormat, comment.DateCreated)
-		if errTime != nil {
-			return nil, errTime
+		data.Comments[j].DateCreated, errFormat = config.FormatTime(comment.DateCreated)
+		if errFormat != nil {
+			return nil, errFormat
 		}
-		timeCommentFormatted := timeComment.Format(config.TimeFormatFrontEnd)
-		data.Comments[j].DateCreated = timeCommentFormatted
 	}
 
 	return data, err
