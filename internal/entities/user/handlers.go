@@ -192,8 +192,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	if err := h.sm.Logout(w, r); err != nil {
-		errs.WriteError(w, err)
-		return
+		slog.Error("logout error", "err", err)
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
