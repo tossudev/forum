@@ -5,8 +5,8 @@
 <div class="contents">
 	<p>{{.ThreadPath}}</p>
 	
+	<p class="thread-container">
 	{{range .Threads}}
-	<p class="thread-container" data-href="/threads/{{.ID}}">
 		<div class="comment-container">
 			<div class="comment">
 				<div class="clickable">
@@ -25,9 +25,10 @@
 			</div>
 		</div>
 	{{ end }}
+	</p>
 
 	<p>{{.CommentPath}}</p>
-
+	<p class="thread-container">
 		{{ range .Comments }}
 		<div class="comment-container">
 			<div class="comment">
