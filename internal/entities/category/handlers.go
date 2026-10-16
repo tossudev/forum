@@ -34,6 +34,7 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		type PageData struct {
 			Username string
 		}
+		w.WriteHeader(http.StatusNotFound)
 		h.renderer.RenderPage(w, "error-404.html", PageData{})
 		return
 	}
