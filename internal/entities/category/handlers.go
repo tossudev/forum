@@ -60,7 +60,9 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := CategoriesPage{
-		Path:       "⌂ Home",
+		Path:	map[string]string{
+			"Home":	"/",
+		},
 		Categories: categories,
 		Page:       pagination.Page,
 		Username:   username,

@@ -7,7 +7,7 @@ type Category struct {
 }
 
 type CategoriesPage struct {
-	Path       string
+	Path       map[string]string
 	Categories []Category
 	Page       int
 	Username   string

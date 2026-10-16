@@ -44,7 +44,7 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	threads, err := h.service.GetByCategory(ctx, id, pagination)
+	categoryName, threads, err := h.service.GetByCategory(ctx, id, pagination)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
@@ -57,12 +57,14 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := ThreadsPage{
-		// TODO: use category name instead of ID
 		CategoryID: id,
-		Path:       fmt.Sprintf("⌂ Home / CategoryID %d", id),
-		Threads:    threads,
-		Page:       pagination.Page,
-		Username:   username,
+		Path:	map[string]string{
+			"Home":	"/",
+			categoryName: fmt.Sprintf("/categories/%d", id),
+		},
+		Threads:  threads,
+		Page:     pagination.Page,
+		Username: username,
 	}
 
 	h.renderer.RenderPage(w, "threads.html", data)

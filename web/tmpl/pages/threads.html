@@ -4,7 +4,11 @@
 
 <div class="contents">
 	<div class="hor-flex-wrapper">
-		<p>{{.Path}}</p>
+		<p>
+		{{ range $key, $value := .Path }}
+		<a class="breadcrumbs" href="{{ $value }}">> {{ $key }}</a>
+		{{ end }}
+		</p>
 		<a class="button create-thread" href="/categories/{{.CategoryID}}/create">+ Create thread</a>
 	</div>
 

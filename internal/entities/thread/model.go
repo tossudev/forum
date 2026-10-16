@@ -7,21 +7,25 @@ type Thread struct {
 	DateCreated string `json:"date_created"`
 	AuthorID    int    `json:"author_id"`
 	CategoryID  int    `json:"category_id"`
+	Category	string
 	ReplyCount  int
 }
 
 type ThreadsPage struct {
-	CategoryID int
-	Path       string
-	Threads    []Thread
-	Page       int
-	Username   string
+	CategoryID 	int
+	Threads    	[]Thread
+	Path     	map[string]string
+	Page       	int
+	Username   	string
 }
 
 type CreateThreadsPage struct {
 	CategoryID   int
 	CategoryName string
 	Username     string
+	Path       	 string
+	Threads  	 []Thread
+	Page     	 int
 }
 
 type ThreadData struct {

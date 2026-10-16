@@ -10,7 +10,11 @@
 </div>
 
 <div class="contents">
-	<p>{{.Path}}</p>
+	<p>
+	{{ range $key, $value := .Path }}
+	<a class="breadcrumbs" href="{{ $value }}">> {{ $key }}</a>
+	{{ end }}
+	</p>
 
 	<table class="listing-container">
 		<tr class="listing-header">

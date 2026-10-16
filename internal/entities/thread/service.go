@@ -18,22 +18,22 @@ func NewService(r *ThreadRepository) *ThreadService {
 	return &ThreadService{repo: r}
 }
 
-func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, error) {
+func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) (string, []Thread, error) {
 	if id <= 0 {
-		return nil, fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput)
+		return "", nil, fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput)
 	}
 
-	threads, err := s.repo.GetByCategory(ctx, id, pagination)
+	categoryName, threads, err := s.repo.GetByCategory(ctx, id, pagination)
 
 	for i, thread := range threads {
 		var errFormat error
 		threads[i].DateCreated, errFormat = config.FormatTime(thread.DateCreated)
 		if errFormat != nil {
-			return nil, errFormat
+			return "", nil, errFormat
 		}
 	}
 
-	return threads, err
+	return categoryName, threads, err
 }
 
 func (s *ThreadService) GetByID(ctx context.Context, id int) (*Thread, error) {
