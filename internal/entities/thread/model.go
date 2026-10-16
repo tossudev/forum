@@ -7,7 +7,7 @@ type Thread struct {
 	DateCreated string `json:"date_created"`
 	AuthorID    int    `json:"author_id"`
 	CategoryID  int    `json:"category_id"`
-	ReplyCount	int
+	ReplyCount  int
 }
 
 type ThreadsPage struct {
@@ -31,15 +31,15 @@ type ThreadData struct {
 }
 
 type CommentData struct {
-	ID           		int
-	Body         		string
-	DateCreated  		string
-	ThreadID     		int
-	AuthorName   		string
-	NumLikes     		int
-	LikeUsers    		[]string
-	NumDislikes  		int
-	DislikeUsers 		[]string
-	LoggedUserLiked		bool
-	LoggedUserDisliked	bool
+	ID                 int
+	Body               string
+	DateCreated        string
+	ThreadID           int
+	AuthorName         string
+	NumLikes           int
+	LikeUsers          []string
+	NumDislikes        int
+	DislikeUsers       []string
+	LoggedUserLiked    bool
+	LoggedUserDisliked bool
 }
