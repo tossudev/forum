@@ -7,6 +7,7 @@ type Thread struct {
 	DateCreated string `json:"date_created"`
 	AuthorID    int    `json:"author_id"`
 	CategoryID  int    `json:"category_id"`
+	ReplyCount	int
 }
 
 type ThreadsPage struct {
