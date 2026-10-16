@@ -28,7 +28,17 @@ func NewHandler(service *CategoryService, validator *validator.Validate, rendere
 	}
 }
 
+// GetAll gets all the categories and renders the home page
 func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		type PageData struct {
+			Username string
+		}
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", PageData{})
+		return
+	}
+
 	ctx := r.Context()
 	query := r.URL.Query()
 	pagination, err := pagination.Parse(query)
