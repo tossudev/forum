@@ -29,8 +29,15 @@ func (r *CategoryRepository) GetAll(ctx context.Context, pagination pagination.P
 		if err := rows.Scan(&category.ID, &category.Name); err != nil {
 			return nil, fmt.Errorf("Category GetAll: %w", err)
 		}
+
+		queryCount := "SELECT COUNT(*) FROM threads WHERE category_id = ?"
+		if err := r.db.QueryRowContext(ctx, queryCount, category.ID).Scan(&category.ThreadCount); err != nil {
+			return nil, fmt.Errorf("Category GetAll: %w", err)
+		}
+
 		categories = append(categories, category)
 	}
+
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("Category GetAll: %w", err)
 	}

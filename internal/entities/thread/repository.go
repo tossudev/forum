@@ -33,6 +33,12 @@ func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination
 		if err := rows.Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
 			return nil, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
+
+		queryCount := "SELECT COUNT(*) FROM comments WHERE thread_id = ?"
+		if err := r.db.QueryRowContext(ctx, queryCount, thread.ID).Scan(&thread.ReplyCount); err != nil {
+			return nil, fmt.Errorf("Thread GetByCategory: %w", err)
+		}
+
 		threads = append(threads, thread)
 	}
 	if err := rows.Err(); err != nil {
