@@ -3,8 +3,10 @@
 {{ define "content" }}
 
 <div class="contents">
-	<p>{{.Path}}</p>
-	<a href="/categories/{{.CategoryID}}/create">Create new thread</a>
+	<div class="hor-flex-wrapper">
+		<p>{{.Path}}</p>
+		<a class="button create-thread" href="/categories/{{.CategoryID}}/create">+ Create thread</a>
+	</div>
 
 	<table class="listing-container">
 		<tr class="listing-header">

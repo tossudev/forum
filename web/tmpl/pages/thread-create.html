@@ -1,15 +1,15 @@
 {{ define "content" }}
 <div class="center-content">
     <h2>Create new thread</h2>
-    <form class="register" action="/threads" method="post">
+    <form class="create-thread" action="/threads" method="post">
 
         <label for="category">Category: ~category name~</label>
         <input type="hidden" id="category" name="categoryID" value="{{ .CategoryID }}" />
 
-        <lable for="title">Title</lable>
+        <label for="title">Title</label>
         <input type="text" id="title" name="title" maxlength="100" required />
 
-        <lable for="body">Body text</lable>
+        <label for="body">Body text</label>
         <textarea id="body" name="body" placeholder="Write your post..." minlength="1" maxlength="3000" required></textarea>
 
 
