@@ -35,7 +35,7 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//TODO: How does input come from front end??
-	input := r.URL.Query().Get("q")
+	input := r.URL.Query().Get("search")
 	if input == "" || len(input) > 1000 {
 		errs.WriteError(w, fmt.Errorf("%w: invalid search length", errs.ErrInvalidUserInput))
 		return

@@ -8,13 +8,6 @@ import (
 	"forum/internal/pagination"
 )
 
-/*type SearchService struct {
-	//here goes maybe the service layers of comment and thread, maybe something else too?
-	CommentService 	*comments.CommentService
-	ThreadService 	*threads.ThreadService
-
-}*/
-
 type SearchService struct {
 	repo *SearchRepository
 }
