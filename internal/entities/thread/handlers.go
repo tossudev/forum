@@ -113,38 +113,50 @@ func (h *ThreadHandler) CreatePage(w http.ResponseWriter, r *http.Request) {
 func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	session := session.GetSession(r)
-	if session == nil {
-		//TODO: show user friendly error
-		errs.WriteError(w, fmt.Errorf("%w: not authenticated", errs.ErrUnauthorized))
-		return
+	pageData := CreateThreadsPage{}
+	user := user.GetUser(r)
+	if user != nil {
+		pageData.Username = user.Username
 	}
-	authorID := session.UserID()
 
+	// Parse form before handling user not logged in error so that form data can be saved
+	// and reinserted into the page templates when displaying errors.
 	if err := r.ParseForm(); err != nil {
-		//TODO: show user friendly error
-		errs.WriteError(w, errs.ErrInvalidUserInput)
+		w.WriteHeader(http.StatusBadRequest)
+		h.renderer.RenderPage(w, "error-400.html", pageData)
 		return
 	}
 
 	categoryID, err := strconv.Atoi(r.PostFormValue("categoryID"))
 	if err != nil {
-		//TODO: show user friendly error
-		errs.WriteError(w, errs.ErrInvalidUserInput)
+		w.WriteHeader(http.StatusBadRequest)
+		h.renderer.RenderPage(w, "error-400.html", pageData)
 		return
 	}
 
 	thread := Thread{
 		Title:      strings.TrimSpace(r.PostFormValue("title")),
 		Body:       strings.TrimSpace(r.PostFormValue("body")),
-		AuthorID:   authorID,
 		CategoryID: categoryID,
 	}
 
+	pageData.CategoryID = thread.CategoryID
+	pageData.InputTitle = thread.Title
+	pageData.InputBody = thread.Body
+
+	// User not logged in
+	if user == nil {
+		pageData.OtherErr = "Please log in to create a thread." // Shows error without redirect so that the user doesn't lose their submission data
+		w.WriteHeader(http.StatusUnauthorized)
+		h.renderer.RenderPage(w, "thread-create.html", pageData)
+		return
+	}
+
+	thread.AuthorID = user.ID
+	pageData.Username = user.Username
+
 	threadID, err := h.service.Create(ctx, &thread)
 	if err != nil {
-		pageData := CreateThreadsPage{CategoryID: thread.CategoryID, InputTitle: thread.Title, InputBody: thread.Body}
-
 		if errors.Is(err, errs.ErrInvalidThreadTitle) {
 			pageData.TitleErr = "Thread title must be 1-100 characters."
 		}
@@ -153,11 +165,15 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 			pageData.BodyErr = "Thread body must be 1-5000 characters."
 		}
 
-		if !errors.Is(err, errs.ErrInvalidThreadTitle) && errors.Is(err, errs.ErrInvalidThreadBody) {
+		if !errors.Is(err, errs.ErrInvalidThreadTitle) && !errors.Is(err, errs.ErrInvalidThreadBody) {
 			pageData.OtherErr = "Unable to create thread. Please try again later."
+			w.WriteHeader(http.StatusInternalServerError)
+			h.renderer.RenderPage(w, "thread-create.html", pageData)
 			slog.Error("thread creation fail", "err", err)
+			return
 		}
 
+		w.WriteHeader(http.StatusBadRequest)
 		h.renderer.RenderPage(w, "thread-create.html", pageData)
 		return
 	}

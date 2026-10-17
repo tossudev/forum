@@ -12,7 +12,7 @@
         <p class="error-msg other-error">{{ .TitleErr }}</p>
 
         <label for="body">Body text</label>
-        <textarea id="body" name="body" placeholder="Write your post..." minlength="1" maxlength="5000" value="{{ .InputBody }}" required></textarea>
+        <textarea id="body" name="body" placeholder="Write your post..." minlength="1" maxlength="5000" required>{{ .InputBody }}</textarea>
         <p class="error-msg other-error">{{ .BodyErr }}</p>
 
         <button class="button register-btn" type="submit">Publish thread</button>
