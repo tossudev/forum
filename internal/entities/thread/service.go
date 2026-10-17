@@ -45,8 +45,13 @@ func (s *ThreadService) GetByID(ctx context.Context, id int) (*Thread, error) {
 }
 
 func (s *ThreadService) Create(ctx context.Context, thread *Thread) (int, error) {
-	now := time.Now().Format(config.TimeFormat)
+	if err := validateThreadContent(thread.Title, thread.Body); err != nil {
+		return 0, err
+	}
+	// No need to Validate AuthorID since user was already authenticated
+	// If CategoryID or AuthorID doesn't exist, there will be a repo level foreign key constraint error CategoryID exists
 
+	now := time.Now().Format(config.TimeFormat)
 	thread.DateCreated = now
 
 	return s.repo.Create(ctx, thread)

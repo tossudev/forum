@@ -21,6 +21,11 @@ type ThreadsPage struct {
 type CreateThreadsPage struct {
 	CategoryID   int
 	CategoryName string
+	InputTitle   string
+	InputBody    string
+	TitleErr     string
+	BodyErr      string
+	OtherErr     string
 	Username     string
 }
 
