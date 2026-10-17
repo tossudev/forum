@@ -13,4 +13,5 @@ type SearchResult struct {
 	Comments    []comment.Comment
 	Page        int
 	Username    string
+	ResponseMsg string
 }

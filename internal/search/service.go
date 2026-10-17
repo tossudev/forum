@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"forum/internal/config"
+	"forum/internal/errs"
 	"forum/internal/pagination"
 )
 
@@ -17,6 +18,10 @@ func NewService(r *SearchRepository) *SearchService {
 
 func (s *SearchService) Search(ctx context.Context, input string, pagination pagination.Pagination) (*SearchResult, error) {
 	data, err := s.repo.Search(ctx, input, pagination)
+
+	if len(data.Threads) == 0 && len(data.Comments) == 0 {
+		return data, errs.ErrNoResults
+	}
 
 	var errFormat error
 	for i, thread := range data.Threads {
