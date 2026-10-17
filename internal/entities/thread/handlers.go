@@ -90,6 +90,8 @@ func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ThreadHandler) CreateThreadPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	user := user.GetUser(r)
 	if user == nil {
 		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
@@ -102,11 +104,21 @@ func (h *ThreadHandler) CreateThreadPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	//TODO: Get category name
+	categoryName, err := h.service.GetCategoryName(ctx, categoryID)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", CreateThreadsPage{})
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderer.RenderPage(w, "error-500.html", CreateThreadsPage{})
+	}
+
 	pageData := CreateThreadsPage{
-		CategoryID: categoryID,
-		// CategoryName: ,
-		Username: user.Username,
+		CategoryID:   categoryID,
+		CategoryName: categoryName,
+		Username:     user.Username,
 	}
 
 	h.renderer.RenderPage(w, "thread-create.html", pageData)
@@ -138,6 +150,17 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	categoryName, err := h.service.GetCategoryName(ctx, categoryID)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", CreateThreadsPage{})
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderer.RenderPage(w, "error-500.html", CreateThreadsPage{})
+	}
+
 	thread := Thread{
 		Title:      strings.TrimSpace(r.PostFormValue("title")),
 		Body:       strings.TrimSpace(r.PostFormValue("body")),
@@ -145,6 +168,7 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pageData.CategoryID = thread.CategoryID
+	pageData.CategoryName = categoryName
 	pageData.InputTitle = thread.Title
 	pageData.InputBody = thread.Body
 

@@ -3,6 +3,7 @@ package thread
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"slices"
 
@@ -58,6 +59,21 @@ func (r *ThreadRepository) GetByID(ctx context.Context, id int) (*Thread, error)
 
 	return &thread, nil
 
+}
+
+func (r *ThreadRepository) GetCategoryName(ctx context.Context, categoryID int) (string, error) {
+	query := "SELECT name FROM categories WHERE id = ?;"
+
+	var categoryName string
+	err := r.db.QueryRowContext(ctx, query, categoryID).Scan(&categoryName)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", errs.ErrNotFound
+		}
+		return "", fmt.Errorf("GetCategoryName: %w", err)
+	}
+
+	return categoryName, nil
 }
 
 func (r *ThreadRepository) Create(ctx context.Context, thread *Thread) (int, error) {
