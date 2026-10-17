@@ -19,7 +19,6 @@ func NewRepository(db *sql.DB) *SearchRepository {
 }
 
 func (r *SearchRepository) Search(ctx context.Context, input string, pagination pagination.Pagination) (*SearchResult, error) {
-	//TODO: look at query parameters (ex: search partial words, etc)
 	queryInput := "\"" + input + "\""
 	queryThread := `SELECT rowid, title, body, date_created
 	FROM threads_fts
