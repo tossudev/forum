@@ -1,7 +1,9 @@
 package thread
 
 import (
+	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -97,17 +99,13 @@ func (h *ThreadHandler) CreatePage(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		//TODO: display error message that the category doesn't exist
 	}
-	//TODO: Check that categoryID exists
 
 	//TODO: Get category name
-
 	pageData := CreateThreadsPage{
 		CategoryID: categoryID,
 		// CategoryName: ,
 		Username: user.Username,
 	}
-
-	// Need to get the category ID the new thread will be in
 
 	h.renderer.RenderPage(w, "thread-create.html", pageData)
 }
@@ -145,8 +143,22 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	threadID, err := h.service.Create(ctx, &thread)
 	if err != nil {
-		//TODO: show user friendly error
-		errs.WriteError(w, err)
+		pageData := CreateThreadsPage{CategoryID: thread.CategoryID, InputTitle: thread.Title, InputBody: thread.Body}
+
+		if errors.Is(err, errs.ErrInvalidThreadTitle) {
+			pageData.TitleErr = "Thread title must be 1-100 characters."
+		}
+
+		if errors.Is(err, errs.ErrInvalidThreadBody) {
+			pageData.BodyErr = "Thread body must be 1-5000 characters."
+		}
+
+		if !errors.Is(err, errs.ErrInvalidThreadTitle) && errors.Is(err, errs.ErrInvalidThreadBody) {
+			pageData.OtherErr = "Unable to create thread. Please try again later."
+			slog.Error("thread creation fail", "err", err)
+		}
+
+		h.renderer.RenderPage(w, "thread-create.html", pageData)
 		return
 	}
 
