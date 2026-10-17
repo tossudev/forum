@@ -48,12 +48,15 @@ img {
 
 form.search{
 	text-align: center;
+	margin: 0px;
 }
 
 button.search {
 	padding: 8px 12px; 
+	margin: 0px;
 	border-radius: 0 20px 20px 0;
 	border: 2px solid #000;
+	border-width: 2px 2px 4px 2px;
 	color: black;
 	background: #FFFF00;
 	cursor: pointer;
@@ -61,8 +64,10 @@ button.search {
 
 input[type=search] {
 	padding: 8px 12px;
+	margin: 0px;
 	border-radius: 20px 0 0 20px;
 	border: 2px solid #000;
+	border-width: 2px 2px 4px 2px;
 	width: 60%;
 }
 
@@ -87,7 +92,7 @@ input[type=search] {
 
 .topnav a, .logout-form button {
 	margin: 0px;
-	padding: 0.6rem 1rem;
+	padding: 0.3rem 0.5rem;
 	color: #000;
 	flex: 0 0 auto;
 	white-space: nowrap;
@@ -107,6 +112,15 @@ input[type=search] {
 	background: #C89E6E;
 }
 
+.breadcrumbs {
+	margin: 0px;
+}
+
+.breadcrumbs:visited {
+	text-decoration: none;
+	color: black;
+}
+
 /* Listings (categories, threads) */
 .listing-container {
 	overflow: hidden;
@@ -121,7 +135,7 @@ input[type=search] {
 .listing-header {
 	line-height: 32px;
 	outline: 2px solid #000;
-	background: #FFFF00;
+	background: #FFD500;
 	text-align: left;
 }
 
@@ -154,17 +168,30 @@ td, th {
 .button {
 	border: solid #000;
 	border-width: 1px 1px 3px 1px;
-	background-color: #FFD500;
+	background-color: #ffee00;
+	color: black;
+	text-align: center;
+	text-decoration: none;
 	padding: 8px 16px;
 	width: 200px;
 	cursor: pointer;
+}
+
+.button.create-thread {
+	align-self: flex-end;
 }
 
 .button:hover {
 	background-color: #FEFF7A;
 }
 
-/* Login and Register */
+.hor-flex-wrapper {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+/* Form styles: Login, register, thread creation, etc. */
 .center-content {
 	display: flex;
 	flex-direction: column;
@@ -172,7 +199,7 @@ td, th {
 	align-items: center;
 }
 
-form.login, form.register {
+form.login, form.register, form.create-thread {
 	display: flex;
 	flex-direction: column;
 	width: 600px;
@@ -180,6 +207,20 @@ form.login, form.register {
 	border-width: 1px 1px 3px 1px;
 	background-color: #F0C682;
 	padding: 16px;
+}
+
+form.create-thread {
+	width: 800px;
+}
+
+.create-thread textarea {
+	height: 300px;
+	resize: vertical;
+}
+
+label:has(+ *:required)::after {
+	content: "*";
+	color: red;
 }
 
 form .error-msg, form .response-msg {
@@ -248,8 +289,6 @@ form .button {
 	width: 100%;
 	margin: 0 auto;
 	background: #FFF;
-	border: solid #000;
-	border-width: 1px 1px 3px 1px;
 }
 
 .thread-header {
