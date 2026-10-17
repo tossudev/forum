@@ -198,7 +198,7 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 		},
 		{
 			Title:      "My favourite author",
-			Body:       "",
+			Body:       "Is... ?",
 			AuthorID:   2,
 			CategoryID: 4,
 		},
@@ -217,12 +217,6 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 			is half personal memoir and half biography of a natural history dude (natural historialist?) from the 1800's who attempted to chronicle every fish in the world. Most recently, I have
 			enjoyed a book called Beasts of the Sea (Iida Turpeinen), which details humanity's discovery, extermination of, and then retrospective fascination with the Stellar's sea cow. Beasts of the Sea
 			is listed as fiction, but it feels like a history, which brings me back to Moby Dick...`,
-			AuthorID:   1,
-			CategoryID: 1,
-		},
-		{
-			Title:      "",
-			Body:       "",
 			AuthorID:   1,
 			CategoryID: 1,
 		},
