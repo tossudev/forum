@@ -9,7 +9,6 @@ import (
 	"forum/internal/errs"
 	"forum/internal/pagination"
 	"forum/internal/render"
-	//"forum/internal/entities/category"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -72,7 +71,6 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 
 	data.Page = paginationSearch.Page
 
-	//TODO: what is Path?
 	data.ThreadPath = "Thread > Search"
 	data.CommentPath = "Comment > Search"
 
