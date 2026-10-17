@@ -18,7 +18,7 @@ func NewRepository(db *sql.DB) *SearchRepository {
 	return &SearchRepository{db: db}
 }
 
-func (r *SearchRepository) Search(ctx context.Context, input string, pagination pagination.Pagination) (*SearchResult, error) {
+func (r *SearchRepository) Search(ctx context.Context, input string, pagination pagination.Pagination) ([]thread.Thread, []comment.Comment, error) {
 	queryInput := "\"" + input + "\""
 	queryThread := `SELECT rowid, title, body, date_created
 	FROM threads_fts
@@ -28,19 +28,19 @@ func (r *SearchRepository) Search(ctx context.Context, input string, pagination 
 
 	rowsThread, err := r.db.QueryContext(ctx, queryThread, queryInput, pagination.Limit(), pagination.Offset())
 	if err != nil {
-		return nil, fmt.Errorf("Thread Search: %w", err)
+		return nil, nil, fmt.Errorf("Thread Search: %w", err)
 	}
 
-	var data SearchResult
+	var threads []thread.Thread
 	for rowsThread.Next() {
 		var thread thread.Thread
 		if err := rowsThread.Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated); err != nil {
-			return nil, fmt.Errorf("Thread Search: %w", err)
+			return nil, nil, fmt.Errorf("Thread Search: %w", err)
 		}
-		data.Threads = append(data.Threads, thread)
+		threads = append(threads, thread)
 	}
 	if err = rowsThread.Err(); err != nil {
-		return nil, fmt.Errorf("Thread Search: %w", err)
+		return nil, nil, fmt.Errorf("Thread Search: %w", err)
 	}
 
 	queryComment := `SELECT body, date_created, thread_id
@@ -51,24 +51,20 @@ func (r *SearchRepository) Search(ctx context.Context, input string, pagination 
 
 	rowsComment, err := r.db.QueryContext(ctx, queryComment, queryInput, pagination.Limit(), pagination.Offset())
 	if err != nil {
-		return nil, fmt.Errorf("Comment Search: %w", err)
+		return nil, nil, fmt.Errorf("Comment Search: %w", err)
 	}
 
-	//	var comments []comment.Comment
+	var comments []comment.Comment
 	for rowsComment.Next() {
 		var comment comment.Comment
 		if err := rowsComment.Scan(&comment.Body, &comment.DateCreated, &comment.ThreadID); err != nil {
-			return nil, fmt.Errorf("Comment Search: %w", err)
+			return nil, nil, fmt.Errorf("Comment Search: %w", err)
 		}
-		data.Comments = append(data.Comments, comment)
+		comments = append(comments, comment)
 	}
 	if err = rowsComment.Err(); err != nil {
-		return nil, fmt.Errorf("Comment Search: %w", err)
+		return nil, nil, fmt.Errorf("Comment Search: %w", err)
 	}
 
-	//	data.Comments = comments
-
-	data.InputQuery = input
-
-	return &data, nil
+	return threads, comments, nil
 }
