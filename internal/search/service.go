@@ -20,9 +20,12 @@ func NewService(r *SearchRepository) *SearchService {
 
 func (s *SearchService) Search(ctx context.Context, input string, pagination pagination.Pagination) ([]thread.Thread, []comment.Comment, error) {
 	threads, comments, err := s.repo.Search(ctx, input, pagination)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	if len(threads) == 0 && len(comments) == 0 {
-		return threads, comments, errs.ErrSearchNoResults
+		return nil, nil, errs.ErrSearchNoResults
 	}
 
 	var errFormat error
@@ -40,5 +43,5 @@ func (s *SearchService) Search(ctx context.Context, input string, pagination pag
 		}
 	}
 
-	return threads, comments, err
+	return threads, comments, nil
 }
