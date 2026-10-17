@@ -89,15 +89,17 @@ func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *ThreadHandler) CreatePage(w http.ResponseWriter, r *http.Request) {
+func (h *ThreadHandler) CreateThreadPage(w http.ResponseWriter, r *http.Request) {
 	user := user.GetUser(r)
 	if user == nil {
 		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
 	}
 
 	categoryID, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		//TODO: display error message that the category doesn't exist
+	if err != nil || categoryID < 1 {
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", CreateThreadsPage{})
+		return
 	}
 
 	//TODO: Get category name
@@ -124,13 +126,15 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		h.renderer.RenderPage(w, "error-400.html", pageData)
+		slog.Error("thread creation fail", "err", err)
 		return
 	}
 
-	categoryID, err := strconv.Atoi(r.PostFormValue("categoryID"))
-	if err != nil {
+	categoryID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || categoryID < 1 {
 		w.WriteHeader(http.StatusBadRequest)
 		h.renderer.RenderPage(w, "error-400.html", pageData)
+		slog.Error("thread creation fail", "err", err)
 		return
 	}
 
@@ -179,7 +183,7 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: On successful submission, redirect to newly created thread
-	http.Redirect(w, r, "threads/"+strconv.Itoa(threadID), http.StatusSeeOther)
+	http.Redirect(w, r, "/threads/"+strconv.Itoa(threadID), http.StatusSeeOther)
 }
 
 func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
