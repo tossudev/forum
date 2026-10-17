@@ -2,7 +2,17 @@
 
 {{ define "content" }}
 
+<div class="search">
+	<form class="search" action="/search" method="GET">
+	<input type="search" name="search" placeholder="Search thread or comment..." value={{ .InputQuery }}>
+	<button class="search" type="submit">Search</button>
+	<p class="response-msg search-error">{{ .ResponseMsg }}</p>
+	</form>
+</div>
+
 <div class="contents">
+
+	{{if .Threads}}
 	<p>{{.ThreadPath}}</p>
 	
 	<p class="thread-container">
@@ -26,7 +36,11 @@
 		</div>
 	{{ end }}
 	</p>
+	{{ else }}
 
+	{{ end }}
+
+	{{if .Comments}}
 	<p>{{.CommentPath}}</p>
 	<p class="thread-container">
 		{{ range .Comments }}
@@ -46,6 +60,9 @@
 		</div>
 		{{ end }}
 	</p>
+	{{ else }}
+
+	{{ end }}
 
 </div>
 

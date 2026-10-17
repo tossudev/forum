@@ -1,6 +1,7 @@
 package search
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -28,37 +29,55 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	query := r.URL.Query()
-	pagination, err := pagination.Parse(query)
-	if err != nil {
-		errs.WriteError(w, err)
-		return
-	}
 
-	//TODO: How does input come from front end??
 	input := r.URL.Query().Get("search")
+
 	if input == "" || len(input) > 1000 {
 		errs.WriteError(w, fmt.Errorf("%w: invalid search length", errs.ErrInvalidUserInput))
 		return
 	}
 
-	data, err := h.service.Search(ctx, input, pagination)
+	paginationSearch, err := pagination.Parse(query)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
 	}
+
+	//perform search, check for errs
+	threads, comments, err := h.service.Search(ctx, input, paginationSearch)
+
+	var searchPageData SearchResult
+	searchPageData.Threads = threads
+	searchPageData.Comments = comments
+	searchPageData.InputQuery = input
 
 	var username string
 	user := user.GetUser(r)
 	if user != nil {
 		username = user.Username
 	}
-	data.Username = username
+	searchPageData.Username = username
 
-	data.Page = pagination.Page
+	//if err is 'no search results', send error to frontend and render search page
+	//otherwise, render error 500 page
+	if err != nil {
+		if errors.Is(err, errs.ErrSearchNoResults) {
+			searchPageData.ResponseMsg = "No results found. Please try a different search term."
+			h.renderer.RenderPage(w, "search.html", searchPageData)
+			return
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			h.renderer.RenderPage(w, "error-500.html", nil)
+			return
+		}
+	}
 
-	//TODO: what is Path?
-	data.ThreadPath = "Thread > Search"
-	data.CommentPath = "Comment > Search"
+	//if no errors in search, then render search page and display search results
 
-	h.renderer.RenderPage(w, "search.html", data)
+	searchPageData.Page = paginationSearch.Page
+
+	searchPageData.ThreadPath = "Thread > Search"
+	searchPageData.CommentPath = "Comment > Search"
+
+	h.renderer.RenderPage(w, "search.html", searchPageData)
 }

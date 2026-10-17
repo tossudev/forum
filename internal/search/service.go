@@ -4,6 +4,9 @@ import (
 	"context"
 
 	"forum/internal/config"
+	"forum/internal/entities/comment"
+	"forum/internal/entities/thread"
+	"forum/internal/errs"
 	"forum/internal/pagination"
 )
 
@@ -15,23 +18,30 @@ func NewService(r *SearchRepository) *SearchService {
 	return &SearchService{repo: r}
 }
 
-func (s *SearchService) Search(ctx context.Context, input string, pagination pagination.Pagination) (*SearchResult, error) {
-	data, err := s.repo.Search(ctx, input, pagination)
+func (s *SearchService) Search(ctx context.Context, input string, pagination pagination.Pagination) ([]thread.Thread, []comment.Comment, error) {
+	threads, comments, err := s.repo.Search(ctx, input, pagination)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if len(threads) == 0 && len(comments) == 0 {
+		return nil, nil, errs.ErrSearchNoResults
+	}
 
 	var errFormat error
-	for i, thread := range data.Threads {
-		data.Threads[i].DateCreated, errFormat = config.FormatTime(thread.DateCreated)
+	for i, thread := range threads {
+		threads[i].DateCreated, errFormat = config.FormatTime(thread.DateCreated)
 		if errFormat != nil {
-			return nil, errFormat
+			return nil, nil, errFormat
 		}
 	}
 
-	for j, comment := range data.Comments {
-		data.Comments[j].DateCreated, errFormat = config.FormatTime(comment.DateCreated)
+	for j, comment := range comments {
+		comments[j].DateCreated, errFormat = config.FormatTime(comment.DateCreated)
 		if errFormat != nil {
-			return nil, errFormat
+			return nil, nil, errFormat
 		}
 	}
 
-	return data, err
+	return threads, comments, nil
 }

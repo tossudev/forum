@@ -14,14 +14,15 @@ var (
 	ErrInvalidUsername    = errors.New("invalid username")
 	ErrInvalidEmail       = errors.New("invalid email")
 	ErrInvalidPassword    = errors.New("invalid password")
-	ErrInvalidThreadTitle = errors.New("invalid thread title")
-	ErrInvalidThreadBody  = errors.New("invalid thread body")
 	ErrFileTooLarge       = errors.New("file too large")
 	ErrNotFound           = errors.New("record not found")
 	ErrDuplicate          = errors.New("duplicate entry")
 	ErrDuplicateUsername  = errors.New("username already exists")
 	ErrDuplicateEmail     = errors.New("email already exists")
 	ErrUnauthorized       = errors.New("unauthorized")
+	ErrSearchNoResults    = errors.New("no results found")
+	ErrInvalidThreadTitle = errors.New("invalid thread title")
+	ErrInvalidThreadBody  = errors.New("invalid thread body")
 )
 
 // WriteError chooses the appropriate error response and writes to http.ResponseWrite

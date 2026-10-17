@@ -223,12 +223,16 @@ label:has(+ *:required)::after {
 	color: red;
 }
 
-form .error-msg {
+form .error-msg, form .response-msg {
 	font-family: sans-serif;
 	font-size: 16px;
 	margin-bottom: 16px;
 	color: red;
 	align-self: flex-start;
+}
+
+form .response-msg {
+	color: black;
 }
 
 form .error-msg.other-error {
