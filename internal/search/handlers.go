@@ -63,7 +63,6 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, errs.ErrSearchNoResults) {
 			searchPageData.ResponseMsg = "No results found. Please try a different search term."
-			w.WriteHeader(http.StatusBadRequest)
 			h.renderer.RenderPage(w, "search.html", searchPageData)
 			return
 		} else {
