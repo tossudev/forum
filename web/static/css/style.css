@@ -213,6 +213,11 @@ form.create-thread {
 	width: 800px;
 }
 
+form.create-thread h3 {
+	font-size: 32px;
+	margin-bottom: 24px;
+}
+
 .create-thread textarea {
 	height: 300px;
 	resize: vertical;

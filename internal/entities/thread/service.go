@@ -44,6 +44,10 @@ func (s *ThreadService) GetByID(ctx context.Context, id int) (*Thread, error) {
 	return s.repo.GetByID(ctx, id)
 }
 
+func (s *ThreadService) GetCategoryName(ctx context.Context, categoryID int) (string, error) {
+	return s.repo.GetCategoryName(ctx, categoryID)
+}
+
 func (s *ThreadService) Create(ctx context.Context, thread *Thread) (int, error) {
 	if err := validateThreadContent(thread.Title, thread.Body); err != nil {
 		return 0, err
