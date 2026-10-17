@@ -20,7 +20,7 @@ func (s *SearchService) Search(ctx context.Context, input string, pagination pag
 	data, err := s.repo.Search(ctx, input, pagination)
 
 	if len(data.Threads) == 0 && len(data.Comments) == 0 {
-		return data, errs.ErrNoResults
+		return data, errs.ErrSearchNoResults
 	}
 
 	var errFormat error

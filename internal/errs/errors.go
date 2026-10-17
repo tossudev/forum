@@ -20,7 +20,7 @@ var (
 	ErrDuplicateUsername = errors.New("username already exists")
 	ErrDuplicateEmail    = errors.New("email already exists")
 	ErrUnauthorized      = errors.New("unauthorized")
-	ErrNoResults         = errors.New("no results found")
+	ErrSearchNoResults   = errors.New("no results found")
 )
 
 // WriteError chooses the appropriate error response and writes to http.ResponseWrite

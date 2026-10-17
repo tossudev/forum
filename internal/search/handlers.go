@@ -56,13 +56,15 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	//if err is 'no search results', send error to frontend and render search page
 	//otherwise, WriteError as usual
 	if err != nil {
-		if errors.Is(err, errs.ErrNoResults) {
+		if errors.Is(err, errs.ErrSearchNoResults) {
 			data.ResponseMsg = "No results found. Please try a different search term."
 			w.WriteHeader(http.StatusBadRequest)
 			h.renderer.RenderPage(w, "search.html", data)
 			return
 		} else {
-			errs.WriteError(w, err)
+			//errs.WriteError(w, err)
+			w.WriteHeader(http.StatusInternalServerError)
+			h.renderer.RenderPage(w, "error-500.html", nil)
 			return
 		}
 	}
