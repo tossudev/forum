@@ -18,8 +18,8 @@ func NewService(r *CommentRepository) *CommentService {
 	return &CommentService{repo: r}
 }
 
+// TODO: validate
 func (s *CommentService) Create(ctx context.Context, req *Comment) (Comment, error) {
-
 	isoTime := time.Now().UTC()
 	isoString := isoTime.Format(config.TimeFormat)
 
