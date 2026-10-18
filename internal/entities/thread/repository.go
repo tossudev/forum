@@ -48,6 +48,11 @@ func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination
 		return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 	}
 
+	// Fetched threads can be nil without error if no results on page
+	if threads == nil {
+		return nil, 0, errs.ErrNotFound
+	}
+
 	return threads, totalCount, nil
 }
 

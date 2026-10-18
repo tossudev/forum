@@ -51,7 +51,7 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 
 	threads, totalCount, err := h.service.GetByCategory(ctx, id, paginationData)
 	if err != nil {
-		if errors.Is(err, errs.ErrInvalidUserInput) {
+		if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			h.renderer.RenderPage(w, "error-404.html", ThreadsPage{})
 			return
