@@ -15,6 +15,7 @@ type ThreadsPage struct {
 	Path       string
 	Threads    []Thread
 	Page       int
+	TotalPages int
 	Username   string
 }
 

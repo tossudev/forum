@@ -35,9 +35,12 @@ func NewHandler(service *ThreadService, validator *validator.Validate, renderer 
 func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	query := r.URL.Query()
-	pagination, err := pagination.Parse(query)
+
+	paginationData, err := pagination.Parse(query)
 	if err != nil {
-		errs.WriteError(w, err)
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{})
+		return
 	}
 
 	id, err := strconv.Atoi(r.PathValue("id"))
@@ -46,9 +49,15 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	threads, err := h.service.GetByCategory(ctx, id, pagination)
+	threads, totalCount, err := h.service.GetByCategory(ctx, id, paginationData)
 	if err != nil {
-		errs.WriteError(w, err)
+		if errors.Is(err, errs.ErrInvalidUserInput) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", ThreadsPage{})
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderer.RenderPage(w, "error-500.html", ThreadsPage{})
 		return
 	}
 
@@ -63,7 +72,8 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 		CategoryID: id,
 		Path:       fmt.Sprintf("⌂ Home / CategoryID %d", id),
 		Threads:    threads,
-		Page:       pagination.Page,
+		Page:       paginationData.Page,
+		TotalPages: pagination.CalcTotalPages(totalCount, paginationData.PageSize),
 		Username:   username,
 	}
 

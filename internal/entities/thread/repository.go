@@ -19,34 +19,36 @@ func NewRepository(db *sql.DB) *ThreadRepository {
 	return &ThreadRepository{db: db}
 }
 
-func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, error) {
+// Returns threads, the total number of threads, and a potential error.
+func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, int, error) {
 	var threads []Thread
+	var totalCount int
 
-	query := "SELECT id, title, body, date_created, author_id, category_id FROM threads WHERE category_id = ? ORDER BY date_created ASC LIMIT ? OFFSET ?;"
+	query := "SELECT COUNT(*) OVER() AS total_count, id, title, body, date_created, author_id, category_id FROM threads WHERE category_id = ? ORDER BY date_created ASC LIMIT ? OFFSET ?;"
 
 	rows, err := r.db.QueryContext(ctx, query, id, pagination.Limit(), pagination.Offset())
 	if err != nil {
-		return nil, fmt.Errorf("Thread GetByCategory: %w", err)
+		return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 	}
 
 	for rows.Next() {
 		var thread Thread
-		if err := rows.Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
-			return nil, fmt.Errorf("Thread GetByCategory: %w", err)
+		if err := rows.Scan(&totalCount, &thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
+			return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
 
 		queryCount := "SELECT COUNT(*) FROM comments WHERE thread_id = ?"
 		if err := r.db.QueryRowContext(ctx, queryCount, thread.ID).Scan(&thread.ReplyCount); err != nil {
-			return nil, fmt.Errorf("Thread GetByCategory: %w", err)
+			return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
 
 		threads = append(threads, thread)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("Thread GetByCategory: %w", err)
+		return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 	}
 
-	return threads, nil
+	return threads, totalCount, nil
 }
 
 func (r *ThreadRepository) GetByID(ctx context.Context, id int) (*Thread, error) {
