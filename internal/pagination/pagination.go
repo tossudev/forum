@@ -112,7 +112,6 @@ func GetDisplayPageNums(want, total, displayLimit int) []int {
 	leftPadding := (displayLimit - 1) / 2 // -1 for center number
 	rightPadding := total - leftPadding - 1
 	if want+rightPadding <= total {
-		fmt.Println("here")
 		for i := want - leftPadding; i <= want+rightPadding; i++ {
 			pages = append(pages, i)
 		}
