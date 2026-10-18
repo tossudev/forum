@@ -78,6 +78,7 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 		Page:       paginationData.Page,
 		TotalPages: totalPages,
 		PageList:   pageList,
+		PrevPage:   paginationData.Page - 1,
 		NextPage:   paginationData.Page + 1,
 		Username:   username,
 	}

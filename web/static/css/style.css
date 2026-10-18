@@ -191,6 +191,27 @@ td, th {
 	align-items: center;
 }
 
+/* Pagination */
+.pagination a {
+	margin: 0;
+	text-align: center;
+	min-width: 37px;
+	display: inline-block;
+	color: black;
+	background-color: #F0C682;
+	text-decoration: none;
+	border: 3px solid black;
+	padding: 4px 8px;
+}
+
+.pagination a:hover {
+	background-color: #FFE1B2;
+}
+
+.pagination .current-page, a.current-page:hover {
+	background-color: #C89E6E;
+}
+
 /* Form styles: Login, register, thread creation, etc. */
 .center-content {
 	display: flex;

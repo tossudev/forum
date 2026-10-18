@@ -14,10 +14,11 @@ type ThreadsPage struct {
 	CategoryID int
 	Path       string
 	Threads    []Thread
-	Page       int
-	TotalPages int
-	PageList   []int
-	NextPage   int // The page after the last in PageList
+	Page       int   // Current (wanted) page
+	TotalPages int   // Last possible page
+	PageList   []int // Visible pages in navigation
+	PrevPage   int   // The page after the current page
+	NextPage   int   // The page after the current page
 	Username   string
 }
 
