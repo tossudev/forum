@@ -16,6 +16,8 @@ type ThreadsPage struct {
 	Threads    []Thread
 	Page       int
 	TotalPages int
+	PageList   []int
+	NextPage   int // The page after the last in PageList
 	Username   string
 }
 

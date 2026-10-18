@@ -23,6 +23,21 @@
 		</tr>
 		{{end}}
 	</table>
+	
+	<div class="pagination">
+		Pages:
+		{{ range .PageList }}
+			<a href="/categories/{{ $.CategoryID }}?page={{ . }}">{{ . }} </a>
+		{{ end }}
+
+		{{ if le .NextPage .TotalPages }}
+			<a href="/categories/{{ .CategoryID }}?page={{ .NextPage }}">Next></a>
+		{{ end }}
+
+		{{ if lt .Page .TotalPages }}
+			<a href="/categories/{{ .CategoryID }}?page={{ .TotalPages }}">Last >></a>
+		{{ end }}
+	</div>
 </div>
 
 {{ end }}
