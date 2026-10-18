@@ -77,7 +77,7 @@
 		<h2>Reply to thread</h2>
 		<form class="create-thread" action="/threads/{{ .Thread.ID }}/comments" method="post">
 			<label for="body">Body text</label>
-			<textarea id="body" name="body" placeholder="Write your post..." minlength="1" maxlength="5000" required></textarea>
+			<textarea id="body" name="body" placeholder="Write your comment..." minlength="1" maxlength="5000" required></textarea>
 			<p class="error-msg"></p>
 
 			<button class="button register-btn" type="submit">Publish comment</button>
