@@ -97,21 +97,3 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (User, erro
 
 	return user, nil
 }
-
-func (r *UserRepo) GetUserByName(ctx context.Context, username string) (User, error) {
-	query := `SELECT id, username, email, password_hash, password_salt, date_created, role_id
-	FROM users WHERE username = ?;`
-
-	var user User
-	var createdAt int
-	if err := r.db.QueryRowContext(ctx, query, username).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.Password.Salt, &createdAt, &user.RoleID); err != nil {
-		if err == sql.ErrNoRows {
-			return User{}, fmt.Errorf("%w: invalid credentials", errs.ErrUnauthorized)
-		}
-		return User{}, fmt.Errorf("GetUserByEmail: scanning row: %w", err)
-	}
-
-	user.CreatedAt = time.Unix(int64(createdAt), 0)
-
-	return user, nil
-}
