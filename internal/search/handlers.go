@@ -2,7 +2,6 @@ package search
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"forum/internal/entities/user"
@@ -32,11 +31,25 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 
 	input := r.URL.Query().Get("search")
 
+	var searchPageData SearchResult
+
+	//get username if logged in
+	var username string
+	user := user.GetUser(r)
+	if user != nil {
+		username = user.Username
+	}
+	searchPageData.Username = username
+
+	//check for empty or too long search input
 	if input == "" || len(input) > 1000 {
-		errs.WriteError(w, fmt.Errorf("%w: invalid search length", errs.ErrInvalidUserInput))
+		searchPageData.InputQuery = ""
+		searchPageData.ResponseMsg = "Search query must be 1-1000 characters long."
+		h.renderer.RenderPage(w, "search.html", searchPageData)
 		return
 	}
 
+	//get pagination data from query
 	paginationSearch, err := pagination.Parse(query)
 	if err != nil {
 		errs.WriteError(w, err)
@@ -46,17 +59,9 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	//perform search, check for errs
 	threads, comments, err := h.service.Search(ctx, input, paginationSearch)
 
-	var searchPageData SearchResult
 	searchPageData.Threads = threads
 	searchPageData.Comments = comments
 	searchPageData.InputQuery = input
-
-	var username string
-	user := user.GetUser(r)
-	if user != nil {
-		username = user.Username
-	}
-	searchPageData.Username = username
 
 	//if err is 'no search results', send error to frontend and render search page
 	//otherwise, render error 500 page

@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+{{ define "js" }}
+<script src="/web/static/js/listing.js" defer></script>
+{{ end }}
 
 {{ define "content" }}
 
@@ -23,6 +25,29 @@
 		</tr>
 		{{end}}
 	</table>
+	
+	<div class="pagination">
+		Pages:
+		{{ if gt .Page 1 }}
+			<a href="/categories/{{ .CategoryID }}?page=1" title="First page"><<</a>
+		{{ end }}
+
+		{{ if ge .PrevPage 1 }}
+			<a href="/categories/{{ .CategoryID }}?page={{ .PrevPage }}" title="Previous page">Prev</a>
+		{{ end }}
+
+		{{ range .PageList }}
+			<a class="{{ if eq . $.Page}}current-page{{ end }}" href="/categories/{{ $.CategoryID }}?page={{ . }}">{{ . }}</a>
+		{{ end }}
+
+		{{ if le .NextPage .TotalPages }}
+			<a href="/categories/{{ .CategoryID }}?page={{ .NextPage }}" title="Next page">Next</a>
+		{{ end }}
+
+		{{ if lt .Page .TotalPages }}
+			<a href="/categories/{{ .CategoryID }}?page={{ .TotalPages }}" title="Last page">>></a>
+		{{ end }}
+	</div>
 </div>
 
 {{ end }}
