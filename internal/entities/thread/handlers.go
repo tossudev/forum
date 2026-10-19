@@ -111,6 +111,7 @@ func (h *ThreadHandler) CreateThreadPage(w http.ResponseWriter, r *http.Request)
 	user := user.GetUser(r)
 	if user == nil {
 		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
+		return
 	}
 
 	categoryID, err := strconv.Atoi(r.PathValue("id"))
@@ -129,6 +130,7 @@ func (h *ThreadHandler) CreateThreadPage(w http.ResponseWriter, r *http.Request)
 		}
 		w.WriteHeader(http.StatusInternalServerError)
 		h.renderer.RenderPage(w, "error-500.html", CreateThreadsPage{})
+		return
 	}
 
 	pageData := CreateThreadsPage{
