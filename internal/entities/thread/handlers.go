@@ -15,7 +15,6 @@ import (
 	"forum/internal/pagination"
 	"forum/internal/render"
 	"forum/internal/session"
-	//"forum/internal/entities/user"
 )
 
 type ThreadHandler struct {
@@ -49,7 +48,7 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	threads, totalCount, err := h.service.GetByCategory(ctx, id, paginationData, h.renderer)
+	threads, totalCount, err := h.service.GetByCategory(ctx, id, paginationData)
 	if err != nil {
 		if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -267,7 +266,7 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 		username = user.Username
 	}
 
-	data, err := h.service.DisplayThreadPage(ctx, id, username, h.renderer)
+	data, err := h.service.DisplayThreadPage(ctx, id, username)
 	if err != nil {
 		errs.WriteError(w, err)
 		return

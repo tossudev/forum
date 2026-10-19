@@ -8,7 +8,7 @@ import (
 	"forum/internal/config"
 	"forum/internal/errs"
 	"forum/internal/pagination"
-	"forum/internal/render"
+	"forum/internal/validate"
 )
 
 type ThreadService struct {
@@ -19,7 +19,7 @@ func NewService(r *ThreadRepository) *ThreadService {
 	return &ThreadService{repo: r}
 }
 
-func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination, renderer *render.Renderer) ([]Thread, int, error) {
+func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, int, error) {
 	if id <= 0 {
 		return nil, 0, fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput)
 	}
@@ -40,12 +40,12 @@ func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pa
 			return nil, 0, errFormat
 		}
 
-		threads[i].BodyHTML, err = renderer.ParseHTML(threads[i].Body)
+		threads[i].BodyHTML, err = validate.ParseHTML(threads[i].Body)
 		if err != nil {
 			return nil, 0, fmt.Errorf("GetByCategory ParseHTML err: %w", err)
 		}
 
-		threads[i].TitleHTML, err = renderer.ParseHTML(threads[i].Title)
+		threads[i].TitleHTML, err = validate.ParseHTML(threads[i].Title)
 		if err != nil {
 			return nil, 0, fmt.Errorf("GetByCategory ParseHTML err: %w", err)
 		}
@@ -70,6 +70,15 @@ func (s *ThreadService) Create(ctx context.Context, thread *Thread) (int, error)
 	if err := validateThreadContent(thread.Title, thread.Body); err != nil {
 		return 0, err
 	}
+
+	if _, err := validate.ParseHTML(thread.Title); err != nil {
+		return 0, err
+	}
+
+	if _, err := validate.ParseHTML(thread.Body); err != nil {
+		return 0, err
+	}
+
 	// No need to Validate AuthorID since user was already authenticated
 	// If CategoryID or AuthorID doesn't exist, there will be a repo level foreign key constraint error CategoryID exists
 
@@ -86,7 +95,7 @@ func (s *ThreadService) Delete(ctx context.Context, threadID int, userID int) er
 	return s.repo.Delete(ctx, threadID, userID)
 }
 
-func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, username string, renderer *render.Renderer) (*ThreadData, error) {
+func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, username string) (*ThreadData, error) {
 	if threadID <= 0 {
 		return nil, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput)
 	}
@@ -99,12 +108,12 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 		return nil, errFormat
 	}
 
-	data.Thread.BodyHTML, err = renderer.ParseHTML(data.Thread.Body)
+	data.Thread.BodyHTML, err = validate.ParseHTML(data.Thread.Body)
 	if err != nil {
 		return nil, fmt.Errorf("DisplayThreadPage body ParseHTML err: %w", err)
 	}
 
-	data.Thread.TitleHTML, err = renderer.ParseHTML(data.Thread.Title)
+	data.Thread.TitleHTML, err = validate.ParseHTML(data.Thread.Title)
 	if err != nil {
 		return nil, fmt.Errorf("DisplayThreadPage title ParseHTML err: %w", err)
 	}
@@ -115,7 +124,7 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 			return nil, errFormat
 		}
 
-		data.Comments[i].BodyHTML, err = renderer.ParseHTML(data.Comments[i].Body)
+		data.Comments[i].BodyHTML, err = validate.ParseHTML(data.Comments[i].Body)
 		if err != nil {
 			return nil, fmt.Errorf("DisplayThreadPage comment body ParseHTML err: %w", err)
 		}
