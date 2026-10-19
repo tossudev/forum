@@ -42,12 +42,12 @@ func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pa
 
 		threads[i].BodyHTML, err = renderer.ParseHTML(threads[i].Body)
 		if err != nil {
-			return nil, fmt.Errorf("GetByCategory ParseHTML err: %w", err)
+			return nil, 0, fmt.Errorf("GetByCategory ParseHTML err: %w", err)
 		}
 
 		threads[i].TitleHTML, err = renderer.ParseHTML(threads[i].Title)
 		if err != nil {
-			return nil, fmt.Errorf("GetByCategory ParseHTML err: %w", err)
+			return nil, 0, fmt.Errorf("GetByCategory ParseHTML err: %w", err)
 		}
 	}
 
