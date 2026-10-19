@@ -260,6 +260,41 @@ func seedComments(ctx context.Context, app *SeedApp) error {
 			AuthorID: 1,
 		},
 		{
+			Body:     "Is it a book?",
+			ThreadID: 1,
+			AuthorID: 3,
+		},
+		{
+			Body:     "What kind of book?",
+			ThreadID: 1,
+			AuthorID: 5,
+		},
+		{
+			Body:     "What is your favourite book?",
+			ThreadID: 1,
+			AuthorID: 4,
+		},
+		{
+			Body:     "What kind of book is it?",
+			ThreadID: 2,
+			AuthorID: 4,
+		},
+		{
+			Body:     "Tell me about the book",
+			ThreadID: 1,
+			AuthorID: 4,
+		},
+		{
+			Body:     "What kind of books do they write?",
+			ThreadID: 3,
+			AuthorID: 1,
+		},
+		{
+			Body:     "The best kinds of books",
+			ThreadID: 3,
+			AuthorID: 2,
+		},
+		{
 			Body: `I found Katabasis (in English) in a small airport bookstore in Croatia. Not sure how I feel about finding one of my favourite authors of the last few years
 			in an airport...`,
 			ThreadID: 3,
