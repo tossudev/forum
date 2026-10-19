@@ -75,3 +75,7 @@ func (s *UserService) Authenticate(ctx context.Context, input LoginSubmission) (
 func (s *UserService) GetUserByID(ctx context.Context, id int) (*User, error) {
 	return s.repo.GetUserByID(ctx, id)
 }
+
+func (s *UserService) GetThreadsByUserID(ctx context.Context, userID int) ([]ProfileThread, error) {
+	return s.repo.GetThreadsByUserID(ctx, userID)
+}

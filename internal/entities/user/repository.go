@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"forum/internal/config"
 	"forum/internal/database"
 	"forum/internal/errs"
 	"time"
@@ -96,4 +97,35 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (User, erro
 	user.CreatedAt = time.Unix(int64(createdAt), 0)
 
 	return user, nil
+}
+
+func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int) ([]ProfileThread, error) {
+	query := `SELECT id, title, body, date_created, author_id, category_id FROM threads 
+	WHERE author_id = ?;`
+
+	var threads []ProfileThread
+	rows, err := r.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("GetThreadsByUserID: %w", err)
+	}
+
+	for rows.Next() {
+		var thread ProfileThread
+		if err := rows.Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
+			return nil, fmt.Errorf("GetThreadsByUserID: %w", err)
+		}
+
+		thread.DateCreated, err = config.FormatTime(thread.DateCreated)
+		if err != nil {
+			return nil, fmt.Errorf("GetThreadsByUserID: %w", err)
+		}
+
+		threads = append(threads, thread)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("GetThreadsByUserID: %w", err)
+	}
+
+	return threads, nil
 }

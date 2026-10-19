@@ -1,0 +1,34 @@
+{{ define "content" }}
+<div class="center-content">
+   
+
+	<div>
+		<a href="/profile/threads">Threads</a>
+		<a href="/profile/comments">Comments</a>
+		<a href="/profile/likes">Likes</a>
+		<a href="/profile/dislikes">Dislikes</a>
+	</div>
+
+	 <h2>Threads by {{ .Username }}</h2>
+	 
+		{{range .Threads}}
+		<div class="comment-container">
+			<div class="comment">
+				<div class="clickable">
+				<a href="/threads/{{.ID}}" class="hidden-link"></a>
+
+					<div class="content">
+						<div class="thread-header">
+							{{.Title}}
+						</div>
+						{{.Body}}
+						<div class="thread-footer">
+							<div>{{.DateCreated}}</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	{{ end }}
+</div>
+{{ end }}

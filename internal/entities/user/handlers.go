@@ -197,3 +197,39 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
+
+func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	user := GetUser(r)
+	if user == nil {
+		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
+		return
+	}
+
+	type ThreadsPage struct {
+		Username string
+		Threads  []ProfileThread
+	}
+
+	pageData := ThreadsPage{
+		Username: user.Username,
+	}
+
+	threads, err := h.service.GetThreadsByUserID(ctx, user.ID)
+	if err != nil {
+		//TODO: handle all errors
+		slog.Error("internal server error:", "err", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderer.RenderPage(w, "error-500.html", pageData)
+		return
+	}
+
+	//TODO: handle no results (threads == nil) separately
+
+	//TODO: paginate results
+
+	pageData.Threads = threads
+
+	h.renderer.RenderPage(w, "profile-threads.html", pageData)
+}
