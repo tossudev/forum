@@ -4,7 +4,7 @@
 
 <div class="search">
 	<form class="search" action="/search" method="GET">
-	<input type="search" name="search" placeholder="Search thread or comment..." value={{ .InputQuery }}>
+	<input type="search" name="search" placeholder="Search thread or comment..." {{if .InputQuery}} value={{ .InputQuery }} {{end}}>
 	<button class="search" type="submit">Search</button>
 	<p class="response-msg search-error">{{ .ResponseMsg }}</p>
 	</form>
