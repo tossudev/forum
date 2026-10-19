@@ -9,12 +9,22 @@ import (
 )
 
 var (
-	HTMLPolicy *bluemonday.Policy = bluemonday.UGCPolicy()
+	HTMLPolicy *bluemonday.Policy
 )
+
+func CreatePolicy() {
+	// Restrict all HTML initially
+	HTMLPolicy = bluemonday.StrictPolicy()
+
+	// Permits the "dir", "id", "lang", "title", "br" attributes
+	HTMLPolicy.AllowStandardAttributes()
+	HTMLPolicy.AllowElements("br")
+
+	HTMLPolicy.AllowImages()
+}
 
 func ParseHTML(input string) (template.HTML, error) {
 	input = strings.ReplaceAll(input, "\n", "<br>")
-	input = strings.ReplaceAll(input, "\t", "&emsp;")
 
 	out := HTMLPolicy.Sanitize(input)
 	if out == "" {
