@@ -32,6 +32,16 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	input := r.URL.Query().Get("search")
 
 	var searchPageData SearchResult
+
+	//get username if logged in
+	var username string
+	user := user.GetUser(r)
+	if user != nil {
+		username = user.Username
+	}
+	searchPageData.Username = username
+
+	//check for empty or too long search input
 	if input == "" || len(input) > 1000 {
 		searchPageData.InputQuery = ""
 		searchPageData.ResponseMsg = "Search query must be 1-1000 characters long."
@@ -39,6 +49,7 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//get pagination data from query
 	paginationSearch, err := pagination.Parse(query)
 	if err != nil {
 		errs.WriteError(w, err)
@@ -51,13 +62,6 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	searchPageData.Threads = threads
 	searchPageData.Comments = comments
 	searchPageData.InputQuery = input
-
-	var username string
-	user := user.GetUser(r)
-	if user != nil {
-		username = user.Username
-	}
-	searchPageData.Username = username
 
 	//if err is 'no search results', send error to frontend and render search page
 	//otherwise, render error 500 page
