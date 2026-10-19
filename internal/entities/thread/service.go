@@ -8,6 +8,7 @@ import (
 	"forum/internal/config"
 	"forum/internal/errs"
 	"forum/internal/pagination"
+	"forum/internal/render"
 )
 
 type ThreadService struct {
@@ -18,7 +19,7 @@ func NewService(r *ThreadRepository) *ThreadService {
 	return &ThreadService{repo: r}
 }
 
-func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, error) {
+func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination, renderer *render.Renderer) ([]Thread, error) {
 	if id <= 0 {
 		return nil, fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput)
 	}
@@ -30,6 +31,16 @@ func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pa
 		threads[i].DateCreated, errFormat = config.FormatTime(thread.DateCreated)
 		if errFormat != nil {
 			return nil, errFormat
+		}
+
+		threads[i].BodyHTML, err = renderer.ParseHTML(threads[i].Body)
+		if err != nil {
+			return nil, fmt.Errorf("GetByCategory ParseHTML err: %w", err)
+		}
+
+		threads[i].TitleHTML, err = renderer.ParseHTML(threads[i].Title)
+		if err != nil {
+			return nil, fmt.Errorf("GetByCategory ParseHTML err: %w", err)
 		}
 	}
 
@@ -68,7 +79,7 @@ func (s *ThreadService) Delete(ctx context.Context, threadID int, userID int) er
 	return s.repo.Delete(ctx, threadID, userID)
 }
 
-func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, username string) (*ThreadData, error) {
+func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, username string, renderer *render.Renderer) (*ThreadData, error) {
 	if threadID <= 0 {
 		return nil, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput)
 	}
@@ -81,10 +92,25 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 		return nil, errFormat
 	}
 
+	data.Thread.BodyHTML, err = renderer.ParseHTML(data.Thread.Body)
+	if err != nil {
+		return nil, fmt.Errorf("DisplayThreadPage body ParseHTML err: %w", err)
+	}
+
+	data.Thread.TitleHTML, err = renderer.ParseHTML(data.Thread.Title)
+	if err != nil {
+		return nil, fmt.Errorf("DisplayThreadPage title ParseHTML err: %w", err)
+	}
+
 	for i, comment := range data.Comments {
 		data.Comments[i].DateCreated, errFormat = config.FormatTime(comment.DateCreated)
 		if errFormat != nil {
 			return nil, errFormat
+		}
+
+		data.Comments[i].BodyHTML, err = renderer.ParseHTML(data.Comments[i].Body)
+		if err != nil {
+			return nil, fmt.Errorf("DisplayThreadPage comment body ParseHTML err: %w", err)
 		}
 	}
 

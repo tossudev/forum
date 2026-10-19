@@ -1,5 +1,9 @@
 package thread
 
+import (
+	"html/template"
+)
+
 type Thread struct {
 	ID          int    `json:"id"`
 	Title       string `json:"title"`
@@ -8,6 +12,8 @@ type Thread struct {
 	AuthorID    int    `json:"author_id"`
 	CategoryID  int    `json:"category_id"`
 	ReplyCount  int
+	TitleHTML   template.HTML
+	BodyHTML    template.HTML
 }
 
 type ThreadsPage struct {
@@ -45,6 +51,7 @@ type ThreadData struct {
 type CommentData struct {
 	ID                 int
 	Body               string
+	BodyHTML           template.HTML
 	DateCreated        string
 	ThreadID           int
 	AuthorName         string

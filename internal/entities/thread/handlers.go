@@ -46,7 +46,7 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	threads, err := h.service.GetByCategory(ctx, id, pagination)
+	threads, err := h.service.GetByCategory(ctx, id, pagination, h.renderer)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
@@ -84,6 +84,7 @@ func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	_, err = h.service.GetByID(ctx, id)
 	if err != nil {
 		errs.WriteError(w, err)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -250,12 +251,14 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 		username = user.Username
 	}
 
-	data, err := h.service.DisplayThreadPage(ctx, id, username)
+	data, err := h.service.DisplayThreadPage(ctx, id, username, h.renderer)
 	if err != nil {
 		errs.WriteError(w, err)
+		return
 	}
 
 	data.Username = username
+	// TODO: fix path
 	data.Path = "Thread > " + data.Thread.Title
 
 	h.renderer.RenderPage(w, "thread.html", data)

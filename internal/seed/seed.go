@@ -186,13 +186,13 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 	threads := []thread.Thread{
 		{
 			Title:      "I loved this book",
-			Body:       "I super loved this book! I read it in two days!!",
+			Body:       "I super loved this book!\nI read it in two days!!",
 			AuthorID:   3,
 			CategoryID: 2,
 		},
 		{
 			Title:      "The best book I've read this week",
-			Body:       "It's called There Is No Antimimetic Division. #scifi",
+			Body:       "It's called There Is No Antimimetic Division.\n\n#scifi",
 			AuthorID:   4,
 			CategoryID: 2,
 		},
@@ -204,7 +204,7 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 		},
 		{
 			Title:      "What are some good libraries in Helsinki???",
-			Body:       "Help! I am visiting Helsinki for the weekend and would like to know, what are your favourite libraries in the city?? I will be there for three days and want to visit any cool or unique libraries you have. Also, any cool bookstores? Thanks!",
+			Body:       "Help! I am visiting Helsinki for the weekend and would like to know, what are your favourite libraries in the city??\nI will be there for three days and want to visit any cool or unique libraries you have. Also, any cool bookstores? Thanks!",
 			AuthorID:   1,
 			CategoryID: 1,
 		},
@@ -279,11 +279,6 @@ func seedComments(ctx context.Context, app *SeedApp) error {
 			Body:     "Do people read Dean Koontz in Europe?",
 			ThreadID: 3,
 			AuthorID: 5,
-		},
-		{
-			Body:     "",
-			ThreadID: 1,
-			AuthorID: 1,
 		},
 	}
 

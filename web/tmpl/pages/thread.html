@@ -21,9 +21,9 @@
 
 				<div class="content">
 					<div class="thread-header">
-						{{.Thread.Title}}
+						{{.Thread.TitleHTML}}
 					</div>
-					{{.Thread.Body}}
+					{{.Thread.BodyHTML}}
 					<div class="thread-footer">
 						<div class="date">{{.Thread.DateCreated}}</div>
 					</div>
@@ -42,7 +42,7 @@
 				</div>
 
 				<div class="content">
-					{{.Body}}
+					{{.BodyHTML}}
 					<div class="thread-footer">
 						<button data-comment-id="{{.ID}}" data-action="like"
 							{{ if .LoggedUserLiked }}

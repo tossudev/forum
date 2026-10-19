@@ -7,17 +7,22 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 
 	"forum/internal/errs"
+
+	"github.com/microcosm-cc/bluemonday"
 )
 
 type Renderer struct {
-	Templates map[string]*template.Template
+	Templates  map[string]*template.Template
+	HTMLPolicy *bluemonday.Policy
 }
 
 func NewRenderer() *Renderer {
 	return &Renderer{
-		Templates: parseTemplates(),
+		Templates:  parseTemplates(),
+		HTMLPolicy: bluemonday.UGCPolicy(),
 	}
 }
 
@@ -36,6 +41,18 @@ func (r *Renderer) RenderPage(w http.ResponseWriter, templateName string, data a
 	}
 
 	buf.WriteTo(w)
+}
+
+func (r *Renderer) ParseHTML(input string) (template.HTML, error) {
+	input = strings.ReplaceAll(input, "\n", "<br>")
+	input = strings.ReplaceAll(input, "\t", "&emsp;")
+
+	out := r.HTMLPolicy.Sanitize(input)
+	if out == "" {
+		return template.HTML(""), fmt.Errorf("HTML sanitization failed")
+	}
+
+	return template.HTML(out), nil
 }
 
 // Prepare all templates and cache page templates in map
