@@ -12,6 +12,15 @@ type Pagination struct {
 	PageSize int
 }
 
+// PaginationNav contains page data to be used in pagination navigation with go templates
+type PaginationNav struct {
+	Page       int
+	TotalPages int
+	PageList   []int // The visible pages shown in the navigation. Get with GetDisplayPageNums.
+	PrevPage   int
+	NextPage   int
+}
+
 const (
 	minPage     = 1
 	maxPage     = 100000000 // capped to 100 million prevent int64 overflow on Offset calculation

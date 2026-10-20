@@ -32,25 +32,26 @@
 	{{ end }}
 
 	<div class="pagination">
+		{{ $nav := .PageNav }}
 		Pages:
-		{{ if gt .Page 1 }}
+		{{ if gt $nav.Page 1 }}
 			<a href="/profile/threads?page=1" title="First page"><<</a>
 		{{ end }}
 
-		{{ if ge .PrevPage 1 }}
-			<a href="/profile/threads?page={{ .PrevPage }}" title="Previous page">Prev</a>
+		{{ if ge $nav.PrevPage 1 }}
+			<a href="/profile/threads?page={{ $nav.PrevPage }}" title="Previous page">Prev</a>
 		{{ end }}
 
-		{{ range .PageList }}
-			<a class="{{ if eq . $.Page}}current-page{{ end }}" href="/profile/threads?page={{ . }}">{{ . }}</a>
+		{{ range $nav.PageList }}
+			<a class="{{ if eq . $nav.Page}}current-page{{ end }}" href="/profile/threads?page={{ . }}">{{ . }}</a>
 		{{ end }}
 
-		{{ if le .NextPage .TotalPages }}
-			<a href="/profile/threads?page={{ .NextPage }}" title="Next page">Next</a>
+		{{ if le $nav.NextPage $nav.TotalPages }}
+			<a href="/profile/threads?page={{ $nav.NextPage }}" title="Next page">Next</a>
 		{{ end }}
 
-		{{ if lt .Page .TotalPages }}
-			<a href="/profile/threads?page={{ .TotalPages }}" title="Last page">>></a>
+		{{ if lt $nav.Page $nav.TotalPages }}
+			<a href="/profile/threads?page={{ $nav.TotalPages }}" title="Last page">>></a>
 		{{ end }}
 	</div>
 </div>

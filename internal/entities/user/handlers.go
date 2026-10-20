@@ -209,13 +209,9 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 	}
 
 	type ThreadsPage struct {
-		Threads    []ProfileThread
-		Page       int
-		TotalPages int
-		PageList   []int
-		PrevPage   int
-		NextPage   int
-		Username   string
+		Threads  []ProfileThread
+		PageNav  pagination.PaginationNav
+		Username string
 	}
 
 	paginationData, err := pagination.Parse(r.URL.Query())
@@ -237,21 +233,20 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
 	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
 
-	pageData := ThreadsPage{
-		Threads:    threads,
+	pageNav := pagination.PaginationNav{
 		Page:       paginationData.Page,
 		TotalPages: totalPages,
 		PageList:   pageList,
 		PrevPage:   paginationData.Page - 1,
 		NextPage:   paginationData.Page + 1,
-		Username:   user.Username,
+	}
+	pageData := ThreadsPage{
+		Threads:  threads,
+		PageNav:  pageNav,
+		Username: user.Username,
 	}
 
 	//TODO: handle no results (threads == nil) separately
-
-	//TODO: paginate results
-
-	pageData.Threads = threads
 
 	h.renderer.RenderPage(w, "profile-threads.html", pageData)
 }
