@@ -410,6 +410,16 @@ func seedComments(ctx context.Context, app *SeedApp) error {
 			ThreadID: 9,
 			AuthorID: 4,
 		},
+		{
+			Body:     "Guys... this is a Finnish forum...",
+			ThreadID: 9,
+			AuthorID: 2,
+		},
+		{
+			Body:     `<img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbzhsODYyM3pmYmpkNmRlYWgwMWY2N3hqOWVuN3hnb3huY3c4dm1ndyZlcD12MV9naWZzX3JlbGF0ZWQmY3Q9Zw/p4gI9UwAoTs75VMwPA/giphy.gif">`,
+			ThreadID: 9,
+			AuthorID: 3,
+		},
 	}
 
 	for _, newComment := range comments {
@@ -494,6 +504,21 @@ func seedLikes(ctx context.Context, app *SeedApp) error {
 		},
 		{
 			CommentID: 26,
+			UserID:    3,
+			Like:      true,
+		},
+		{
+			CommentID: 28,
+			UserID:    5,
+			Like:      true,
+		},
+		{
+			CommentID: 28,
+			UserID:    1,
+			Like:      true,
+		},
+		{
+			CommentID: 28,
 			UserID:    3,
 			Like:      true,
 		},
