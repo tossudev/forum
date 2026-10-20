@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"forum/internal/config"
 	"forum/internal/entities/comment"
 	"forum/internal/entities/thread"
 	"forum/internal/pagination"
@@ -34,11 +35,18 @@ func (r *SearchRepository) Search(ctx context.Context, input string, pagination 
 	}
 
 	var threads []thread.Thread
+	var errFormat error
 	for rowsThread.Next() {
 		var thread thread.Thread
 		if err := rowsThread.Scan(&threadsCount, &thread.ID, &thread.Title, &thread.Body, &thread.DateCreated); err != nil {
 			return nil, 0, nil, 0, fmt.Errorf("Thread Search: %w", err)
 		}
+
+		thread.DateCreated, errFormat = config.FormatTime(thread.DateCreated)
+		if errFormat != nil {
+			return nil, 0, nil, 0, errFormat
+		}
+
 		threads = append(threads, thread)
 	}
 	if err = rowsThread.Err(); err != nil {
@@ -64,6 +72,12 @@ func (r *SearchRepository) Search(ctx context.Context, input string, pagination 
 		if err := rowsComment.Scan(&commentsCount, &comment.Body, &comment.DateCreated, &comment.ThreadID); err != nil {
 			return nil, 0, nil, 0, fmt.Errorf("Comment Search: %w", err)
 		}
+
+		comment.DateCreated, errFormat = config.FormatTime(comment.DateCreated)
+		if errFormat != nil {
+			return nil, 0, nil, 0, errFormat
+		}
+
 		comments = append(comments, comment)
 	}
 	if err = rowsComment.Err(); err != nil {
