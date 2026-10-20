@@ -44,7 +44,8 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput))
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{})
 		return
 	}
 
