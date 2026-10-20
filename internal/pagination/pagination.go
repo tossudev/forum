@@ -64,7 +64,7 @@ func Parse(query url.Values) (Pagination, error) {
 	// Set default vaules
 	pagination := Pagination{
 		Page:     minPage,
-		PageSize: 10,
+		PageSize: 5,
 	}
 
 	// Parse "page" from query
