@@ -353,6 +353,10 @@ form .button {
 	margin: 0px;
 }
 
+.comment .error-msg, .listing .error-msg {
+	color: red;
+}
+
 .comment .content {
 	display: flex;
 	flex-direction: column;
