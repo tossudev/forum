@@ -30,6 +30,7 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
 	input := r.URL.Query().Get("search")
+	tab := r.URL.Query().Get("tab")
 
 	var searchPageData SearchResult
 
@@ -41,27 +42,34 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	}
 	searchPageData.Username = username
 
+	//get pagination data from query
+	paginationSearch, err := pagination.Parse(query)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", searchPageData)
+		return
+	}
+
 	//check for empty or too long search input
-	if input == "" || len(input) > 1000 {
+	searchPageData.InputQuery = input
+
+	if searchPageData.InputQuery == "" || len(searchPageData.InputQuery) > 1000 {
 		searchPageData.InputQuery = ""
 		searchPageData.ResponseMsg = "Search query must be 1-1000 characters long."
 		h.renderer.RenderPage(w, "search.html", searchPageData)
 		return
 	}
 
-	//get pagination data from query
-	paginationSearch, err := pagination.Parse(query)
-	if err != nil {
-		errs.WriteError(w, err)
-		return
-	}
-
 	//perform search, check for errs
-	threads, comments, err := h.service.Search(ctx, input, paginationSearch)
+	threads, threadsCount, comments, commentsCount, err := h.service.Search(ctx, input, paginationSearch)
+	if tab == "threads" {
+		comments = nil
+	} else if tab == "comments" {
+		threads = nil
+	}
 
 	searchPageData.Threads = threads
 	searchPageData.Comments = comments
-	searchPageData.InputQuery = input
 
 	//if err is 'no search results', send error to frontend and render search page
 	//otherwise, render error 500 page
@@ -70,19 +78,34 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 			searchPageData.ResponseMsg = "No results found. Please try a different search term."
 			h.renderer.RenderPage(w, "search.html", searchPageData)
 			return
+		} else if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", searchPageData)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
-			h.renderer.RenderPage(w, "error-500.html", nil)
+			h.renderer.RenderPage(w, "error-500.html", searchPageData)
 			return
 		}
 	}
 
 	//if no errors in search, then render search page and display search results
 
-	searchPageData.Page = paginationSearch.Page
+	searchPageData.ThreadTotalPages = pagination.CalcTotalPages(threadsCount, paginationSearch.PageSize)
+	searchPageData.ThreadPageList = pagination.GetDisplayPageNums(paginationSearch.Page, searchPageData.ThreadTotalPages, 5) //5 is # pages displayed
 
-	searchPageData.ThreadPath = "Thread > Search"
-	searchPageData.CommentPath = "Comment > Search"
+	searchPageData.CommentTotalPages = pagination.CalcTotalPages(commentsCount, paginationSearch.PageSize)
+	searchPageData.CommentPageList = pagination.GetDisplayPageNums(paginationSearch.Page, searchPageData.CommentTotalPages, 5)
+
+	searchPageData.ThreadPage = paginationSearch.Page
+	searchPageData.CommentPage = paginationSearch.Page
+
+	searchPageData.ThreadPrevPage = searchPageData.ThreadPage - 1
+	searchPageData.ThreadNextPage = searchPageData.ThreadPage + 1
+	searchPageData.CommentPrevPage = searchPageData.CommentPage - 1
+	searchPageData.CommentNextPage = searchPageData.CommentPage + 1
+
+	searchPageData.ThreadPath = "Search > Thread"
+	searchPageData.CommentPath = "Search > Comment"
 
 	h.renderer.RenderPage(w, "search.html", searchPageData)
 }

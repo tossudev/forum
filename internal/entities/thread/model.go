@@ -1,6 +1,9 @@
 package thread
 
-import "forum/internal/pagination"
+import (
+	"forum/internal/pagination"
+	"html/template"
+)
 
 type Thread struct {
 	ID          int    `json:"id"`
@@ -10,6 +13,8 @@ type Thread struct {
 	AuthorID    int    `json:"author_id"`
 	CategoryID  int    `json:"category_id"`
 	ReplyCount  int
+	TitleHTML   template.HTML
+	BodyHTML    template.HTML
 }
 
 type ThreadsPage struct {
@@ -47,6 +52,7 @@ type ThreadData struct {
 type CommentData struct {
 	ID                 int
 	Body               string
+	BodyHTML           template.HTML
 	DateCreated        string
 	ThreadID           int
 	AuthorName         string

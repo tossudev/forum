@@ -186,13 +186,13 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 	threads := []thread.Thread{
 		{
 			Title:      "I loved this book",
-			Body:       "I super loved this book! I read it in two days!!",
+			Body:       "I super loved this book!\nI read it in two days!!",
 			AuthorID:   3,
 			CategoryID: 2,
 		},
 		{
 			Title:      "The best book I've read this week",
-			Body:       "It's called There Is No Antimimetic Division. #scifi",
+			Body:       "It's called There Is No Antimimetic Division.\n\n#scifi",
 			AuthorID:   4,
 			CategoryID: 2,
 		},
@@ -204,7 +204,7 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 		},
 		{
 			Title:      "What are some good libraries in Helsinki???",
-			Body:       "Help! I am visiting Helsinki for the weekend and would like to know, what are your favourite libraries in the city?? I will be there for three days and want to visit any cool or unique libraries you have. Also, any cool bookstores? Thanks!",
+			Body:       "Help! I am visiting Helsinki for the weekend and would like to know, what are your favourite libraries in the city??\nI will be there for three days and want to visit any cool or unique libraries you have. Also, any cool bookstores? Thanks!",
 			AuthorID:   1,
 			CategoryID: 1,
 		},
@@ -219,6 +219,12 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 			is listed as fiction, but it feels like a history, which brings me back to Moby Dick...`,
 			AuthorID:   1,
 			CategoryID: 1,
+		},
+		{
+			Title:      "Cool GIFs!",
+			Body:       "Comment your favourite GIFs!",
+			AuthorID:   4,
+			CategoryID: 5,
 		},
 	}
 
@@ -260,6 +266,41 @@ func seedComments(ctx context.Context, app *SeedApp) error {
 			AuthorID: 1,
 		},
 		{
+			Body:     "Is it a book?",
+			ThreadID: 1,
+			AuthorID: 3,
+		},
+		{
+			Body:     "What kind of book?",
+			ThreadID: 1,
+			AuthorID: 5,
+		},
+		{
+			Body:     "What is your favourite book?",
+			ThreadID: 1,
+			AuthorID: 4,
+		},
+		{
+			Body:     "What kind of book is it?",
+			ThreadID: 2,
+			AuthorID: 4,
+		},
+		{
+			Body:     "Tell me about the book",
+			ThreadID: 1,
+			AuthorID: 4,
+		},
+		{
+			Body:     "What kind of books do they write?",
+			ThreadID: 3,
+			AuthorID: 1,
+		},
+		{
+			Body:     "The best kinds of books",
+			ThreadID: 3,
+			AuthorID: 2,
+		},
+		{
 			Body: `I found Katabasis (in English) in a small airport bookstore in Croatia. Not sure how I feel about finding one of my favourite authors of the last few years
 			in an airport...`,
 			ThreadID: 3,
@@ -281,9 +322,28 @@ func seedComments(ctx context.Context, app *SeedApp) error {
 			AuthorID: 5,
 		},
 		{
-			Body:     "",
-			ThreadID: 1,
-			AuthorID: 1,
+			Body:     `<img src="https://hadyn.org/mediagallery/gifs/m_catcamp.gif">`,
+			ThreadID: 6,
+			AuthorID: 5,
+		},
+		{
+			Body:     `<img src="https://coolgifs.neocities.org/gifs/137.gif">`,
+			ThreadID: 6,
+			AuthorID: 5,
+		},
+		{
+			Body: `I LOVE CATS!
+			<img src="https://bettysgraphics.neocities.org/images/animals/cat%20513.gif">
+			<img src="https://bettysgraphics.neocities.org/images/animals/cat%20292.gif">
+			<img src="https://bettysgraphics.neocities.org/images/animals/cat%20293.gif">
+			<img src="https://bettysgraphics.neocities.org/images/animals/cat%20725.gif">
+			<img src="https://bettysgraphics.neocities.org/images/animals/cat%20726.gif">
+			<img src="https://bettysgraphics.neocities.org/images/animals/cat%20727.gif">
+			<img src="https://bettysgraphics.neocities.org/images/animals/cat%20728.gif">
+			<img src="https://bettysgraphics.neocities.org/images/animals/cat%20729.gif">
+			`,
+			ThreadID: 6,
+			AuthorID: 5,
 		},
 	}
 

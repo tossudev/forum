@@ -35,6 +35,28 @@
 			</div>
 		</div>
 	{{ end }}
+	<div class="pagination">
+		Pages: 
+		{{ if gt .ThreadPage 1 }}
+			<a href="/search?search={{ .InputQuery }}&tab=threads&page=1" title="First page"><<</a>
+		{{ end }}
+
+		{{ if ge .ThreadPrevPage 1 }}
+			<a href="/search?search={{ .InputQuery }}&tag=threads&page={{ .ThreadPrevPage }}" title="Previous page">Prev</a>
+		{{ end }}
+
+		{{ range .ThreadPageList }}
+			<a class="{{ if eq . $.ThreadPage}}current-page{{ end }}" href="/search?search={{$.InputQuery}}&tab=threads&page={{ . }}">{{ . }}</a>
+		{{ end }}
+
+		{{ if le .ThreadNextPage .ThreadTotalPages }}
+			<a href="/search?search={{ .InputQuery }}&tab=threads&page={{ .ThreadNextPage}}" title="Next page">Next</a>
+		{{ end }}
+
+		{{ if lt .ThreadPage .ThreadTotalPages }} 
+			<a href="/search?search={{ .InputQuery }}&tab=threads&page={{ .ThreadTotalPages }}" title="Last page">>></a>
+		{{ end }}
+		</div>
 	</p>
 	{{ else }}
 
@@ -59,6 +81,29 @@
 			</div>
 		</div>
 		{{ end }}
+
+	<div class="pagination">
+		Pages: 
+		{{ if gt .CommentPage 1 }}
+			<a href="/search?search={{ .InputQuery }}&tab=comments&page=1" title="First page"><<</a>
+		{{ end }}
+
+		{{ if ge .CommentPrevPage 1 }}
+			<a href="/search?search={{ .InputQuery }}&tab=comments&page={{ .CommentPrevPage }}" title="Previous page">Prev</a>
+		{{ end }}
+
+		{{ range .CommentPageList }}
+			<a class="{{ if eq . $.CommentPage}}current-page{{ end }}" href="/search?search={{$.InputQuery}}&tab=comments&page={{ . }}">{{ . }}</a>
+		{{ end }}
+
+		{{ if le .CommentNextPage .CommentTotalPages }}
+			<a href="/search?search={{ .InputQuery }}&tab=comments&page={{ .CommentNextPage}}" title="Next page">Next</a>
+		{{ end }}
+
+		{{ if lt .CommentPage .CommentTotalPages }} 
+			<a href="/search?search={{ .InputQuery }}&tab=comments&page={{ .CommentTotalPages }}" title="Last page">>></a>
+		{{ end }}
+		</div>
 	</p>
 	{{ else }}
 

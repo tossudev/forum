@@ -8,6 +8,7 @@ import (
 	"forum/internal/config"
 	"forum/internal/errs"
 	"forum/internal/pagination"
+	"forum/internal/validate"
 )
 
 type ThreadService struct {
@@ -38,6 +39,16 @@ func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pa
 		if errFormat != nil {
 			return nil, 0, errFormat
 		}
+
+		threads[i].BodyHTML, err = validate.ParseHTML(threads[i].Body)
+		if err != nil {
+			return nil, 0, fmt.Errorf("GetByCategory ParseHTML err: %w", err)
+		}
+
+		threads[i].TitleHTML, err = validate.ParseHTML(threads[i].Title)
+		if err != nil {
+			return nil, 0, fmt.Errorf("GetByCategory ParseHTML err: %w", err)
+		}
 	}
 
 	return threads, totalCount, nil
@@ -59,6 +70,15 @@ func (s *ThreadService) Create(ctx context.Context, thread *Thread) (int, error)
 	if err := validateThreadContent(thread.Title, thread.Body); err != nil {
 		return 0, err
 	}
+
+	if _, err := validate.ParseHTML(thread.Title); err != nil {
+		return 0, err
+	}
+
+	if _, err := validate.ParseHTML(thread.Body); err != nil {
+		return 0, err
+	}
+
 	// No need to Validate AuthorID since user was already authenticated
 	// If CategoryID or AuthorID doesn't exist, there will be a repo level foreign key constraint error CategoryID exists
 
@@ -88,10 +108,25 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 		return nil, errFormat
 	}
 
+	data.Thread.BodyHTML, err = validate.ParseHTML(data.Thread.Body)
+	if err != nil {
+		return nil, fmt.Errorf("DisplayThreadPage body ParseHTML err: %w", err)
+	}
+
+	data.Thread.TitleHTML, err = validate.ParseHTML(data.Thread.Title)
+	if err != nil {
+		return nil, fmt.Errorf("DisplayThreadPage title ParseHTML err: %w", err)
+	}
+
 	for i, comment := range data.Comments {
 		data.Comments[i].DateCreated, errFormat = config.FormatTime(comment.DateCreated)
 		if errFormat != nil {
 			return nil, errFormat
+		}
+
+		data.Comments[i].BodyHTML, err = validate.ParseHTML(data.Comments[i].Body)
+		if err != nil {
+			return nil, fmt.Errorf("DisplayThreadPage comment body ParseHTML err: %w", err)
 		}
 	}
 
