@@ -116,7 +116,7 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 	data.Thread.TitleHTML, err = validate.ParseHTML(data.Thread.Title)
 	if err != nil {
 		data.Thread.DisplayError = err
-		slog.Error("thread body validation failed", "err:", err, "thread_id:", data.Thread.ID, "title:", data.Thread.Title)
+		slog.Error("thread title validation failed", "err:", err, "thread_id:", data.Thread.ID, "title:", data.Thread.Title)
 	}
 
 	data.Thread.BodyHTML, err = validate.ParseHTML(data.Thread.Body)
