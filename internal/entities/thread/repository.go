@@ -24,7 +24,8 @@ func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination
 	var threads []Thread
 	var totalCount int
 
-	query := "SELECT COUNT(*) OVER() AS total_count, id, title, body, date_created, author_id, category_id FROM threads WHERE category_id = ? ORDER BY date_created ASC LIMIT ? OFFSET ?;"
+	query := `SELECT COUNT(*) OVER() AS total_count, id, title, body, date_created, author_id, category_id
+	FROM threads WHERE category_id = ? ORDER BY date_created ASC LIMIT ? OFFSET ?;`
 
 	rows, err := r.db.QueryContext(ctx, query, id, pagination.Limit(), pagination.Offset())
 	if err != nil {

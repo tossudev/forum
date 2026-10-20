@@ -27,25 +27,26 @@
 	</table>
 	
 	<div class="pagination">
+		{{ $nav := .PageNav }}
 		Pages:
-		{{ if gt .Page 1 }}
-			<a href="/categories/{{ .CategoryID }}?page=1" title="First page"><<</a>
+		{{ if gt $nav.Page 1 }}
+			<a href="{{ $nav.Path }}?page=1" title="First page"><<</a>
 		{{ end }}
 
-		{{ if ge .PrevPage 1 }}
-			<a href="/categories/{{ .CategoryID }}?page={{ .PrevPage }}" title="Previous page">Prev</a>
+		{{ if ge $nav.PrevPage 1 }}
+			<a href="{{ $nav.Path }}?page={{ $nav.PrevPage }}" title="Previous page">Prev</a>
 		{{ end }}
 
-		{{ range .PageList }}
-			<a class="{{ if eq . $.Page}}current-page{{ end }}" href="/categories/{{ $.CategoryID }}?page={{ . }}">{{ . }}</a>
+		{{ range $nav.PageList }}
+			<a class="{{ if eq . $nav.Page}}current-page{{ end }}" href="{{ $nav.Path }}?page={{ . }}">{{ . }}</a>
 		{{ end }}
 
-		{{ if le .NextPage .TotalPages }}
-			<a href="/categories/{{ .CategoryID }}?page={{ .NextPage }}" title="Next page">Next</a>
+		{{ if le $nav.NextPage $nav.TotalPages }}
+			<a href="{{ $nav.Path }}?page={{ $nav.NextPage }}" title="Next page">Next</a>
 		{{ end }}
 
-		{{ if lt .Page .TotalPages }}
-			<a href="/categories/{{ .CategoryID }}?page={{ .TotalPages }}" title="Last page">>></a>
+		{{ if lt $nav.Page $nav.TotalPages }}
+			<a href="{{ $nav.Path }}?page={{ $nav.TotalPages }}" title="Last page">>></a>
 		{{ end }}
 	</div>
 </div>

@@ -1,5 +1,6 @@
 {{ define "content" }}
 <div class="center-content">
+	<h2>Profile</h2>
 	<div class="profile-view">
 		<div class="left">
 			<img class="avatar" src="/web/static/img/default-avatar.png" alt="Avatar">
@@ -11,6 +12,13 @@
 			<p class="role">{{.Role}}</p>
 			<p>Registered since {{.DateCreated}}</p>
 		</div>
+	</div>
+
+	<div>
+		<a href="/profile/threads">Threads</a>
+		<a href="/profile/comments">Comments</a>
+		<a href="/profile/likes">Likes</a>
+		<a href="/profile/dislikes">Dislikes</a>
 	</div>
 </div>
 {{ end }}

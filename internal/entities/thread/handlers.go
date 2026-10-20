@@ -69,16 +69,21 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
 	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
 
-	data := ThreadsPage{
-		// TODO: use category name instead of ID
-		CategoryID: id,
-		Path:       fmt.Sprintf("⌂ Home / CategoryID %d", id),
-		Threads:    threads,
+	pageNav := pagination.PaginationNav{
+		Path:       r.URL.Path,
 		Page:       paginationData.Page,
 		TotalPages: totalPages,
 		PageList:   pageList,
 		PrevPage:   paginationData.Page - 1,
 		NextPage:   paginationData.Page + 1,
+	}
+
+	data := ThreadsPage{
+		// TODO: use category name instead of ID
+		CategoryID: id,
+		Path:       fmt.Sprintf("⌂ Home / CategoryID %d", id),
+		Threads:    threads,
+		PageNav:    pageNav,
 		Username:   username,
 	}
 
