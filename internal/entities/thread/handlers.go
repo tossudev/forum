@@ -48,7 +48,7 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	threads, totalCount, err := h.service.GetByCategory(ctx, id, paginationData)
+	threads, totalCount, categoryName, err := h.service.GetByCategory(ctx, id, paginationData)
 	if err != nil {
 		if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -81,7 +81,7 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 	data := ThreadsPage{
 		// TODO: use category name instead of ID
 		CategoryID: id,
-		Path:       fmt.Sprintf("⌂ Home / CategoryID %d", id),
+		Path:       fmt.Sprintf("⌂ Home / %s", categoryName),
 		Threads:    threads,
 		PageNav:    pageNav,
 		Username:   username,
