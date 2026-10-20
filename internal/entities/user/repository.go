@@ -101,7 +101,7 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (User, erro
 
 func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int) ([]ProfileThread, error) {
 	query := `SELECT id, title, body, date_created, author_id, category_id FROM threads 
-	WHERE author_id = ?;`
+	WHERE author_id = ? ORDER BY date_created DESC;`
 
 	var threads []ProfileThread
 	rows, err := r.db.QueryContext(ctx, query, userID)
