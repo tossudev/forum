@@ -199,6 +199,7 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+// ProfileThreadsPage gets all threads posted by a user and renders the data on the user's profile page.
 func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -221,9 +222,9 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// Get all the threads posted by a user
 	threads, totalCount, err := h.service.GetThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
-		//TODO: handle all errors
 		slog.Error("internal server error:", "err", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		h.renderer.RenderPage(w, "error-500.html", ThreadsPage{Username: user.Username})
@@ -245,8 +246,6 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 		PageNav:  pageNav,
 		Username: user.Username,
 	}
-
-	//TODO: handle no results (threads == nil) separately
 
 	h.renderer.RenderPage(w, "profile-threads.html", pageData)
 }

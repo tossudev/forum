@@ -100,6 +100,8 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (User, erro
 	return user, nil
 }
 
+// GetThreadsByUserID gets all the threads posted by a user within the given pagination parameters.
+// Returns the threads, the total number of threads found, and a potential error.
 func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
 	var threads []ProfileThread
 	var totalCount int
