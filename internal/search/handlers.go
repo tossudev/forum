@@ -78,9 +78,12 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 			searchPageData.ResponseMsg = "No results found. Please try a different search term."
 			h.renderer.RenderPage(w, "search.html", searchPageData)
 			return
+		} else if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", searchPageData)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
-			h.renderer.RenderPage(w, "error-500.html", nil)
+			h.renderer.RenderPage(w, "error-500.html", searchPageData)
 			return
 		}
 	}
