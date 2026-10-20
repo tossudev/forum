@@ -3,6 +3,9 @@ package user
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"math/rand"
+
 	"forum/internal/errs"
 	"forum/internal/pagination"
 	"forum/internal/password"
@@ -43,6 +46,9 @@ func (s *UserService) RegisterUser(ctx context.Context, user *User, inputPasswor
 	}
 
 	user.Password = pw
+	user.Avatar = fmt.Sprintf("/web/static/img/default-avatar%d.png", rand.Intn(4))
+
+	slog.Info(user.Username, user.Avatar)
 
 	return s.repo.AddUser(ctx, user)
 }

@@ -47,6 +47,7 @@ type ThreadData struct {
 	DislikeUsers []string
 	Comments     []CommentData
 	Username     string
+	Avatar       string
 }
 
 type CommentData struct {
@@ -62,4 +63,5 @@ type CommentData struct {
 	DislikeUsers       []string
 	LoggedUserLiked    bool
 	LoggedUserDisliked bool
+	Avatar             string
 }

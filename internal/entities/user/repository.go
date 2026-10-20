@@ -20,10 +20,10 @@ func NewRepo(db *sql.DB) *UserRepo {
 }
 
 func (r *UserRepo) AddUser(ctx context.Context, user *User) (*User, error) {
-	query := `INSERT INTO users (username, email, password_hash, password_salt, date_created, role_id)
- VALUES (?, ?, ?, ?, ?, ?);`
+	query := `INSERT INTO users (username, email, password_hash, password_salt, date_created, role_id, avatar)
+ VALUES (?, ?, ?, ?, ?, ?, ?);`
 
-	result, err := r.db.ExecContext(ctx, query, user.Username, user.Email, user.Password.Hash, user.Password.Salt, time.Now().Unix(), user.RoleID)
+	result, err := r.db.ExecContext(ctx, query, user.Username, user.Email, user.Password.Hash, user.Password.Salt, time.Now().Unix(), user.RoleID, user.Avatar)
 	if err != nil {
 		if database.IsUniqueErr(err) {
 			return nil, fmt.Errorf("%w: username or email already exists", errs.ErrDuplicate)
@@ -40,12 +40,12 @@ func (r *UserRepo) AddUser(ctx context.Context, user *User) (*User, error) {
 }
 
 func (r *UserRepo) GetUserByID(ctx context.Context, id int) (*User, error) {
-	query := `SELECT id, username, email, password_hash, password_salt, date_created, role_id
+	query := `SELECT id, username, email, password_hash, password_salt, date_created, role_id, avatar
 	FROM users WHERE id = ?;`
 
 	var user User
 	var createdAt int
-	if err := r.db.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.Password.Salt, &createdAt, &user.RoleID); err != nil {
+	if err := r.db.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.Password.Salt, &createdAt, &user.RoleID, &user.Avatar); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("%w: user not found", errs.ErrNotFound)
 		}
@@ -83,12 +83,12 @@ func (r *UserRepo) EmailExists(ctx context.Context, email string) (bool, error) 
 }
 
 func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (User, error) {
-	query := `SELECT id, username, email, password_hash, password_salt, date_created, role_id
+	query := `SELECT id, username, email, password_hash, password_salt, date_created, role_id, avatar
 	FROM users WHERE email = ?;`
 
 	var user User
 	var createdAt int
-	if err := r.db.QueryRowContext(ctx, query, email).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.Password.Salt, &createdAt, &user.RoleID); err != nil {
+	if err := r.db.QueryRowContext(ctx, query, email).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.Password.Salt, &createdAt, &user.RoleID, &user.Avatar); err != nil {
 		if err == sql.ErrNoRows {
 			return User{}, fmt.Errorf("%w: invalid credentials", errs.ErrUnauthorized)
 		}

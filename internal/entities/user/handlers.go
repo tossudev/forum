@@ -46,6 +46,7 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		Username:    user.Username,
 		Role:        "Member",
 		DateCreated: user.CreatedAt.Format("02 Jan 2006"),
+		Avatar:      user.Avatar,
 	}
 
 	h.renderer.RenderPage(w, "profile.html", data)
@@ -213,6 +214,7 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 		Threads  []ProfileThread
 		PageNav  pagination.PaginationNav
 		Username string
+		Avatar   string
 	}
 
 	paginationData, err := pagination.Parse(r.URL.Query())
@@ -246,6 +248,7 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 		Threads:  threads,
 		PageNav:  pageNav,
 		Username: user.Username,
+		Avatar:   user.Avatar,
 	}
 
 	h.renderer.RenderPage(w, "profile-threads.html", pageData)

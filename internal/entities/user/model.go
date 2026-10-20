@@ -12,6 +12,7 @@ type User struct {
 	Password  password.Password `json:"-"`
 	CreatedAt time.Time         `json:"created_at"`
 	RoleID    int               `json:"role_id"`
+	Avatar    string            `json:"avatar"`
 }
 
 // LoginSubmission contains the user input during login before credential verification
@@ -24,6 +25,7 @@ type ProfilePage struct {
 	Username    string
 	Role        string
 	DateCreated string
+	Avatar      string
 }
 
 type RegistrationPage struct {
