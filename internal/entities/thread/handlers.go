@@ -15,7 +15,6 @@ import (
 	"forum/internal/pagination"
 	"forum/internal/render"
 	"forum/internal/session"
-	//"forum/internal/entities/user"
 )
 
 type ThreadHandler struct {
@@ -100,6 +99,7 @@ func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	_, err = h.service.GetByID(ctx, id)
 	if err != nil {
 		errs.WriteError(w, err)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -271,9 +271,11 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 	data, err := h.service.DisplayThreadPage(ctx, id, username)
 	if err != nil {
 		errs.WriteError(w, err)
+		return
 	}
 
 	data.Username = username
+	// TODO: fix path
 	data.Path = "Thread > " + data.Thread.Title
 
 	h.renderer.RenderPage(w, "thread.html", data)
