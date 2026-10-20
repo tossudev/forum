@@ -1,5 +1,7 @@
 package thread
 
+import "forum/internal/pagination"
+
 type Thread struct {
 	ID          int    `json:"id"`
 	Title       string `json:"title"`
@@ -14,11 +16,7 @@ type ThreadsPage struct {
 	CategoryID int
 	Path       string
 	Threads    []Thread
-	Page       int   // Current (wanted) page
-	TotalPages int   // Last possible page
-	PageList   []int // Visible pages in navigation
-	PrevPage   int   // The page after the current page
-	NextPage   int   // The page after the current page
+	PageNav    pagination.PaginationNav
 	Username   string
 }
 

@@ -37,23 +37,23 @@
 		{{ if .Threads }}
 			Pages:
 			{{ if gt $nav.Page 1 }}
-				<a href="/profile/threads?page=1" title="First page"><<</a>
+				<a href="{{ $nav.Path }}?page=1" title="First page"><<</a>
 			{{ end }}
 
 			{{ if ge $nav.PrevPage 1 }}
-				<a href="/profile/threads?page={{ $nav.PrevPage }}" title="Previous page">Prev</a>
+				<a href="{{ $nav.Path }}?page={{ $nav.PrevPage }}" title="Previous page">Prev</a>
 			{{ end }}
 
 			{{ range $nav.PageList }}
-				<a class="{{ if eq . $nav.Page}}current-page{{ end }}" href="/profile/threads?page={{ . }}">{{ . }}</a>
+				<a class="{{ if eq . $nav.Page}}current-page{{ end }}" href="{{ $nav.Path }}?page={{ . }}">{{ . }}</a>
 			{{ end }}
 
 			{{ if le $nav.NextPage $nav.TotalPages }}
-				<a href="/profile/threads?page={{ $nav.NextPage }}" title="Next page">Next</a>
+				<a href="{{ $nav.Path }}?page={{ $nav.NextPage }}" title="Next page">Next</a>
 			{{ end }}
 
 			{{ if lt $nav.Page $nav.TotalPages }}
-				<a href="/profile/threads?page={{ $nav.TotalPages }}" title="Last page">>></a>
+				<a href="{{ $nav.Path }}?page={{ $nav.TotalPages }}" title="Last page">>></a>
 			{{ end }}
 		{{ else }}
 			<p>{{ .Username }} has no threads.</p>

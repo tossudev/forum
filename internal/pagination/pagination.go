@@ -14,11 +14,12 @@ type Pagination struct {
 
 // PaginationNav contains page data to be used in pagination navigation with go templates
 type PaginationNav struct {
-	Page       int
-	TotalPages int
-	PageList   []int // The visible pages shown in the navigation. Get with GetDisplayPageNums.
-	PrevPage   int
-	NextPage   int
+	Path       string // The URL path for navigation
+	Page       int    // Current (wanted) page
+	TotalPages int    // Last possible page
+	PageList   []int  // The visible pages shown in the navigation. Get with GetDisplayPageNums.
+	PrevPage   int    // The page before the current page
+	NextPage   int    // The page after the current page
 }
 
 const (

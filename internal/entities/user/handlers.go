@@ -235,6 +235,7 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
 
 	pageNav := pagination.PaginationNav{
+		Path:       r.URL.Path,
 		Page:       paginationData.Page,
 		TotalPages: totalPages,
 		PageList:   pageList,
