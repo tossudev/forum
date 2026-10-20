@@ -220,6 +220,12 @@ func seedThreads(ctx context.Context, app *SeedApp) error {
 			AuthorID:   1,
 			CategoryID: 1,
 		},
+		{
+			Title:      "Cool GIFs!",
+			Body:       "Comment your favourite GIFs!",
+			AuthorID:   4,
+			CategoryID: 5,
+		},
 	}
 
 	for _, newThread := range threads {
@@ -313,6 +319,30 @@ func seedComments(ctx context.Context, app *SeedApp) error {
 		{
 			Body:     "Do people read Dean Koontz in Europe?",
 			ThreadID: 3,
+			AuthorID: 5,
+		},
+		{
+			Body:     `<img src="https://hadyn.org/mediagallery/gifs/m_catcamp.gif">`,
+			ThreadID: 6,
+			AuthorID: 5,
+		},
+		{
+			Body:     `<img src="https://coolgifs.neocities.org/gifs/137.gif">`,
+			ThreadID: 6,
+			AuthorID: 5,
+		},
+		{
+			Body: `I LOVE CATS!
+			<img src="https://bettysgraphics.neocities.org/images/animals/cat%20513.gif">
+			<img src="https://bettysgraphics.neocities.org/images/animals/cat%20292.gif">
+			<img src="https://bettysgraphics.neocities.org/images/animals/cat%20293.gif">
+			<img src="https://bettysgraphics.neocities.org/images/animals/cat%20725.gif">
+			<img src="https://bettysgraphics.neocities.org/images/animals/cat%20726.gif">
+			<img src="https://bettysgraphics.neocities.org/images/animals/cat%20727.gif">
+			<img src="https://bettysgraphics.neocities.org/images/animals/cat%20728.gif">
+			<img src="https://bettysgraphics.neocities.org/images/animals/cat%20729.gif">
+			`,
+			ThreadID: 6,
 			AuthorID: 5,
 		},
 	}

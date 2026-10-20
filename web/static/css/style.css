@@ -360,6 +360,10 @@ form .button {
 	margin: 4px;
 }
 
+.content img {
+	max-width: 20%;
+}
+
 .reaction-btn {
 	background-color: #ffffff;
 	border: solid #000;
