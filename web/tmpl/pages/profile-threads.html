@@ -10,7 +10,7 @@
 	</div>
 
 	 <h2>Threads by {{ .Username }}</h2>
-	 
+
 		{{range .Threads}}
 		<div class="comment-container">
 			<div class="comment">
@@ -30,5 +30,28 @@
 			</div>
 		</div>
 	{{ end }}
+
+	<div class="pagination">
+		Pages:
+		{{ if gt .Page 1 }}
+			<a href="/profile/threads?page=1" title="First page"><<</a>
+		{{ end }}
+
+		{{ if ge .PrevPage 1 }}
+			<a href="/profile/threads?page={{ .PrevPage }}" title="Previous page">Prev</a>
+		{{ end }}
+
+		{{ range .PageList }}
+			<a class="{{ if eq . $.Page}}current-page{{ end }}" href="/profile/threads?page={{ . }}">{{ . }}</a>
+		{{ end }}
+
+		{{ if le .NextPage .TotalPages }}
+			<a href="/profile/threads?page={{ .NextPage }}" title="Next page">Next</a>
+		{{ end }}
+
+		{{ if lt .Page .TotalPages }}
+			<a href="/profile/threads?page={{ .TotalPages }}" title="Last page">>></a>
+		{{ end }}
+	</div>
 </div>
 {{ end }}
