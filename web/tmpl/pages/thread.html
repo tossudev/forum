@@ -22,7 +22,7 @@
 				<div class="content">
 					
 					{{ if .Thread.DisplayError }}
-					<p class="error-msg">Error displaying message</p>
+					<p class="error-msg">Error: Message cannot be displayed.</p>
 					{{ else }}
 					<div class="thread-header">
 						{{.Thread.TitleHTML}}
@@ -48,7 +48,7 @@
 
 				<div class="content">
 					{{ if .DisplayError }}
-					<p class="error-msg">Error displaying message</p>
+					<p class="error-msg">Error: Message cannot be displayed.</p>
 					{{ else }}
 
 					{{.BodyHTML}}
