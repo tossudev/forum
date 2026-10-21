@@ -189,7 +189,7 @@ func (r *ThreadRepository) getLikeData(ctx context.Context, query string, id int
 		return nil, fmt.Errorf("getLikeData: %w", err)
 	}
 
-	var likeUsers, dislikeUsers []string
+	var likeCount, dislikeCount int
 	var loggedUserLike, loggedUserDislike bool
 	for rows.Next() {
 		var likeUser string
@@ -199,15 +199,14 @@ func (r *ThreadRepository) getLikeData(ctx context.Context, query string, id int
 		}
 
 		if like {
-			likeUsers = append(likeUsers, likeUser)
-			if !loggedUserLike {
-				loggedUserLike = likeUser == username
+			likeCount++
+			if likeUser == username {
+				loggedUserLike = true
 			}
-
 		} else {
-			dislikeUsers = append(dislikeUsers, likeUser)
-			if !loggedUserDislike {
-				loggedUserDislike = likeUser == username
+			dislikeCount++
+			if likeUser == username {
+				loggedUserDislike = true
 			}
 		}
 	}
@@ -216,10 +215,8 @@ func (r *ThreadRepository) getLikeData(ctx context.Context, query string, id int
 	}
 
 	likeData := LikeData{
-		NumLikes:           len(likeUsers),
-		LikeUsers:          likeUsers, //TODO: Check if this data is needed still
-		NumDislikes:        len(dislikeUsers),
-		DislikeUsers:       dislikeUsers, //TODO: Check if this data is needed still
+		NumLikes:           likeCount,
+		NumDislikes:        dislikeCount,
 		LoggedUserLiked:    loggedUserLike,
 		LoggedUserDisliked: loggedUserDislike,
 	}

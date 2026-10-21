@@ -49,9 +49,7 @@ type ThreadData struct {
 
 type LikeData struct {
 	NumLikes           int
-	LikeUsers          []string
 	NumDislikes        int
-	DislikeUsers       []string
 	LoggedUserLiked    bool
 	LoggedUserDisliked bool
 }
