@@ -2,6 +2,7 @@
 
 {{ define "js" }}
 <script src="/web/static/js/like.js" defer></script>
+<script src="/web/static/js/delete.js"></script>
 {{ end }}
 
 {{ define "content" }}
@@ -64,6 +65,12 @@
 							<span name="{{.LoggedUserDisliked}}" class="dislikes-{{.ID}}">{{.NumDislikes}}</span>
 							<span>👎</span>
 						</button>
+						{{if eq $.Username .AuthorName}}
+							<button data-comment-id="{{.ID}}" class="delete-button"
+								onclick="deleteComment(this, true)">
+							Delete
+							</button>
+						{{ end }}
 						<div class="date">{{.DateCreated}}</div>
 					</div>
 				</div>

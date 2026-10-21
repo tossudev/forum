@@ -364,7 +364,7 @@ form .button {
 	max-width: 20%;
 }
 
-.reaction-btn {
+.reaction-btn, .delete-button {
 	background-color: #ffffff;
 	border: solid #000;
 	border-width: 1px 1px 3px 1px;
@@ -373,6 +373,10 @@ form .button {
 	align-items: center;
 	cursor: pointer;
 	margin: 0px;
+}
+.delete-button {
+	padding: 5px;
+	margin-left: 25px;
 }
 
 .reaction-btn.pressed {
