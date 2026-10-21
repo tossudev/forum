@@ -1,31 +1,37 @@
-this README should be around 1-2 screens long
-
 # Literary Lions
+### A modern web forum with an old school look
 
-- elevator pitch (2-3 sentence general explanation)
-- tech stack
-    - keep it simple, exclude obvious stuff like Git
-- who is this for (tech people, or .exe link for anyone?)
-- few screenshots
+Built using Go and SQLite  
+with simple frontend, mostly HTML & CSS, minimal JavaScript
+
+<img src="docs/screenshots/screenshot1.png" width="30%" align="left" />
+<img src="docs/screenshots/screenshot2.png" width="30%" align="left" />
+<img src="docs/screenshots/screenshot3.png" width="30%" align="left" />
 
 ## Features
 
-- most prominent features, doesn't need to be a hefty list
- 
+- Thread creation and replies
+- Accounts
+- User profiles
+- Search
+
 # Usage / Quickstart
 
-- simple guide to get started with the program
-- probably have guides for with docker and without docker?
+(simple guide to get started with the program)  
+(probably have guides for with docker and without docker?)  
 
 # Documentation
-
-- links to relevant docs located in docs/
+(links to relevant docs located in docs/)
 
 # License
 
-- Link pointing to relevant LICENSE file at root
+[LICENSE](LICENSE)
 
 # Authors
 
-- Names and relavant links (homepage/github/whatever you want)
+- Ellin     ([Github](https://github.com/Ellin))
+- Shane     ([Github](https://github.com/ShaneJ-77))
+- Ville     ([Github](https://github.com/Wilimon))
+- Joonatan  ([Github](https://github.com/tossudev))
+
 
