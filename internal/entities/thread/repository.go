@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"slices"
 
 	"forum/internal/errs"
 	"forum/internal/pagination"
@@ -114,7 +113,8 @@ func (r *ThreadRepository) Delete(ctx context.Context, threadID int, userID int)
 }
 
 func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, username string) (*ThreadData, error) {
-	threadQuery := `SELECT threads.id, title, body, threads.date_created, threads.author_id, threads.category_id, username FROM users INNER JOIN threads ON users.id = threads.author_id WHERE threads.id = ?;`
+	threadQuery := `SELECT threads.id, title, body, threads.date_created, threads.author_id, threads.category_id, username
+	FROM users INNER JOIN threads ON users.id = threads.author_id WHERE threads.id = ?;`
 	//query := `SELECT threads.id, title, body, date_created, username, thread_like, thread_likes.user_id FROM threads INNER JOIN users ON users.id = threads.author_id LEFT JOIN thread_likes ON threads.id = thread_likes.thread_id;`
 	//query := "SELECT id, title, body, date_created, author_id, category_id FROM threads WHERE id = ?;"
 
@@ -126,26 +126,12 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 	}
 
+	// GET THREAD LIKES DATA
 	//this is a separate query because otherwise there would be a distinct row in the above query for every like on every thread
-	threadLikesQuery := `SELECT username, thread_like FROM thread_likes INNER JOIN users ON users.id = thread_likes.user_id WHERE thread_id = ?`
-
-	rows, err := r.db.QueryContext(ctx, threadLikesQuery, threadID)
+	threadLikeQuery := `SELECT username, thread_like FROM thread_likes INNER JOIN users ON users.id = thread_likes.user_id WHERE thread_id = ?`
+	threadLikeData, err := r.getLikeData(ctx, threadLikeQuery, threadID, username)
 	if err != nil {
 		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
-	}
-	var likeUsers []string
-	var dislikeUsers []string
-	for rows.Next() {
-		var likeUser string
-		var like bool
-		if err := rows.Scan(&likeUser, &like); err != nil {
-			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
-		}
-		if like {
-			likeUsers = append(likeUsers, likeUser)
-		} else {
-			dislikeUsers = append(dislikeUsers, likeUser)
-		}
 	}
 
 	//get all comments for this thread plus username of comment author
@@ -154,9 +140,6 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 	if err != nil {
 		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 	}
-
-	//query for comment likes/dislikes
-	commentLikesQuery := `SELECT username, comment_like FROM comment_likes INNER JOIN users ON users.id = comment_likes.user_id WHERE comment_id = ?`
 
 	var comments []CommentData
 
@@ -167,66 +150,65 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 		}
 
-		//get comment likes/dislikes
-		likeRows, err := r.db.QueryContext(ctx, commentLikesQuery, comment.ID)
+		// GET COMMENT LIKES DATA
+		commentLikeQuery := `SELECT username, comment_like FROM comment_likes INNER JOIN users ON users.id = comment_likes.user_id WHERE comment_id = ?;`
+		commentLikeData, err := r.getLikeData(ctx, commentLikeQuery, threadID, username)
 		if err != nil {
-			return nil, fmt.Errorf("DispleyThreadPage: %w", err)
+			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 		}
-		var commentLikeUsers []string
-		var commentDislikeUsers []string
-		for likeRows.Next() {
-			var commentLikeUser string
-			var commentLike bool
-			if err := likeRows.Scan(&commentLikeUser, &commentLike); err != nil {
-				return nil, fmt.Errorf("DisplayThreadPage: %w", err)
-			}
-			if commentLike {
-				commentLikeUsers = append(commentLikeUsers, commentLikeUser)
-			} else {
-				commentDislikeUsers = append(commentDislikeUsers, commentLikeUser)
-			}
-		}
-
-		likeData := LikeData{
-			NumLikes:     len(commentLikeUsers),
-			LikeUsers:    commentLikeUsers,
-			NumDislikes:  len(commentDislikeUsers),
-			DislikeUsers: commentDislikeUsers,
-		}
-
-		if len(username) > 0 && slices.Contains(likeData.LikeUsers, username) {
-			likeData.LoggedUserLiked = true
-		}
-		if len(username) > 0 && slices.Contains(likeData.DislikeUsers, username) {
-			likeData.LoggedUserDisliked = true
-		}
-
-		comment.LikeData = likeData
+		comment.LikeData = *commentLikeData
 
 		//append comment to comments
 		comments = append(comments, comment)
 	}
 
-	threadLikeData := LikeData{
-		NumLikes:     len(likeUsers),
-		LikeUsers:    likeUsers,
-		NumDislikes:  len(dislikeUsers),
-		DislikeUsers: dislikeUsers,
-	}
-
-	if len(username) > 0 && slices.Contains(threadLikeData.LikeUsers, username) {
-		threadLikeData.LoggedUserLiked = true
-	}
-	if len(username) > 0 && slices.Contains(threadLikeData.DislikeUsers, username) {
-		threadLikeData.LoggedUserDisliked = true
-	}
-
 	data := ThreadData{
 		Thread:     thread,
 		AuthorName: authorName,
-		LikeData:   threadLikeData,
+		LikeData:   *threadLikeData,
 		Comments:   comments,
 	}
 
 	return &data, nil
+}
+
+// getLikeData gets the LikeData for a single thread or comment, where id can be either the thread ID or comment ID.
+// The query provided should return rows with 1) the username of the like/dislike, and 2) the like status (bool), in that order.
+func (r *ThreadRepository) getLikeData(ctx context.Context, query string, id int, username string) (*LikeData, error) {
+	rows, err := r.db.QueryContext(ctx, query, id)
+	if err != nil {
+		return nil, fmt.Errorf("getLikeData: %w", err)
+	}
+
+	var likeUsers, dislikeUsers []string
+	var loggedUserLike, loggedUserDislike bool
+	for rows.Next() {
+		var likeUser string
+		var like bool
+		if err := rows.Scan(&likeUser, &like); err != nil {
+			return nil, fmt.Errorf("getLikeData: %w", err)
+		}
+
+		if like {
+			likeUsers = append(likeUsers, likeUser)
+			loggedUserLike = likeUser == username
+		} else {
+			dislikeUsers = append(dislikeUsers, likeUser)
+			loggedUserDislike = likeUser == username
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("getLikeData: %w", err)
+	}
+
+	likeData := LikeData{
+		NumLikes:           len(likeUsers),
+		LikeUsers:          likeUsers, //TODO: Check if this data is needed still
+		NumDislikes:        len(dislikeUsers),
+		DislikeUsers:       dislikeUsers, //TODO: Check if this data is needed still
+		LoggedUserLiked:    loggedUserLike,
+		LoggedUserDisliked: loggedUserDislike,
+	}
+
+	return &likeData, nil
 }
