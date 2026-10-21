@@ -187,30 +187,45 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 			}
 		}
 
-		comment.NumLikes = len(commentLikeUsers)
-		comment.LikeUsers = commentLikeUsers
-		comment.NumDislikes = len(commentDislikeUsers)
-		comment.DislikeUsers = commentDislikeUsers
+		likeData := LikeData{
+			NumLikes:     len(commentLikeUsers),
+			LikeUsers:    commentLikeUsers,
+			NumDislikes:  len(commentDislikeUsers),
+			DislikeUsers: commentDislikeUsers,
+		}
 
-		if len(username) > 0 && slices.Contains(comment.LikeUsers, username) {
-			comment.LoggedUserLiked = true
+		if len(username) > 0 && slices.Contains(likeData.LikeUsers, username) {
+			likeData.LoggedUserLiked = true
 		}
-		if len(username) > 0 && slices.Contains(comment.DislikeUsers, username) {
-			comment.LoggedUserDisliked = true
+		if len(username) > 0 && slices.Contains(likeData.DislikeUsers, username) {
+			likeData.LoggedUserDisliked = true
 		}
+
+		comment.LikeData = likeData
 
 		//append comment to comments
 		comments = append(comments, comment)
 	}
 
-	data := ThreadData{
-		Thread:       thread,
-		AuthorName:   authorName,
+	threadLikeData := LikeData{
 		NumLikes:     len(likeUsers),
 		LikeUsers:    likeUsers,
 		NumDislikes:  len(dislikeUsers),
 		DislikeUsers: dislikeUsers,
-		Comments:     comments,
+	}
+
+	if len(username) > 0 && slices.Contains(threadLikeData.LikeUsers, username) {
+		threadLikeData.LoggedUserLiked = true
+	}
+	if len(username) > 0 && slices.Contains(threadLikeData.DislikeUsers, username) {
+		threadLikeData.LoggedUserDisliked = true
+	}
+
+	data := ThreadData{
+		Thread:     thread,
+		AuthorName: authorName,
+		LikeData:   threadLikeData,
+		Comments:   comments,
 	}
 
 	return &data, nil

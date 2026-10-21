@@ -36,30 +36,32 @@ type CreateThreadsPage struct {
 	Username     string
 }
 
+// Data for thread page with coments
 type ThreadData struct {
 	Path         string
 	Thread       Thread
 	AuthorName   string
 	AuthorAvatar string
-	NumLikes     int
-	LikeUsers    []string
-	NumDislikes  int
-	DislikeUsers []string
+	LikeData     LikeData
 	Comments     []CommentData
 	Username     string
 }
 
-type CommentData struct {
-	ID                 int
-	Body               string
-	BodyHTML           template.HTML
-	DateCreated        string
-	ThreadID           int
-	AuthorName         string
+type LikeData struct {
 	NumLikes           int
 	LikeUsers          []string
 	NumDislikes        int
 	DislikeUsers       []string
 	LoggedUserLiked    bool
 	LoggedUserDisliked bool
+}
+
+type CommentData struct {
+	ID          int
+	Body        string
+	BodyHTML    template.HTML
+	DateCreated string
+	ThreadID    int
+	AuthorName  string
+	LikeData    LikeData
 }

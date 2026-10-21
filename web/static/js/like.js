@@ -37,8 +37,8 @@ async function like(elementRef, like) {
 		  `button[data-${dataName}-id="${id}"][data-action="dislike"]`
 		);
 
-		const likeCounter = document.querySelector(`span.likes-${id}`)
-		const dislikeCounter = document.querySelector(`span.dislikes-${id}`)
+		const likeCounter = likeButton.querySelector(`span.like`)
+		const dislikeCounter = dislikeButton.querySelector(`span.dislike`)
 
 		// Likes and dislikes without current users input
 		// eg. initial values before action

@@ -262,8 +262,9 @@ func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	id, err := strconv.Atoi(r.PathValue("id"))
+	threadID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
+		//TODO: Show friendly error
 		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
 		return
 	}
@@ -274,15 +275,16 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 		username = user.Username
 	}
 
-	data, err := h.service.DisplayThreadPage(ctx, id, username)
+	pageData, err := h.service.DisplayThreadPage(ctx, threadID, username)
 	if err != nil {
+		//TODO: Show friendly error
 		errs.WriteError(w, err)
 		return
 	}
 
-	data.Username = username
+	pageData.Username = username
 	// TODO: fix path
-	data.Path = "Thread > " + data.Thread.Title
+	pageData.Path = "Thread > " + pageData.Thread.Title
 
-	h.renderer.RenderPage(w, "thread.html", data)
+	h.renderer.RenderPage(w, "thread.html", pageData)
 }

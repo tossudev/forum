@@ -52,3 +52,32 @@ func (h *LikeHandler) LikeComment(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+// TODO: handle errors
+func (h *LikeHandler) LikeThread(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var req ThreadLikeRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		//TODO: show 400 page
+		errs.WriteError(w, err)
+		return
+	}
+
+	if user := user.GetUser(r); user != nil {
+		req.UserID = user.ID
+	} else {
+		//TODO: Show user-friendly error
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	if err := h.service.LikeThread(ctx, req); err != nil {
+		//TODO: Show user-friendly error
+		errs.WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
