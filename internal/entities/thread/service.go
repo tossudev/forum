@@ -130,8 +130,8 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 		return nil, fmt.Errorf("DisplayThreadPage title ParseHTML err: %w", err)
 	}
 
-	for _, comment := range data.Comments {
-		comment.BodyHTML, err = validate.ParseHTML(comment.Body)
+	for i, comment := range data.Comments {
+		data.Comments[i].BodyHTML, err = validate.ParseHTML(comment.Body)
 		if err != nil {
 			return nil, fmt.Errorf("DisplayThreadPage comment body ParseHTML err: %w", err)
 		}
