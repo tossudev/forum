@@ -262,23 +262,28 @@ func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	threadID, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		//TODO: Show friendly error
-		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
-		return
-	}
-
 	var username string
 	user := user.GetUser(r)
 	if user != nil {
 		username = user.Username
 	}
 
+	threadID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", ThreadData{Username: username})
+		return
+	}
+
 	pageData, err := h.service.DisplayThreadPage(ctx, threadID, username)
 	if err != nil {
-		//TODO: Show friendly error
-		errs.WriteError(w, err)
+		if errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", ThreadData{Username: username})
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderer.RenderPage(w, "error-500.html", ThreadData{Username: username})
 		return
 	}
 

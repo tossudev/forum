@@ -57,6 +57,9 @@ func (r *ThreadRepository) GetByID(ctx context.Context, id int) (*Thread, error)
 	var thread Thread
 	err := r.db.QueryRowContext(ctx, query, id).Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrNotFound
+		}
 		return nil, fmt.Errorf("Thread GetByID: %w", err)
 	}
 
@@ -113,6 +116,7 @@ func (r *ThreadRepository) Delete(ctx context.Context, threadID int, userID int)
 	return nil
 }
 
+// DisplayThreadPage returns *ThreadData, containing all the data needed for displaying a single thread page (including comments and associated likes).
 func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, username string) (*ThreadData, error) {
 	// Get thread data along with thread author name
 	threadQuery := `SELECT threads.id, title, body, threads.date_created, threads.author_id, threads.category_id, username

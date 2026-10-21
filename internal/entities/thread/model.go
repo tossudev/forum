@@ -42,7 +42,7 @@ type ThreadData struct {
 	Thread       Thread
 	AuthorName   string
 	AuthorAvatar string
-	LikeData     LikeData
+	LikeData     LikeData // LikeData for the thread post only
 	Comments     []CommentData
 	Username     string
 }

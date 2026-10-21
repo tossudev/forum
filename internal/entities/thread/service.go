@@ -105,7 +105,12 @@ func (s *ThreadService) Delete(ctx context.Context, threadID int, userID int) er
 
 func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, username string) (*ThreadData, error) {
 	if threadID <= 0 {
-		return nil, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput)
+		return nil, errs.ErrNotFound
+	}
+
+	// Check if thread exists
+	if _, err := s.repo.GetByID(ctx, threadID); err != nil {
+		return nil, err
 	}
 
 	data, err := s.repo.DisplayThreadPage(ctx, threadID, username)
