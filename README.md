@@ -2,13 +2,13 @@
 ### A modern web forum with an old school look
 
 Built using Go and SQLite  
-with simple frontend, mostly HTML & CSS, minimal JavaScript
+with simple frontend, mostly HTML & CSS, minimal JavaScript  
+  
+<img src="docs/screenshots/screenshot1.png" width="25%" align="left"/>  
+<img src="docs/screenshots/screenshot2.png" width="40%" align="left"/>  
+<img src="docs/screenshots/screenshot3.png" width="25%" align="top"/>
 
-<img src="docs/screenshots/screenshot1.png" width="30%" align="left" />
-<img src="docs/screenshots/screenshot2.png" width="30%" align="left" />
-<img src="docs/screenshots/screenshot3.png" width="30%" align="left" />
-
-## Features
+# Features
 
 - Thread creation and replies
 - Accounts
