@@ -109,12 +109,11 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 	}
 
 	data, err := s.repo.DisplayThreadPage(ctx, threadID, username)
-
-	var errFormat error
-	data.Thread.DateCreated, errFormat = config.FormatTime(data.Thread.DateCreated)
-	if errFormat != nil {
-		return nil, errFormat
+	if err != nil {
+		return nil, err
 	}
+
+	//TODO: Could refactor to move the HTML sanitization into the scan loops at the repo layer to avoid double looping
 
 	data.Thread.BodyHTML, err = validate.ParseHTML(data.Thread.Body)
 	if err != nil {
@@ -126,17 +125,12 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 		return nil, fmt.Errorf("DisplayThreadPage title ParseHTML err: %w", err)
 	}
 
-	for i, comment := range data.Comments {
-		data.Comments[i].DateCreated, errFormat = config.FormatTime(comment.DateCreated)
-		if errFormat != nil {
-			return nil, errFormat
-		}
-
-		data.Comments[i].BodyHTML, err = validate.ParseHTML(data.Comments[i].Body)
+	for _, comment := range data.Comments {
+		comment.BodyHTML, err = validate.ParseHTML(comment.Body)
 		if err != nil {
 			return nil, fmt.Errorf("DisplayThreadPage comment body ParseHTML err: %w", err)
 		}
 	}
 
-	return data, err
+	return data, nil
 }

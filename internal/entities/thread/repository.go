@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"forum/internal/config"
 	"forum/internal/errs"
 	"forum/internal/pagination"
 )
@@ -113,6 +114,7 @@ func (r *ThreadRepository) Delete(ctx context.Context, threadID int, userID int)
 }
 
 func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, username string) (*ThreadData, error) {
+	// Get thread data along with thread author name
 	threadQuery := `SELECT threads.id, title, body, threads.date_created, threads.author_id, threads.category_id, username
 	FROM users INNER JOIN threads ON users.id = threads.author_id WHERE threads.id = ?;`
 	//query := `SELECT threads.id, title, body, date_created, username, thread_like, thread_likes.user_id FROM threads INNER JOIN users ON users.id = threads.author_id LEFT JOIN thread_likes ON threads.id = thread_likes.thread_id;`
@@ -120,13 +122,17 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 
 	var authorName string
 	var thread Thread
-
 	err := r.db.QueryRowContext(ctx, threadQuery, threadID).Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID, &authorName)
 	if err != nil {
 		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 	}
 
-	// GET THREAD LIKES DATA
+	thread.DateCreated, err = config.FormatTime(thread.DateCreated)
+	if err != nil {
+		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
+	}
+
+	// Get thread likes data
 	//this is a separate query because otherwise there would be a distinct row in the above query for every like on every thread
 	threadLikeQuery := `SELECT username, thread_like FROM thread_likes INNER JOIN users ON users.id = thread_likes.user_id WHERE thread_id = ?`
 	threadLikeData, err := r.getLikeData(ctx, threadLikeQuery, threadID, username)
@@ -143,22 +149,25 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 
 	var comments []CommentData
 
-	//for every comment on thread:
+	// Get the data for each comment in the thread
 	for commentRows.Next() {
 		var comment CommentData
 		if err := commentRows.Scan(&comment.ID, &comment.Body, &comment.ThreadID, &comment.AuthorName, &comment.DateCreated); err != nil {
 			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 		}
 
-		// GET COMMENT LIKES DATA
+		comment.DateCreated, err = config.FormatTime(comment.DateCreated)
+		if err != nil {
+			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
+		}
+
+		// Get comment likes data
 		commentLikeQuery := `SELECT username, comment_like FROM comment_likes INNER JOIN users ON users.id = comment_likes.user_id WHERE comment_id = ?;`
-		commentLikeData, err := r.getLikeData(ctx, commentLikeQuery, threadID, username)
+		commentLikeData, err := r.getLikeData(ctx, commentLikeQuery, comment.ID, username)
 		if err != nil {
 			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 		}
 		comment.LikeData = *commentLikeData
-
-		//append comment to comments
 		comments = append(comments, comment)
 	}
 
@@ -191,10 +200,15 @@ func (r *ThreadRepository) getLikeData(ctx context.Context, query string, id int
 
 		if like {
 			likeUsers = append(likeUsers, likeUser)
-			loggedUserLike = likeUser == username
+			if !loggedUserLike {
+				loggedUserLike = likeUser == username
+			}
+
 		} else {
 			dislikeUsers = append(dislikeUsers, likeUser)
-			loggedUserDislike = likeUser == username
+			if !loggedUserDislike {
+				loggedUserDislike = likeUser == username
+			}
 		}
 	}
 	if err := rows.Err(); err != nil {
