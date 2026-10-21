@@ -7,8 +7,6 @@ import (
 )
 
 type SearchResult struct {
-	ThreadPath     string
-	CommentPath    string
 	InputQuery     string
 	Threads        []thread.Thread
 	Comments       []comment.Comment

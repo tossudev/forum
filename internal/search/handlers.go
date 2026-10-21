@@ -45,7 +45,6 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 
 	//check for empty or too long search input
 	if input == "" || len(input) > 1000 {
-		input = ""
 		msg := "Search query must be 1-1000 characters long."
 		h.renderer.RenderPage(w, "search.html", SearchResult{Username: username, ResponseMsg: msg})
 		return
