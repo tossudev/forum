@@ -20,7 +20,7 @@
 		{{range .Threads}}
 		<tr class="listing" data-href="/threads/{{.ID}}">
 			{{ if .DisplayError }}
-			<td class="error-msg">Error displaying message: {{.DisplayError}}</td>
+			<td class="error-msg">Error displaying message</td>
 			{{ else }}
 			<td>{{.TitleHTML}}</td>
 			{{ end }}			
