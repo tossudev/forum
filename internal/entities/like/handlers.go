@@ -6,6 +6,7 @@ import (
 
 	"forum/internal/entities/user"
 	"forum/internal/errs"
+
 	"github.com/go-playground/validator/v10"
 )
 
@@ -22,9 +23,15 @@ func NewHandler(service *LikeService, validate *validator.Validate) *LikeHandler
 func (h *LikeHandler) LikeComment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	// type Request struct {
+	// 	CommentID int  `json:"id"`
+	// 	Like      bool `json:"like"`
+	// }
+	// var req Request
 	var req CommentLikeRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		//TODO: show 400 page
 		errs.WriteError(w, err)
 		return
 	}
@@ -32,11 +39,13 @@ func (h *LikeHandler) LikeComment(w http.ResponseWriter, r *http.Request) {
 	if user := user.GetUser(r); user != nil {
 		req.UserID = user.ID
 	} else {
+		//TODO: Show user-friendly error
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	if err := h.service.LikeComment(ctx, req); err != nil {
+		//TODO: Show user-friendly error
 		errs.WriteError(w, err)
 		return
 	}

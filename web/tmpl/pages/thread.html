@@ -50,7 +50,7 @@
 							{{ else }}
 							class="reaction-btn"
 							{{ end }}
-							onclick="likeComment(this, true)">
+							onclick="like(this, true)">
 							<span name="{{.LoggedUserLiked}}" class="likes-{{.ID}}">{{.NumLikes}}</span>
 							<span>👍</span>
 						</button>
@@ -60,7 +60,7 @@
 							{{ else }}
 							class="reaction-btn"
 							{{ end }}
-							onclick="likeComment(this, false)">
+							onclick="like(this, false)">
 							<span name="{{.LoggedUserDisliked}}" class="dislikes-{{.ID}}">{{.NumDislikes}}</span>
 							<span>👎</span>
 						</button>
