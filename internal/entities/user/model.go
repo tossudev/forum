@@ -56,3 +56,11 @@ type ProfileThread struct {
 	CategoryID  int
 	ReplyCount  int
 }
+
+type ProfileComment struct {
+	ID          int
+	Body        string
+	DateCreated string
+	ThreadID    int
+	AuthorID    int
+}
