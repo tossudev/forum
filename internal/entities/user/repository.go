@@ -103,6 +103,15 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (User, erro
 // GetThreadsByUserID gets all the threads posted by a user within the given pagination parameters.
 // Returns the threads, the total number of threads found, and a potential error.
 func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
+
+	//check if page number is beyond possible pages
+	//if so, make page number equal last page
+	page, err := r.checkPage(ctx, userID, pagination)
+	if err != nil {
+		return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+	}
+	pagination.Page = page
+
 	var threads []ProfileThread
 	var totalCount int
 
@@ -133,4 +142,22 @@ func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, paginatio
 	}
 
 	return threads, totalCount, nil
+}
+
+func (r *UserRepo) checkPage(ctx context.Context, userID int, paginationData pagination.Pagination) (int, error) {
+	query := `SELECT COUNT(*) OVER() AS total_count
+	FROM threads
+	WHERE author_id = ?;`
+
+	var count int
+	err := r.db.QueryRowContext(ctx, query, userID).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	if paginationData.Page > pagination.CalcTotalPages(count, paginationData.PageSize) {
+		return pagination.CalcTotalPages(count, paginationData.PageSize), nil
+	}
+
+	return paginationData.Page, nil
 }
