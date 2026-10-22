@@ -102,13 +102,13 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (User, erro
 
 // GetThreadsByUserID gets all the threads posted by a user within the given pagination parameters.
 // Returns the threads, the total number of threads found, and a potential error.
-func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
+func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, int, error) {
 
 	//check if page number is beyond possible pages
 	//if so, make page number equal last page
 	page, err := r.checkPage(ctx, userID, pagination)
 	if err != nil {
-		return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+		return nil, 0, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
 	}
 	pagination.Page = page
 
@@ -120,28 +120,28 @@ func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, paginatio
 
 	rows, err := r.db.QueryContext(ctx, query, userID, pagination.Limit(), pagination.Offset())
 	if err != nil {
-		return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+		return nil, 0, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
 	}
 
 	for rows.Next() {
 		var thread ProfileThread
 		if err := rows.Scan(&totalCount, &thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
-			return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+			return nil, 0, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
 		}
 
 		thread.DateCreated, err = config.FormatTime(thread.DateCreated)
 		if err != nil {
-			return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+			return nil, 0, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
 		}
 
 		threads = append(threads, thread)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+		return nil, 0, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
 	}
 
-	return threads, totalCount, nil
+	return threads, totalCount, 0, nil
 }
 
 func (r *UserRepo) checkPage(ctx context.Context, userID int, paginationData pagination.Pagination) (int, error) {

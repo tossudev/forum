@@ -49,7 +49,7 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	threads, totalCount, categoryName, err := h.service.GetByCategory(ctx, id, paginationData)
+	threads, totalCount, categoryName, page, err := h.service.GetByCategory(ctx, id, paginationData)
 	if err != nil {
 		if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -68,6 +68,7 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 		username = user.Username
 	}
 
+	paginationData.Page = page //page has been returned from repo
 	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
 	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
 

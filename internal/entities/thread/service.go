@@ -22,31 +22,31 @@ func NewService(r *ThreadRepository) *ThreadService {
 
 // GetByCategory gets threads (paginated) by category ID.
 // Returns the threads, total found, the category name, and a potential error.
-func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, int, string, error) {
+func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, int, string, int, error) {
 	if id <= 0 {
-		return nil, 0, "", fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput)
+		return nil, 0, "", 0, fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput)
 	}
 
 	// This validates that the category exists and also fetches the category name
 	categoryName, err := s.repo.GetCategoryName(ctx, id)
 	if err != nil {
-		return nil, 0, "", err
+		return nil, 0, "", 0, err
 	}
 
 	if err := pagination.Validate(); err != nil {
-		return nil, 0, "", fmt.Errorf("%w: invalid pagination parameters", errs.ErrInvalidUserInput)
+		return nil, 0, "", 0, fmt.Errorf("%w: invalid pagination parameters", errs.ErrInvalidUserInput)
 	}
 
-	threads, totalCount, err := s.repo.GetByCategory(ctx, id, pagination)
+	threads, totalCount, page, err := s.repo.GetByCategory(ctx, id, pagination)
 	if err != nil {
-		return nil, 0, "", err
+		return nil, 0, "", 0, err
 	}
 
 	for i, thread := range threads {
 		var errFormat error
 		threads[i].DateCreated, errFormat = config.FormatTime(thread.DateCreated)
 		if errFormat != nil {
-			return nil, 0, "", errFormat
+			return nil, 0, "", 0, errFormat
 		}
 
 		threads[i].TitleHTML, err = validate.ParseHTML(threads[i].Title)
@@ -56,7 +56,7 @@ func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pa
 		}
 	}
 
-	return threads, totalCount, categoryName, nil
+	return threads, totalCount, categoryName, page, nil
 }
 
 func (s *ThreadService) GetByID(ctx context.Context, id int) (*Thread, error) {

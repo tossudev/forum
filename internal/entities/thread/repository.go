@@ -20,13 +20,13 @@ func NewRepository(db *sql.DB) *ThreadRepository {
 }
 
 // Returns threads, the total number of threads, and a potential error.
-func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, int, error) {
+func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, int, int, error) {
 
 	//check if page number is beyond possible pages
 	//if so, make page number equal to last page
 	page, err := r.checkPage(ctx, id, pagination)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, 0, err
 	}
 	pagination.Page = page
 
@@ -38,27 +38,27 @@ func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination
 
 	rows, err := r.db.QueryContext(ctx, query, id, pagination.Limit(), pagination.Offset())
 	if err != nil {
-		return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+		return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 	}
 
 	for rows.Next() {
 		var thread Thread
 		if err := rows.Scan(&totalCount, &thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
-			return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+			return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
 
 		queryCount := "SELECT COUNT(*) FROM comments WHERE thread_id = ?"
 		if err := r.db.QueryRowContext(ctx, queryCount, thread.ID).Scan(&thread.ReplyCount); err != nil {
-			return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+			return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
 
 		threads = append(threads, thread)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+		return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 	}
 
-	return threads, totalCount, nil
+	return threads, totalCount, page, nil
 }
 
 func (r *ThreadRepository) GetByID(ctx context.Context, id int) (*Thread, error) {

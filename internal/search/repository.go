@@ -19,9 +19,7 @@ func NewRepository(db *sql.DB) *SearchRepository {
 	return &SearchRepository{db: db}
 }
 
-// TODO: send in tab, switch different tab possibilities, create helper to run queries
-// Need to send back max number of pages for search
-func (r *SearchRepository) Search(ctx context.Context, input string, tab string, paginationData pagination.Pagination) ([]thread.Thread, int, []comment.Comment, int, error) {
+func (r *SearchRepository) Search(ctx context.Context, input string, tab string, paginationData pagination.Pagination) ([]thread.Thread, int, []comment.Comment, int, int, error) {
 
 	//add double quotes around input so that single quotes (ex apostrophes) don't cause errors
 	queryInput := "\"" + input + "\""
@@ -30,7 +28,7 @@ func (r *SearchRepository) Search(ctx context.Context, input string, tab string,
 	//if so, make page number equal last page
 	page, err := r.checkPage(ctx, queryInput, tab, paginationData)
 	if err != nil {
-		return nil, 0, nil, 0, fmt.Errorf("Search: %w,", err)
+		return nil, 0, nil, 0, 0, fmt.Errorf("Search: %w,", err)
 	}
 	paginationData.Page = page
 
@@ -43,32 +41,32 @@ func (r *SearchRepository) Search(ctx context.Context, input string, tab string,
 	if tab == "threads" {
 		threads, threadsCount, err = r.searchThreads(ctx, queryInput, paginationData)
 		if err != nil {
-			return nil, 0, nil, 0, fmt.Errorf("Search threads: %w", err)
+			return nil, 0, nil, 0, 0, fmt.Errorf("Search threads: %w", err)
 		}
-		return threads, threadsCount, nil, 0, nil
+		return threads, threadsCount, nil, 0, paginationData.Page, nil
 
 		//if tab is "comments", search only comments
 	} else if tab == "comments" {
 		comments, commentsCount, err = r.searchComments(ctx, queryInput, paginationData)
 		if err != nil {
-			return nil, 0, nil, 0, fmt.Errorf("Search comments: %w", err)
+			return nil, 0, nil, 0, 0, fmt.Errorf("Search comments: %w", err)
 		}
-		return nil, 0, comments, commentsCount, nil
+		return nil, 0, comments, commentsCount, paginationData.Page, nil
 
 		//if no tab (or if tab is anything other than "threads" or "comments", search both
 	} else {
 		threads, threadsCount, err = r.searchThreads(ctx, queryInput, paginationData)
 		if err != nil {
-			return nil, 0, nil, 0, fmt.Errorf("Search threads: %w", err)
+			return nil, 0, nil, 0, 0, fmt.Errorf("Search threads: %w", err)
 		}
 
 		comments, commentsCount, err = r.searchComments(ctx, queryInput, paginationData)
 		if err != nil {
-			return nil, 0, nil, 0, fmt.Errorf("Search comments: %w", err)
+			return nil, 0, nil, 0, 0, fmt.Errorf("Search comments: %w", err)
 		}
 	}
 
-	return threads, threadsCount, comments, commentsCount, nil
+	return threads, threadsCount, comments, commentsCount, paginationData.Page, nil
 }
 
 func (r *SearchRepository) checkPage(ctx context.Context, input string, tab string, paginationData pagination.Pagination) (int, error) {
