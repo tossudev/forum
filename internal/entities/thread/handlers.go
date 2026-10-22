@@ -263,27 +263,34 @@ func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
-		return
-	}
-
 	var username string
 	user := user.GetUser(r)
 	if user != nil {
 		username = user.Username
 	}
 
-	data, err := h.service.DisplayThreadPage(ctx, id, username)
+	threadID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		errs.WriteError(w, err)
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", ThreadData{Username: username})
 		return
 	}
 
-	data.Username = username
-	// TODO: fix path
-	data.Path = "Thread > " + data.Thread.Title
+	pageData, err := h.service.DisplayThreadPage(ctx, threadID, username)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", ThreadData{Username: username})
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderer.RenderPage(w, "error-500.html", ThreadData{Username: username})
+		return
+	}
 
-	h.renderer.RenderPage(w, "thread.html", data)
+	pageData.Username = username
+	// TODO: fix path
+	pageData.Path = "Thread > " + pageData.Thread.Title
+
+	h.renderer.RenderPage(w, "thread.html", pageData)
 }
