@@ -6,15 +6,16 @@ import (
 )
 
 type Thread struct {
-	ID          int    `json:"id"`
-	Title       string `json:"title"`
-	Body        string `json:"body"`
-	DateCreated string `json:"date_created"`
-	AuthorID    int    `json:"author_id"`
-	CategoryID  int    `json:"category_id"`
-	ReplyCount  int
-	TitleHTML   template.HTML
-	BodyHTML    template.HTML
+	ID           int    `json:"id"`
+	Title        string `json:"title"`
+	Body         string `json:"body"`
+	DateCreated  string `json:"date_created"`
+	AuthorID     int    `json:"author_id"`
+	CategoryID   int    `json:"category_id"`
+	ReplyCount   int
+	TitleHTML    template.HTML
+	BodyHTML     template.HTML
+	DisplayError error
 }
 
 type ThreadsPage struct {
@@ -52,14 +53,16 @@ type LikeData struct {
 	NumDislikes        int
 	LoggedUserLiked    bool
 	LoggedUserDisliked bool
+	DisplayError       error
 }
 
 type CommentData struct {
-	ID          int
-	Body        string
-	BodyHTML    template.HTML
-	DateCreated string
-	ThreadID    int
-	AuthorName  string
-	LikeData    LikeData
+	ID           int
+	Body         string
+	BodyHTML     template.HTML
+	DateCreated  string
+	ThreadID     int
+	AuthorName   string
+	LikeData     LikeData
+	DisplayError error
 }

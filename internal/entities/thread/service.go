@@ -3,6 +3,7 @@ package thread
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"forum/internal/config"
@@ -48,14 +49,10 @@ func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pa
 			return nil, 0, "", errFormat
 		}
 
-		threads[i].BodyHTML, err = validate.ParseHTML(threads[i].Body)
-		if err != nil {
-			return nil, 0, "", fmt.Errorf("GetByCategory ParseHTML err: %w", err)
-		}
-
 		threads[i].TitleHTML, err = validate.ParseHTML(threads[i].Title)
 		if err != nil {
-			return nil, 0, "", fmt.Errorf("GetByCategory ParseHTML err: %w", err)
+			threads[i].DisplayError = err
+			slog.Error("thread title validation failed", "err:", err, "thread_id:", threads[i].ID, "title:", threads[i].Title)
 		}
 	}
 
@@ -120,20 +117,23 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 
 	//TODO: Could refactor to move the HTML sanitization into the scan loops at the repo layer to avoid double looping
 
-	data.Thread.BodyHTML, err = validate.ParseHTML(data.Thread.Body)
-	if err != nil {
-		return nil, fmt.Errorf("DisplayThreadPage body ParseHTML err: %w", err)
-	}
-
 	data.Thread.TitleHTML, err = validate.ParseHTML(data.Thread.Title)
 	if err != nil {
-		return nil, fmt.Errorf("DisplayThreadPage title ParseHTML err: %w", err)
+		data.Thread.DisplayError = err
+		slog.Error("thread title validation failed", "err:", err, "thread_id:", data.Thread.ID, "title:", data.Thread.Title)
+	}
+
+	data.Thread.BodyHTML, err = validate.ParseHTML(data.Thread.Body)
+	if err != nil {
+		data.Thread.DisplayError = err
+		slog.Error("thread body validation failed", "err:", err, "thread_id:", data.Thread.ID, "body:", data.Thread.Body)
 	}
 
 	for i, comment := range data.Comments {
 		data.Comments[i].BodyHTML, err = validate.ParseHTML(comment.Body)
 		if err != nil {
-			return nil, fmt.Errorf("DisplayThreadPage comment body ParseHTML err: %w", err)
+			data.Comments[i].DisplayError = err
+			slog.Error("comment validation failed", "err:", err, "comment_id:", data.Comments[i].ID, "body:", data.Comments[i].Body)
 		}
 	}
 
