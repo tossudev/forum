@@ -26,7 +26,6 @@ func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pa
 	if id <= 0 {
 		return nil, 0, "", fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput)
 	}
-
 	// This validates that the category exists and also fetches the category name
 	categoryName, err := s.repo.GetCategoryName(ctx, id)
 	if err != nil {
@@ -55,7 +54,6 @@ func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pa
 			slog.Error("thread title validation failed", "err:", err, "thread_id:", threads[i].ID, "title:", threads[i].Title)
 		}
 	}
-
 	return threads, totalCount, categoryName, nil
 }
 
@@ -106,6 +104,9 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 	}
 
 	data, err := s.repo.DisplayThreadPage(ctx, threadID, username)
+	if err != nil {
+		return nil, err
+	}
 
 	var errFormat error
 	data.Thread.DateCreated, errFormat = config.FormatTime(data.Thread.DateCreated)
@@ -137,6 +138,5 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 			slog.Error("comment validation failed", "err:", err, "comment_id:", data.Comments[i].ID, "body:", data.Comments[i].Body)
 		}
 	}
-
 	return data, err
 }

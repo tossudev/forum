@@ -184,6 +184,7 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 		}
 		w.WriteHeader(http.StatusInternalServerError)
 		h.renderer.RenderPage(w, "error-500.html", CreateThreadsPage{})
+		return
 	}
 
 	thread := Thread{
@@ -264,23 +265,28 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 	ctx := r.Context()
 
 	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
+	if err != nil || id < 1 {
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", CreateThreadsPage{})
 		return
 	}
-
 	var username string
 	user := user.GetUser(r)
 	if user != nil {
 		username = user.Username
 	}
-
 	data, err := h.service.DisplayThreadPage(ctx, id, username)
 	if err != nil {
-		errs.WriteError(w, err)
+		if errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", CreateThreadsPage{})
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderer.RenderPage(w, "error-500.html", CreateThreadsPage{})
+		slog.Error("DisplayThreadPage, service level err: ", "err", err)
 		return
 	}
-
 	data.Username = username
 	// TODO: fix path
 	data.Path = "Thread > " + data.Thread.Title

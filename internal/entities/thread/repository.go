@@ -71,7 +71,7 @@ func (r *ThreadRepository) GetCategoryName(ctx context.Context, categoryID int) 
 	err := r.db.QueryRowContext(ctx, query, categoryID).Scan(&categoryName)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", errs.ErrNotFound
+			return "", fmt.Errorf("GetCategoryName: %w", errs.ErrNotFound)
 		}
 		return "", fmt.Errorf("GetCategoryName: %w", err)
 	}
@@ -123,6 +123,9 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 
 	err := r.db.QueryRowContext(ctx, threadQuery, threadID).Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID, &authorName)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrNotFound
+		}
 		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 	}
 
