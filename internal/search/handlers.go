@@ -51,12 +51,7 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//perform search, check for errs
-	threads, threadsCount, comments, commentsCount, err := h.service.Search(ctx, input, paginationSearch)
-	if tab == "threads" {
-		comments = nil
-	} else if tab == "comments" {
-		threads = nil
-	}
+	threads, threadsCount, comments, commentsCount, err := h.service.Search(ctx, input, tab, paginationSearch)
 
 	//if err is 'no search results', send error to frontend and render search page
 	//otherwise, render error 500 page

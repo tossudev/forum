@@ -43,7 +43,7 @@
 		{{ end }}
 
 		{{ if ge $threadNav.PrevPage 1 }}
-			<a href="/search?search={{ .InputQuery }}&tag=threads&page={{ $threadNav.PrevPage }}" title="Previous page">Prev</a>
+			<a href="/search?search={{ .InputQuery }}&tab=threads&page={{ $threadNav.PrevPage }}" title="Previous page">Prev</a>
 		{{ end }}
 
 		{{ range $threadNav.PageList }}
