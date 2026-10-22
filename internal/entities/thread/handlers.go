@@ -56,6 +56,7 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 			h.renderer.RenderPage(w, "error-404.html", ThreadsPage{})
 			return
 		}
+		slog.Error("threads get by category failed", "err:", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		h.renderer.RenderPage(w, "error-500.html", ThreadsPage{})
 		return

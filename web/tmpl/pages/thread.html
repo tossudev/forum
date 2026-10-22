@@ -21,6 +21,10 @@
 				</div>
 
 				<div class="content">
+					
+					{{ if .Thread.DisplayError }}
+					<p class="error-msg">Error: Message cannot be displayed.</p>
+					{{ else }}
 					<div class="thread-header">
 						{{.Thread.TitleHTML}}
 					</div>
@@ -38,6 +42,7 @@
 
 						<div class="date">{{.Thread.DateCreated}}</div>
 					</div>
+					{{ end }}
 				</div>
 			</div>
 		</div>
@@ -53,6 +58,10 @@
 				</div>
 
 				<div class="content">
+					{{ if .DisplayError }}
+					<p class="error-msg">Error: Message cannot be displayed.</p>
+					{{ else }}
+
 					{{.BodyHTML}}
 					<div class="thread-footer">
 						<button data-comment-id="{{.ID}}" data-action="like"
@@ -85,6 +94,7 @@
 
 						<div class="date">{{.DateCreated}}</div>
 					</div>
+					{{ end }}
 				</div>
 			</div>
 		</div>
