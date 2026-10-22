@@ -21,6 +21,15 @@ func NewRepository(db *sql.DB) *ThreadRepository {
 
 // Returns threads, the total number of threads, and a potential error.
 func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, int, error) {
+
+	//check if page number is beyond possible pages
+	//if so, make page number equal to last page
+	page, err := r.checkPage(ctx, id, pagination)
+	if err != nil {
+		return nil, 0, err
+	}
+	pagination.Page = page
+
 	var threads []Thread
 	var totalCount int
 
@@ -214,4 +223,22 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 	}
 
 	return &data, nil
+}
+
+func (r *ThreadRepository) checkPage(ctx context.Context, id int, paginationData pagination.Pagination) (int, error) {
+	query := `SELECT COUNT(*) AS total_count
+	FROM threads
+	WHERE category_id = ?;`
+
+	var count int
+	err := r.db.QueryRowContext(ctx, query, id).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	if paginationData.Page > pagination.CalcTotalPages(count, paginationData.PageSize) {
+		return pagination.CalcTotalPages(count, paginationData.PageSize), nil
+	}
+
+	return paginationData.Page, nil
 }
