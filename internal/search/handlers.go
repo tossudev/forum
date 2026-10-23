@@ -25,7 +25,7 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	query := r.URL.Query()
 
-	input := r.URL.Query().Get("search")
+	searchQuery := r.URL.Query().Get("search")
 	tab := r.URL.Query().Get("tab")
 
 	//get username if logged in
@@ -43,15 +43,15 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//check for empty or too long search input
-	if input == "" || len(input) > 1000 {
+	//check for empty or too long search searchQuery
+	if searchQuery == "" || len(searchQuery) > 1000 {
 		msg := "Search query must be 1-1000 characters long."
 		h.renderer.RenderPage(w, "search.html", SearchResult{Username: username, ResponseMsg: msg})
 		return
 	}
 
 	//perform search, check for errs
-	threads, threadsCount, comments, commentsCount, page, err := h.service.Search(ctx, input, tab, paginationSearch)
+	threads, threadsCount, comments, commentsCount, page, err := h.service.Search(ctx, searchQuery, tab, paginationSearch)
 	paginationSearch.Page = page
 
 	//if err is 'no search results', send error to frontend and render search page
@@ -101,7 +101,7 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pageData := SearchResult{
-		InputQuery:     input,
+		InputQuery:     searchQuery,
 		Threads:        threads,
 		Comments:       comments,
 		ThreadPageNav:  threadPageNav,

@@ -21,7 +21,7 @@ func NewService(r *ThreadRepository) *ThreadService {
 }
 
 // GetByCategory gets threads (paginated) by category ID.
-// Returns the threads, total found, the category name, and a potential error.
+// Returns the threads, total found, the category name, possibly updated page number, and a potential error.
 func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, int, string, int, error) {
 	if id <= 0 {
 		return nil, 0, "", 0, fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput)

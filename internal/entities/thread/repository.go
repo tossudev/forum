@@ -20,23 +20,27 @@ func NewRepository(db *sql.DB) *ThreadRepository {
 }
 
 // Returns threads, the total number of threads, and a potential error.
-func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, int, int, error) {
+func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, paginationData pagination.Pagination) ([]Thread, int, int, error) {
 
-	//check if page number is beyond possible pages
-	//if so, make page number equal to last page
-	page, err := r.checkPage(ctx, id, pagination)
+	//get count of threads in requested category
+	queryCount := `SELECT COUNT (*) FROM threads WHERE category_id = ?;`
+	var totalCount int
+	err := r.db.QueryRowContext(ctx, queryCount, id).Scan(&totalCount)
 	if err != nil {
-		return nil, 0, 0, err
+		return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 	}
-	pagination.Page = page
+
+	//check if requested page is larger than last possible page based on number of results & page size
+	//if so, set page to last possible page
+	page := pagination.CheckPageTooLarge(paginationData, totalCount)
+	paginationData.Page = page
 
 	var threads []Thread
-	var totalCount int
 
 	query := `SELECT COUNT(*) OVER() AS total_count, id, title, body, date_created, author_id, category_id
 	FROM threads WHERE category_id = ? ORDER BY date_created ASC LIMIT ? OFFSET ?;`
 
-	rows, err := r.db.QueryContext(ctx, query, id, pagination.Limit(), pagination.Offset())
+	rows, err := r.db.QueryContext(ctx, query, id, paginationData.Limit(), paginationData.Offset())
 	if err != nil {
 		return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 	}
@@ -192,25 +196,6 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 	}
 
 	return &data, nil
-}
-
-func (r *ThreadRepository) checkPage(ctx context.Context, id int, paginationData pagination.Pagination) (int, error) {
-	query := `SELECT COUNT(*) AS total_count
-	FROM threads
-	WHERE category_id = ?;`
-
-	var count int
-	err := r.db.QueryRowContext(ctx, query, id).Scan(&count)
-	if err != nil {
-		return 0, err
-	}
-
-	if paginationData.Page > pagination.CalcTotalPages(count, paginationData.PageSize) {
-		return pagination.CalcTotalPages(count, paginationData.PageSize), nil
-	}
-
-	return paginationData.Page, nil
-
 }
 
 // getLikeData gets the LikeData for a single thread or comment, where id can be either the thread ID or comment ID.
