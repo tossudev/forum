@@ -155,9 +155,12 @@ func (r *UserRepo) GetLikedThreadsByUserID(ctx context.Context, userID int, pagi
 	var threads []ProfileThread
 	var totalCount int
 
-	query := `SELECT COUNT(*) OVER() AS total_count, id, title, body, date_created, author_id, category_id FROM threads 
-	INNER JOIN thread_likes AS likes ON likes.user_id = ?
-	WHERE likes.thread_like = true ORDER BY date_created DESC LIMIT ? OFFSET ?;`
+	query := `SELECT COUNT(*) OVER() AS total_count, id, title, body, date_created, author_id, category_id
+	FROM threads AS t
+	INNER JOIN thread_likes AS tl ON t.id = tl.thread_id
+	WHERE tl.thread_like = true AND tl.user_ID = ?
+	ORDER BY date_created DESC
+	LIMIT ? OFFSET ?;`
 
 	rows, err := r.db.QueryContext(ctx, query, userID, pagination.Limit(), pagination.Offset())
 	if err != nil {

@@ -275,7 +275,7 @@ func (h *UserHandler) ProfileLikesPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get all the likes posted by a user
+	// Get all the liked threads posted by a user
 	threads, totalCount, err := h.service.GetLikedThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
 		slog.Error("internal server error:", "err", err)
