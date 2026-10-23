@@ -222,6 +222,12 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if paginationData.Validate() != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{Username: user.Username})
+		return
+	}
+
 	// Get all the threads posted by a user
 	threads, totalCount, page, err := h.service.GetThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
@@ -250,4 +256,62 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 	}
 
 	h.renderer.RenderPage(w, "profile-threads.html", pageData)
+}
+
+// ProfileLikedThreadsPage gets all liked threads by a user and renders the data on the user's profile page.
+func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	user := GetUser(r)
+	if user == nil {
+		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
+		return
+	}
+
+	type LikesPage struct {
+		Threads  []ProfileThread
+		PageNav  pagination.PaginationNav
+		Username string
+	}
+
+	paginationData, err := pagination.Parse(r.URL.Query())
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", LikesPage{Username: user.Username})
+		return
+	}
+
+	if paginationData.Validate() != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		h.renderer.RenderPage(w, "error-404.html", LikesPage{Username: user.Username})
+		return
+	}
+
+	// Get all the liked threads posted by a user
+	threads, totalCount, err := h.service.GetLikedThreadsByUserID(ctx, user.ID, paginationData)
+	if err != nil {
+		slog.Error("internal server error:", "err", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderer.RenderPage(w, "error-500.html", LikesPage{Username: user.Username})
+		return
+	}
+
+	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
+	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
+
+	pageNav := pagination.PaginationNav{
+		Path:       r.URL.Path,
+		Page:       paginationData.Page,
+		TotalPages: totalPages,
+		PageList:   pageList,
+		PrevPage:   paginationData.Page - 1,
+		NextPage:   paginationData.Page + 1,
+	}
+	pageData := LikesPage{
+		Threads:  threads,
+		PageNav:  pageNav,
+		Username: user.Username,
+	}
+
+	h.renderer.RenderPage(w, "profile-liked-threads.html", pageData)
 }

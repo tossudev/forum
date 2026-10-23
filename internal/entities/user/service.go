@@ -78,9 +78,9 @@ func (s *UserService) GetUserByID(ctx context.Context, id int) (*User, error) {
 }
 
 func (s *UserService) GetThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, int, error) {
-	if err := pagination.Validate(); err != nil {
-		return nil, 0, 0, fmt.Errorf("%w: invalid pagination parameters", errs.ErrInvalidUserInput)
-	}
-
 	return s.repo.GetThreadsByUserID(ctx, userID, pagination)
+}
+
+func (s *UserService) GetLikedThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
+	return s.repo.GetLikedThreadsByUserID(ctx, userID, pagination)
 }
