@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"forum/internal/errs"
+	"forum/internal/pagination"
 	"forum/internal/password"
 	"forum/internal/render"
 	"forum/internal/session"
@@ -196,4 +197,56 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+// ProfileThreadsPage gets all threads posted by a user and renders the data on the user's profile page.
+func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	user := GetUser(r)
+	if user == nil {
+		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
+		return
+	}
+
+	type ThreadsPage struct {
+		Threads  []ProfileThread
+		PageNav  pagination.PaginationNav
+		Username string
+	}
+
+	paginationData, err := pagination.Parse(r.URL.Query())
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{Username: user.Username})
+		return
+	}
+
+	// Get all the threads posted by a user
+	threads, totalCount, err := h.service.GetThreadsByUserID(ctx, user.ID, paginationData)
+	if err != nil {
+		slog.Error("internal server error:", "err", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderer.RenderPage(w, "error-500.html", ThreadsPage{Username: user.Username})
+		return
+	}
+
+	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
+	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
+
+	pageNav := pagination.PaginationNav{
+		Path:       r.URL.Path,
+		Page:       paginationData.Page,
+		TotalPages: totalPages,
+		PageList:   pageList,
+		PrevPage:   paginationData.Page - 1,
+		NextPage:   paginationData.Page + 1,
+	}
+	pageData := ThreadsPage{
+		Threads:  threads,
+		PageNav:  pageNav,
+		Username: user.Username,
+	}
+
+	h.renderer.RenderPage(w, "profile-threads.html", pageData)
 }

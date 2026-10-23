@@ -1,9 +1,11 @@
-<!DOCTYPE html>
+{{ define "js" }}
+<script src="/web/static/js/listing.js" defer></script>
+{{ end }}
 
 {{ define "content" }}
 
 <div class="search">
-	<form class="search" action="/search" method="GET" role="search">
+	<form class="search" action="/search">
 	<input type="search" name="search" placeholder="Search thread or comment...">
 	<button class="search" type="submit">Search</button>
 	</form>

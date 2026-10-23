@@ -2,8 +2,19 @@
 
 {{ define "content" }}
 
+<div class="search">
+	<form class="search" action="/search" method="GET">
+	<input type="search" name="search" placeholder="Search thread or comment..." {{if .InputQuery}} value={{ .InputQuery }} {{end}}>
+	<button class="search" type="submit">Search</button>
+	<p class="response-msg search-error">{{ .ResponseMsg }}</p>
+	</form>
+</div>
+
 <div class="contents">
-	<p>{{.ThreadPath}}</p>
+
+	{{if .Threads}}
+	{{ $threadNav := .ThreadPageNav }}
+	<p>{{ $threadNav.Path }}</p>
 	
 	<p class="thread-container">
 	{{range .Threads}}
@@ -25,9 +36,36 @@
 			</div>
 		</div>
 	{{ end }}
-	</p>
+	<div class="pagination">
+		Pages: 
+		{{ if gt $threadNav.Page 1 }}
+			<a href="/search?search={{ .InputQuery }}&tab=threads&page=1" title="First page"><<</a>
+		{{ end }}
 
-	<p>{{.CommentPath}}</p>
+		{{ if ge $threadNav.PrevPage 1 }}
+			<a href="/search?search={{ .InputQuery }}&tag=threads&page={{ $threadNav.PrevPage }}" title="Previous page">Prev</a>
+		{{ end }}
+
+		{{ range $threadNav.PageList }}
+			<a class="{{ if eq . $threadNav.Page }}current-page{{ end }}" href="/search?search={{$.InputQuery}}&tab=threads&page={{ . }}">{{ . }}</a>
+		{{ end }}
+
+		{{ if le $threadNav.NextPage $threadNav.TotalPages }}
+			<a href="/search?search={{ .InputQuery }}&tab=threads&page={{ $threadNav.NextPage }}" title="Next page">Next</a>
+		{{ end }}
+
+		{{ if lt $threadNav.Page $threadNav.TotalPages }} 
+			<a href="/search?search={{ .InputQuery }}&tab=threads&page={{ $threadNav.TotalPages }}" title="Last page">>></a>
+		{{ end }}
+		</div>
+	</p>
+	{{ else }}
+
+	{{ end }}
+
+	{{if .Comments}}
+	{{ $commentNav := .CommentPageNav }}
+	<p>{{ $commentNav.Path }}</p>
 	<p class="thread-container">
 		{{ range .Comments }}
 		<div class="comment-container">
@@ -45,7 +83,33 @@
 			</div>
 		</div>
 		{{ end }}
+
+	<div class="pagination">
+		Pages: 
+		{{ if gt $commentNav.Page 1 }}
+			<a href="/search?search={{ .InputQuery }}&tab=comments&page=1" title="First page"><<</a>
+		{{ end }}
+
+		{{ if ge $commentNav.PrevPage 1 }}
+			<a href="/search?search={{ .InputQuery }}&tab=comments&page={{ $commentNav.PrevPage }}" title="Previous page">Prev</a>
+		{{ end }}
+
+		{{ range $commentNav.PageList }}
+			<a class="{{ if eq . $commentNav.Page }}current-page{{ end }}" href="/search?search={{$.InputQuery}}&tab=comments&page={{ . }}">{{ . }}</a>
+		{{ end }}
+
+		{{ if le $commentNav.NextPage $commentNav.TotalPages }}
+			<a href="/search?search={{ .InputQuery }}&tab=comments&page={{ $commentNav.NextPage }}" title="Next page">Next</a>
+		{{ end }}
+
+		{{ if lt $commentNav.Page $commentNav.TotalPages }} 
+			<a href="/search?search={{ .InputQuery }}&tab=comments&page={{ $commentNav.TotalPages }}" title="Last page">>></a>
+		{{ end }}
+		</div>
 	</p>
+	{{ else }}
+
+	{{ end }}
 
 </div>
 

@@ -28,6 +28,7 @@ func main() {
 	defer db.Close()
 	slog.Info("connected to database", "db", cfg.DbPath)
 
+	validate.CreatePolicy()
 	validator := validate.InitValidator()
 	renderer := render.NewRenderer()
 	handler := routes.InitHandlers(db, validator, renderer)

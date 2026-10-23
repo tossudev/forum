@@ -43,3 +43,16 @@ type LoginPage struct {
 	PasswordErr string
 	OtherErr    string
 }
+
+// ProfileThread contains thread data for displaying user's posted threads.
+// Contains the same properties as thread.Thread.
+// TODO: Perhaps move thread.Thread into a shared models package so the same struct type can be reused without circular imports.
+type ProfileThread struct {
+	ID          int
+	Title       string
+	Body        string
+	DateCreated string
+	AuthorID    int
+	CategoryID  int
+	ReplyCount  int
+}

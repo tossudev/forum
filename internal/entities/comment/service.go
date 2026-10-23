@@ -8,6 +8,7 @@ import (
 	"forum/internal/config"
 	"forum/internal/errs"
 	"forum/internal/pagination"
+	"forum/internal/validate"
 )
 
 type CommentService struct {
@@ -19,6 +20,9 @@ func NewService(r *CommentRepository) *CommentService {
 }
 
 func (s *CommentService) Create(ctx context.Context, req *Comment) (Comment, error) {
+	if _, err := validate.ParseHTML(req.Body); err != nil {
+		return Comment{}, err
+	}
 
 	isoTime := time.Now().UTC()
 	isoString := isoTime.Format(config.TimeFormat)

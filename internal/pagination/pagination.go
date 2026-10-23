@@ -12,8 +12,18 @@ type Pagination struct {
 	PageSize int
 }
 
+// PaginationNav contains page data to be used in pagination navigation with go templates
+type PaginationNav struct {
+	Path       string // The URL path for navigation
+	Page       int    // Current (wanted) page
+	TotalPages int    // Last possible page
+	PageList   []int  // The visible pages shown in the navigation. Get with GetDisplayPageNums.
+	PrevPage   int    // The page before the current page
+	NextPage   int    // The page after the current page
+}
+
 const (
-	minPage     = 0
+	minPage     = 1
 	maxPage     = 100000000 // capped to 100 million prevent int64 overflow on Offset calculation
 	minPageSize = 1
 	maxPageSize = 100
@@ -27,9 +37,9 @@ func (p *Pagination) Limit() int {
 }
 
 // Offset calculates how many entries to skip to reach the specified page.
-// The page numbering is 0-based.
+// The page numbering is 1-based.
 func (p *Pagination) Offset() int {
-	return p.Page * p.PageSize
+	return (p.Page - 1) * p.PageSize
 }
 
 // Validate enforces pagination parameter limits.
@@ -54,7 +64,7 @@ func Parse(query url.Values) (Pagination, error) {
 	// Set default vaules
 	pagination := Pagination{
 		Page:     minPage,
-		PageSize: 10,
+		PageSize: 5,
 	}
 
 	// Parse "page" from query
@@ -84,4 +94,46 @@ func Parse(query url.Values) (Pagination, error) {
 	}
 
 	return pagination, nil
+}
+
+// CalcTotalPages calculates the total pages of paginated data available (equivalent to the last page number)
+func CalcTotalPages(totalCount, pageSize int) int {
+	return (totalCount + pageSize - 1) / pageSize // round up trick for totalCount/pageSize
+}
+
+// GetDisplayPageNums takes the wanted page, total number of pages, and the maximum number of pages
+// wanted to display in navigation and returns a slice of page numbers (up to displayLimit long).
+// If the wanted page is greater than the display limit and there are enough pages below and above it, the wanted page will be in the center.
+// e.g. want=1, total=10, displayLimit=5 -> []int{1,2,3,4,5}
+func GetDisplayPageNums(want, total, displayLimit int) []int {
+	var pages []int
+
+	// e.g. want=4, total=10, displayLimit=5 -> []int{1,2,3,4,5}
+	if total <= displayLimit || want <= displayLimit {
+		max := min(total, displayLimit)
+		for i := 1; i <= max; i++ {
+			pages = append(pages, i)
+		}
+		return pages
+	}
+
+	// For centering: if there can be enough pages below and above the wanted page, the wanted page will be in the middle.
+	// e.g. want=7, total=10, displayLimit=5 -> []int{5,6,7,8,9}
+	leftPadding := (displayLimit - 1) / 2 // -1 for center number
+	rightPadding := total - leftPadding - 1
+	if want+rightPadding <= total {
+		for i := want - leftPadding; i <= want+rightPadding; i++ {
+			pages = append(pages, i)
+		}
+		return pages
+	}
+
+	// Not enough pages above the wanted page for centering, so put the last page available at the end.
+	// e.g. want=9, total=10, displayLimit=5 -> []int{6,7,8,9,10}
+	if want+rightPadding > total {
+		for i := total - displayLimit + 1; i <= total; i++ {
+			pages = append(pages, i)
+		}
+	}
+	return pages
 }

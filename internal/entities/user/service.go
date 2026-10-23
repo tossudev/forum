@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"forum/internal/errs"
+	"forum/internal/pagination"
 	"forum/internal/password"
 )
 
@@ -74,4 +75,12 @@ func (s *UserService) Authenticate(ctx context.Context, input LoginSubmission) (
 
 func (s *UserService) GetUserByID(ctx context.Context, id int) (*User, error) {
 	return s.repo.GetUserByID(ctx, id)
+}
+
+func (s *UserService) GetThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
+	if err := pagination.Validate(); err != nil {
+		return nil, 0, fmt.Errorf("%w: invalid pagination parameters", errs.ErrInvalidUserInput)
+	}
+
+	return s.repo.GetThreadsByUserID(ctx, userID, pagination)
 }

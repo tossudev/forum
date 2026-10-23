@@ -1,7 +1,9 @@
 package thread
 
 import (
+	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,7 +15,6 @@ import (
 	"forum/internal/pagination"
 	"forum/internal/render"
 	"forum/internal/session"
-	//"forum/internal/entities/user"
 )
 
 type ThreadHandler struct {
@@ -33,20 +34,31 @@ func NewHandler(service *ThreadService, validator *validator.Validate, renderer 
 func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	query := r.URL.Query()
-	pagination, err := pagination.Parse(query)
+
+	paginationData, err := pagination.Parse(query)
 	if err != nil {
-		errs.WriteError(w, err)
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{})
+		return
 	}
 
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput))
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{})
 		return
 	}
 
-	categoryName, threads, err := h.service.GetByCategory(ctx, id, pagination)
+	threads, totalCount, categoryName, err := h.service.GetByCategory(ctx, id, paginationData)
 	if err != nil {
-		errs.WriteError(w, err)
+		if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", ThreadsPage{})
+			return
+		}
+		slog.Error("threads get by category failed", "err:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderer.RenderPage(w, "error-500.html", ThreadsPage{})
 		return
 	}
 
@@ -56,15 +68,24 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 		username = user.Username
 	}
 
+	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
+	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
+
+	pageNav := pagination.PaginationNav{
+		Path:       r.URL.Path,
+		Page:       paginationData.Page,
+		TotalPages: totalPages,
+		PageList:   pageList,
+		PrevPage:   paginationData.Page - 1,
+		NextPage:   paginationData.Page + 1,
+	}
+
 	data := ThreadsPage{
 		CategoryID: id,
-		Path:	map[string]string{
-			"Home":	"/",
-			categoryName: fmt.Sprintf("/categories/%d", id),
-		},
-		Threads:  threads,
-		Page:     pagination.Page,
-		Username: username,
+		Path:       fmt.Sprintf("⌂ Home / %s", categoryName),
+		Threads:    threads,
+		PageNav:    pageNav,
+		Username:   username,
 	}
 
 	h.renderer.RenderPage(w, "threads.html", data)
@@ -84,32 +105,45 @@ func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	_, err = h.service.GetByID(ctx, id)
 	if err != nil {
 		errs.WriteError(w, err)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *ThreadHandler) CreatePage(w http.ResponseWriter, r *http.Request) {
+func (h *ThreadHandler) CreateThreadPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	user := user.GetUser(r)
 	if user == nil {
 		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
+		return
 	}
 
 	categoryID, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		//TODO: display error message that the category doesn't exist
+	if err != nil || categoryID < 1 {
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", CreateThreadsPage{})
+		return
 	}
-	//TODO: Check that categoryID exists
 
-	//TODO: Get category name
+	categoryName, err := h.service.GetCategoryName(ctx, categoryID)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", CreateThreadsPage{})
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderer.RenderPage(w, "error-500.html", CreateThreadsPage{})
+		return
+	}
 
 	pageData := CreateThreadsPage{
-		CategoryID: categoryID,
-		// CategoryName: ,
-		Username: user.Username,
+		CategoryID:   categoryID,
+		CategoryName: categoryName,
+		Username:     user.Username,
 	}
-
-	// Need to get the category ID the new thread will be in
 
 	h.renderer.RenderPage(w, "thread-create.html", pageData)
 }
@@ -117,43 +151,87 @@ func (h *ThreadHandler) CreatePage(w http.ResponseWriter, r *http.Request) {
 func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	session := session.GetSession(r)
-	if session == nil {
-		//TODO: show user friendly error
-		errs.WriteError(w, fmt.Errorf("%w: not authenticated", errs.ErrUnauthorized))
-		return
+	pageData := CreateThreadsPage{}
+	user := user.GetUser(r)
+	if user != nil {
+		pageData.Username = user.Username
 	}
-	authorID := session.UserID()
 
+	// Parse form before handling user not logged in error so that form data can be saved
+	// and reinserted into the page templates when displaying errors.
 	if err := r.ParseForm(); err != nil {
-		//TODO: show user friendly error
-		errs.WriteError(w, errs.ErrInvalidUserInput)
+		w.WriteHeader(http.StatusBadRequest)
+		h.renderer.RenderPage(w, "error-400.html", pageData)
+		slog.Error("thread creation fail", "err", err)
 		return
 	}
 
-	categoryID, err := strconv.Atoi(r.PostFormValue("categoryID"))
-	if err != nil {
-		//TODO: show user friendly error
-		errs.WriteError(w, errs.ErrInvalidUserInput)
+	categoryID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || categoryID < 1 {
+		w.WriteHeader(http.StatusBadRequest)
+		h.renderer.RenderPage(w, "error-400.html", pageData)
+		slog.Error("thread creation fail", "err", err)
 		return
+	}
+
+	categoryName, err := h.service.GetCategoryName(ctx, categoryID)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", CreateThreadsPage{})
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderer.RenderPage(w, "error-500.html", CreateThreadsPage{})
 	}
 
 	thread := Thread{
 		Title:      strings.TrimSpace(r.PostFormValue("title")),
 		Body:       strings.TrimSpace(r.PostFormValue("body")),
-		AuthorID:   authorID,
 		CategoryID: categoryID,
 	}
 
+	pageData.CategoryID = thread.CategoryID
+	pageData.CategoryName = categoryName
+	pageData.InputTitle = thread.Title
+	pageData.InputBody = thread.Body
+
+	// User not logged in
+	if user == nil {
+		pageData.OtherErr = "Please log in to create a thread." // Shows error without redirect so that the user doesn't lose their submission data
+		w.WriteHeader(http.StatusUnauthorized)
+		h.renderer.RenderPage(w, "thread-create.html", pageData)
+		return
+	}
+
+	thread.AuthorID = user.ID
+	pageData.Username = user.Username
+
 	threadID, err := h.service.Create(ctx, &thread)
 	if err != nil {
-		//TODO: show user friendly error
-		errs.WriteError(w, err)
+		if errors.Is(err, errs.ErrInvalidThreadTitle) {
+			pageData.TitleErr = "Thread title must be 1-100 characters."
+		}
+
+		if errors.Is(err, errs.ErrInvalidThreadBody) {
+			pageData.BodyErr = "Thread body must be 1-5000 characters."
+		}
+
+		if !errors.Is(err, errs.ErrInvalidThreadTitle) && !errors.Is(err, errs.ErrInvalidThreadBody) {
+			pageData.OtherErr = "Unable to create thread. Please try again later."
+			w.WriteHeader(http.StatusInternalServerError)
+			h.renderer.RenderPage(w, "thread-create.html", pageData)
+			slog.Error("thread creation fail", "err", err)
+			return
+		}
+
+		w.WriteHeader(http.StatusBadRequest)
+		h.renderer.RenderPage(w, "thread-create.html", pageData)
 		return
 	}
 
 	// TODO: On successful submission, redirect to newly created thread
-	http.Redirect(w, r, "threads/"+strconv.Itoa(threadID), http.StatusSeeOther)
+	http.Redirect(w, r, "/threads/"+strconv.Itoa(threadID), http.StatusSeeOther)
 }
 
 func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
@@ -184,25 +262,34 @@ func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
-		return
-	}
-
 	var username string
 	user := user.GetUser(r)
 	if user != nil {
 		username = user.Username
 	}
 
-	data, err := h.service.DisplayThreadPage(ctx, id, username)
+	threadID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		errs.WriteError(w, err)
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", ThreadData{Username: username})
+		return
 	}
 
-	data.Username = username
-	data.Path = "Thread > " + data.Thread.Title
+	pageData, err := h.service.DisplayThreadPage(ctx, threadID, username)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", ThreadData{Username: username})
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderer.RenderPage(w, "error-500.html", ThreadData{Username: username})
+		return
+	}
 
-	h.renderer.RenderPage(w, "thread.html", data)
+	pageData.Username = username
+	// TODO: fix path
+	pageData.Path = "Thread > " + pageData.Thread.Title
+
+	h.renderer.RenderPage(w, "thread.html", pageData)
 }

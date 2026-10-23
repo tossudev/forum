@@ -42,7 +42,8 @@ CREATE VIRTUAL TABLE IF NOT EXISTS threads_fts USING fts5(
 	body, 
 	date_created, 
 	content='threads', 
-	content_rowid='id'
+	content_rowid='id',
+	tokenize = 'trigram' -- trigram tokenizing treats three-character sequences as tokens, allowing partial word matches
 	);
 
 CREATE TRIGGER IF NOT EXISTS threads_insert AFTER 
@@ -88,7 +89,8 @@ CREATE VIRTUAL TABLE IF NOT EXISTS comments_fts USING fts5(
 	date_created, 
 	thread_id,
 	content='comments', 
-	content_rowid='id'
+	content_rowid='id',
+	tokenize = 'trigram'
 	);
 
 CREATE TRIGGER IF NOT EXISTS comments_insert AFTER 

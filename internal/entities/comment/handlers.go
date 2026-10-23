@@ -1,12 +1,14 @@
 package comment
 
 import (
-	"encoding/json"
 	"fmt"
 	"forum/internal/errs"
+	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 
+	"forum/internal/entities/user"
 	"forum/internal/pagination"
 	"forum/internal/session"
 
@@ -22,43 +24,49 @@ func NewHandler(service *CommentService, validator *validator.Validate) *Comment
 	return &CommentHandler{service: service, validator: validator}
 }
 
+// TODO: user friendly error handling
 func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
-	sess := session.GetSession(r)
-	if sess == nil {
-		errs.WriteError(w, fmt.Errorf("%w: login required", errs.ErrUnauthorized))
-		return
-	}
+	ctx := r.Context()
 
-	var input struct {
-		Body string `json:"body" validate:"required"`
-	}
+	user := user.GetUser(r)
 
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&input)
-	if err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid request body", errs.ErrInvalidUserInput))
-		return
-	}
-	if err := h.validator.Struct(input); err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid input", errs.ErrInvalidUserInput))
-		return
-	}
 	threadID, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
+	if err != nil || threadID < 1 {
+		w.WriteHeader(http.StatusBadRequest)
+		slog.Error("comment creation fail", "err", err)
 		return
 	}
-	req := Comment{
-		Body:     input.Body,
+
+	// TODO: this should be implemented for comments for better UX:
+	// Parse form before handling user not logged in error so that form data can be saved
+	// and reinserted into the page templates when displaying errors.
+	if err := r.ParseForm(); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		slog.Error("comment creation fail", "err", err)
+		return
+	}
+
+	// User not logged in
+	if user == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	comment := Comment{
+		Body:     strings.TrimSpace(r.PostFormValue("body")),
 		ThreadID: threadID,
-		AuthorID: sess.UserID(),
+		AuthorID: user.ID,
 	}
-	_, err = h.service.Create(r.Context(), &req)
+
+	_, err = h.service.Create(ctx, &comment)
 	if err != nil {
-		errs.WriteError(w, err)
+		w.WriteHeader(http.StatusBadRequest)
+		slog.Error("comment creation fail", "err", err)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
+
+	// On successful submission, reload the page
+	http.Redirect(w, r, "/threads/"+strconv.Itoa(threadID), http.StatusSeeOther)
 }
 
 func (h *CommentHandler) GetByID(w http.ResponseWriter, r *http.Request) {

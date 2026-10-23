@@ -1,56 +1,71 @@
 package thread
 
+import (
+	"forum/internal/pagination"
+	"html/template"
+)
+
 type Thread struct {
-	ID          int    `json:"id"`
-	Title       string `json:"title"`
-	Body        string `json:"body"`
-	DateCreated string `json:"date_created"`
-	AuthorID    int    `json:"author_id"`
-	CategoryID  int    `json:"category_id"`
-	Category	string
-	ReplyCount  int
+	ID           int    `json:"id"`
+	Title        string `json:"title"`
+	Body         string `json:"body"`
+	DateCreated  string `json:"date_created"`
+	AuthorID     int    `json:"author_id"`
+	CategoryID   int    `json:"category_id"`
+	ReplyCount   int
+	TitleHTML    template.HTML
+	BodyHTML     template.HTML
+	DisplayError error
 }
 
 type ThreadsPage struct {
-	CategoryID 	int
-	Threads    	[]Thread
-	Path     	map[string]string
-	Page       	int
-	Username   	string
+	CategoryID int
+	Path       string
+	Threads    []Thread
+	PageNav    pagination.PaginationNav
+	Username   string
 }
 
 type CreateThreadsPage struct {
 	CategoryID   int
 	CategoryName string
+	InputTitle   string
+	InputBody    string
+	TitleErr     string
+	BodyErr      string
+	OtherErr     string
 	Username     string
 	Path       	 string
 	Threads  	 []Thread
 	Page     	 int
 }
 
+// Data for thread page with coments
 type ThreadData struct {
 	Path         string
 	Thread       Thread
 	AuthorName   string
 	AuthorAvatar string
-	NumLikes     int
-	LikeUsers    []string
-	NumDislikes  int
-	DislikeUsers []string
+	LikeData     LikeData // LikeData for the thread post only
 	Comments     []CommentData
 	Username     string
 }
 
-type CommentData struct {
-	ID                 int
-	Body               string
-	DateCreated        string
-	ThreadID           int
-	AuthorName         string
+type LikeData struct {
 	NumLikes           int
-	LikeUsers          []string
 	NumDislikes        int
-	DislikeUsers       []string
 	LoggedUserLiked    bool
 	LoggedUserDisliked bool
+	DisplayError       error
+}
+
+type CommentData struct {
+	ID           int
+	Body         string
+	BodyHTML     template.HTML
+	DateCreated  string
+	ThreadID     int
+	AuthorName   string
+	LikeData     LikeData
+	DisplayError error
 }
