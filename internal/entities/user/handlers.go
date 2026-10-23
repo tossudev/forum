@@ -222,6 +222,12 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if paginationData.Validate() != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{Username: user.Username})
+		return
+	}
+
 	// Get all the threads posted by a user
 	threads, totalCount, page, err := h.service.GetThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
@@ -271,6 +277,12 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 	paginationData, err := pagination.Parse(r.URL.Query())
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", LikesPage{Username: user.Username})
+		return
+	}
+
+	if paginationData.Validate() != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		h.renderer.RenderPage(w, "error-404.html", LikesPage{Username: user.Username})
 		return
 	}
