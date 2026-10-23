@@ -49,6 +49,16 @@
 							<span class="dislike" name="{{.LikeData.LoggedUserDisliked}}">{{.LikeData.NumDislikes}}</span>
 							<span>👎</span>
 						</button>
+
+						{{ if eq .Username .AuthorName}}
+						<button data-thread-id="{{.Thread.ID}}" 
+								data-category-id="{{.Thread.CategoryID}}"
+								class="delete-button"
+							onclick="deleteThread(this)">
+							Delete
+						</button>
+						{{ end }}
+
 						<div class="date">{{.Thread.DateCreated}}</div>
 					</div>
 					{{ end }}
@@ -93,12 +103,14 @@
 							<span class="dislike" name="{{.LikeData.LoggedUserDisliked}}">{{.LikeData.NumDislikes}}</span>
 							<span>👎</span>
 						</button>
+
 						{{if eq $.Username .AuthorName}}
 							<button data-comment-id="{{.ID}}" class="delete-button"
-								onclick="deleteComment(this, true)">
+								onclick="deleteComment(this)">
 							Delete
 							</button>
 						{{ end }}
+
 						<div class="date">{{.DateCreated}}</div>
 					</div>
 					{{ end }}

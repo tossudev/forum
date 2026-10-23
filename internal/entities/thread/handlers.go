@@ -256,7 +256,6 @@ func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		errs.WriteError(w, err)
 		return
 	}
-
 	w.WriteHeader(http.StatusNoContent)
 }
 

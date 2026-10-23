@@ -381,6 +381,7 @@ form .button {
 .delete-button {
 	padding: 5px;
 	margin-left: 25px;
+	background-color: rgb(255, 89, 89);
 }
 
 .reaction-btn.pressed {
