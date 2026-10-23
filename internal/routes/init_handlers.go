@@ -78,6 +78,7 @@ func InitHandlers(db *sql.DB, validate *validator.Validate, renderer *render.Ren
 	handler := middleware.Timeout(5 * time.Second)(mux)
 	handler = userHandler.GetUserMiddleware(handler)
 	handler = sm.Authenticate(handler)
+	handler = middleware.Timezone(handler)
 	handler = middleware.Logger(handler)
 	handler = middleware.RecoverPanic(handler)
 

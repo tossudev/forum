@@ -35,11 +35,14 @@ func Load() Config {
 	return cfg
 }
 
-func FormatTime(timeString string) (string, error) {
+// func changed to include the users location
+func FormatTime(timeString string, loc *time.Location) (string, error) {
 	time, err := time.Parse(TimeFormat, timeString)
 	if err != nil {
 		return "", err
 	}
+	// location = users location
+	time = time.In(loc)
 	formattedTime := time.Format(TimeFormatFrontEnd)
 	return formattedTime, nil
 }

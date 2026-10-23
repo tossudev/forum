@@ -1,5 +1,42 @@
 package middleware
 
-// In here we write the function to pass the timzone from one context to another.
+import (
+	"context"
+	"log/slog"
+	"net/http"
+	"time"
+)
 
-//func Timezone(timezone)
+// here we pass the cookie value to the context from the incoming request
+// this middlewares function is to save the timezone to the other handlers, not to save the time itself.
+type timezoneContextKey struct{}
+
+func Timezone(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		ctx := r.Context()
+
+		loc := time.UTC // this is a timezone, not a time. type *time.Location
+		// compare to time.Now().UTC(), this is of type time.Time
+		cookie, err := r.Cookie("tz")
+		if err == nil {
+			userLocation, err := time.LoadLocation(cookie.Value)
+			if err == nil {
+				loc = userLocation
+			}
+		}
+		ctx = context.WithValue(ctx, timezoneContextKey{}, loc)
+		r = r.WithContext(ctx)
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func GetTimezone(ctx context.Context) *time.Location {
+	timezone, ok := ctx.Value(timezoneContextKey{}).(*time.Location)
+	if !ok {
+		slog.Error("timezone not found in the context")
+		return time.UTC
+	}
+	return timezone
+}

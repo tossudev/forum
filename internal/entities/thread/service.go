@@ -8,8 +8,10 @@ import (
 
 	"forum/internal/config"
 	"forum/internal/errs"
+	"forum/internal/middleware" // this is where the timezone func lives for now
 	"forum/internal/pagination"
 	"forum/internal/validate"
+	//should we add a better place for it later?
 )
 
 type ThreadService struct {
@@ -43,7 +45,7 @@ func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pa
 
 	for i, thread := range threads {
 		var errFormat error
-		threads[i].DateCreated, errFormat = config.FormatTime(thread.DateCreated)
+		threads[i].DateCreated, errFormat = config.FormatTime(thread.DateCreated, middleware.GetTimezone(ctx))
 		if errFormat != nil {
 			return nil, 0, "", errFormat
 		}

@@ -8,6 +8,7 @@ import (
 	"forum/internal/config"
 	"forum/internal/entities/comment"
 	"forum/internal/entities/thread"
+	"forum/internal/middleware"
 	"forum/internal/pagination"
 )
 
@@ -42,7 +43,7 @@ func (r *SearchRepository) Search(ctx context.Context, input string, pagination 
 			return nil, 0, nil, 0, fmt.Errorf("Thread Search: %w", err)
 		}
 
-		thread.DateCreated, errFormat = config.FormatTime(thread.DateCreated)
+		thread.DateCreated, errFormat = config.FormatTime(thread.DateCreated, middleware.GetTimezone(ctx))
 		if errFormat != nil {
 			return nil, 0, nil, 0, errFormat
 		}
@@ -73,7 +74,7 @@ func (r *SearchRepository) Search(ctx context.Context, input string, pagination 
 			return nil, 0, nil, 0, fmt.Errorf("Comment Search: %w", err)
 		}
 
-		comment.DateCreated, errFormat = config.FormatTime(comment.DateCreated)
+		comment.DateCreated, errFormat = config.FormatTime(comment.DateCreated, middleware.GetTimezone(ctx))
 		if errFormat != nil {
 			return nil, 0, nil, 0, errFormat
 		}

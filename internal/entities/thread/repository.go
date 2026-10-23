@@ -8,6 +8,7 @@ import (
 
 	"forum/internal/config"
 	"forum/internal/errs"
+	"forum/internal/middleware"
 	"forum/internal/pagination"
 )
 
@@ -134,7 +135,7 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 	}
 
-	thread.DateCreated, err = config.FormatTime(thread.DateCreated)
+	thread.DateCreated, err = config.FormatTime(thread.DateCreated, middleware.GetTimezone(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 	}
@@ -163,7 +164,7 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 		}
 
-		comment.DateCreated, err = config.FormatTime(comment.DateCreated)
+		comment.DateCreated, err = config.FormatTime(comment.DateCreated, middleware.GetTimezone(ctx))
 		if err != nil {
 			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 		}

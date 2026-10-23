@@ -4,11 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
+
 	"forum/internal/config"
 	"forum/internal/database"
 	"forum/internal/errs"
+	"forum/internal/middleware"
 	"forum/internal/pagination"
-	"time"
 )
 
 type UserRepo struct {
@@ -120,7 +122,7 @@ func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, paginatio
 			return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
 		}
 
-		thread.DateCreated, err = config.FormatTime(thread.DateCreated)
+		thread.DateCreated, err = config.FormatTime(thread.DateCreated, middleware.GetTimezone(ctx))
 		if err != nil {
 			return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
 		}

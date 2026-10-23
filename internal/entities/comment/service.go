@@ -54,7 +54,6 @@ func (s *CommentService) GetByThread(ctx context.Context, id int, p pagination.P
 }
 
 func (s *CommentService) Delete(ctx context.Context, commentID, userID int) error {
-	//TODO: Logic for the service layer --> who gets to delete a comment (user, admin etc.)
 	if commentID <= 0 {
 		return fmt.Errorf("%w: invalid comment id", errs.ErrInvalidUserInput)
 	}
