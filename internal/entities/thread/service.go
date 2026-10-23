@@ -57,14 +57,6 @@ func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pa
 	return threads, totalCount, categoryName, nil
 }
 
-func (s *ThreadService) GetByID(ctx context.Context, id int) (*Thread, error) {
-	if id <= 0 {
-		return nil, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput)
-	}
-
-	return s.repo.GetByID(ctx, id)
-}
-
 func (s *ThreadService) GetCategoryName(ctx context.Context, categoryID int) (string, error) {
 	return s.repo.GetCategoryName(ctx, categoryID)
 }
