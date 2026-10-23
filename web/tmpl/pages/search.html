@@ -13,8 +13,7 @@
 <div class="contents">
 
 	{{if .Threads}}
-	{{ $threadNav := .ThreadPageNav }}
-	<p>{{ $threadNav.Path }}</p>
+	<p>{{ .ThreadPath }}</p>
 	
 	<p class="thread-container">
 	{{range .Threads}}
@@ -37,13 +36,14 @@
 		</div>
 	{{ end }}
 	<div class="pagination">
+		{{ $threadNav := .ThreadPageNav }}
 		Pages: 
 		{{ if gt $threadNav.Page 1 }}
 			<a href="/search?search={{ .InputQuery }}&tab=threads&page=1" title="First page"><<</a>
 		{{ end }}
 
 		{{ if ge $threadNav.PrevPage 1 }}
-			<a href="/search?search={{ .InputQuery }}&tag=threads&page={{ $threadNav.PrevPage }}" title="Previous page">Prev</a>
+			<a href="/search?search={{ .InputQuery }}&tab=threads&page={{ $threadNav.PrevPage }}" title="Previous page">Prev</a>
 		{{ end }}
 
 		{{ range $threadNav.PageList }}
@@ -64,8 +64,7 @@
 	{{ end }}
 
 	{{if .Comments}}
-	{{ $commentNav := .CommentPageNav }}
-	<p>{{ $commentNav.Path }}</p>
+	<p>{{ .CommentPath }}</p>
 	<p class="thread-container">
 		{{ range .Comments }}
 		<div class="comment-container">
@@ -85,6 +84,7 @@
 		{{ end }}
 
 	<div class="pagination">
+		{{ $commentNav := .CommentPageNav }}
 		Pages: 
 		{{ if gt $commentNav.Page 1 }}
 			<a href="/search?search={{ .InputQuery }}&tab=comments&page=1" title="First page"><<</a>

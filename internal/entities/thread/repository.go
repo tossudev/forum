@@ -19,37 +19,50 @@ func NewRepository(db *sql.DB) *ThreadRepository {
 	return &ThreadRepository{db: db}
 }
 
-// Returns threads, the total number of threads, and a potential error.
-func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, int, error) {
-	var threads []Thread
+// Returns threads, the total number of threads, possibly modified page, and a potential error.
+func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, paginationData pagination.Pagination) ([]Thread, int, int, error) {
+
+	//get count of threads in requested category
+	queryCount := `SELECT COUNT (*) FROM threads WHERE category_id = ?;`
 	var totalCount int
+	err := r.db.QueryRowContext(ctx, queryCount, id).Scan(&totalCount)
+	if err != nil {
+		return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+	}
+
+	//check if requested page is larger than last possible page based on number of results & page size
+	//if so, set page to last possible page
+	page := pagination.CheckPageTooLarge(paginationData, totalCount)
+	paginationData.Page = page
+
+	var threads []Thread
 
 	query := `SELECT COUNT(*) OVER() AS total_count, id, title, body, date_created, author_id, category_id
 	FROM threads WHERE category_id = ? ORDER BY date_created ASC LIMIT ? OFFSET ?;`
 
-	rows, err := r.db.QueryContext(ctx, query, id, pagination.Limit(), pagination.Offset())
+	rows, err := r.db.QueryContext(ctx, query, id, paginationData.Limit(), paginationData.Offset())
 	if err != nil {
-		return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+		return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 	}
 
 	for rows.Next() {
 		var thread Thread
 		if err := rows.Scan(&totalCount, &thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
-			return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+			return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
 
 		queryCount := "SELECT COUNT(*) FROM comments WHERE thread_id = ?"
 		if err := r.db.QueryRowContext(ctx, queryCount, thread.ID).Scan(&thread.ReplyCount); err != nil {
-			return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+			return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
 
 		threads = append(threads, thread)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+		return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 	}
 
-	return threads, totalCount, nil
+	return threads, totalCount, page, nil
 }
 
 func (r *ThreadRepository) GetByID(ctx context.Context, id int) (*Thread, error) {
@@ -121,8 +134,6 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 	// Get thread data along with thread author name
 	threadQuery := `SELECT threads.id, title, body, threads.date_created, threads.author_id, threads.category_id, username
 	FROM users INNER JOIN threads ON users.id = threads.author_id WHERE threads.id = ?;`
-	//query := `SELECT threads.id, title, body, date_created, username, thread_like, thread_likes.user_id FROM threads INNER JOIN users ON users.id = threads.author_id LEFT JOIN thread_likes ON threads.id = thread_likes.thread_id;`
-	//query := "SELECT id, title, body, date_created, author_id, category_id FROM threads WHERE id = ?;"
 
 	var authorName string
 	var thread Thread
