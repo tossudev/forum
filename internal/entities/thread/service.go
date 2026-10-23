@@ -26,7 +26,6 @@ func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pa
 	if id <= 0 {
 		return nil, 0, "", fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput)
 	}
-
 	// This validates that the category exists and also fetches the category name
 	categoryName, err := s.repo.GetCategoryName(ctx, id)
 	if err != nil {
@@ -55,7 +54,6 @@ func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pa
 			slog.Error("thread title validation failed", "err:", err, "thread_id:", threads[i].ID, "title:", threads[i].Title)
 		}
 	}
-
 	return threads, totalCount, categoryName, nil
 }
 
@@ -121,12 +119,14 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 	if err != nil {
 		data.Thread.DisplayError = err
 		slog.Error("thread title validation failed", "err:", err, "thread_id:", data.Thread.ID, "title:", data.Thread.Title)
+		return data, err
 	}
 
 	data.Thread.BodyHTML, err = validate.ParseHTML(data.Thread.Body)
 	if err != nil {
 		data.Thread.DisplayError = err
 		slog.Error("thread body validation failed", "err:", err, "thread_id:", data.Thread.ID, "body:", data.Thread.Body)
+		return data, err
 	}
 
 	for i, comment := range data.Comments {
@@ -135,6 +135,7 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 			data.Comments[i].DisplayError = err
 			slog.Error("comment validation failed", "err:", err, "comment_id:", data.Comments[i].ID, "body:", data.Comments[i].Body)
 		}
+		return data, err
 	}
 
 	return data, nil

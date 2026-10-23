@@ -184,6 +184,7 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 		}
 		w.WriteHeader(http.StatusInternalServerError)
 		h.renderer.RenderPage(w, "error-500.html", CreateThreadsPage{})
+		return
 	}
 
 	thread := Thread{
@@ -269,7 +270,7 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 	}
 
 	threadID, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
+	if err != nil || threadID < 1 {
 		w.WriteHeader(http.StatusNotFound)
 		h.renderer.RenderPage(w, "error-404.html", ThreadData{Username: username})
 		return
