@@ -134,3 +134,66 @@ func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, paginatio
 
 	return threads, totalCount, nil
 }
+
+func (r *UserRepo) GetCommentsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileComment, int, int, error) {
+
+	//check if page number is beyond possible pages
+	//if so, make page number equal last page
+	page, err := r.checkPage(ctx, userID, pagination)
+	if err != nil {
+		return nil, 0, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+	}
+	pagination.Page = page
+
+	var comments []ProfileComment
+	var totalCount int
+
+	query := `SELECT COUNT(*) OVER() AS total_count, id, body, date_created, thread_id, author_id
+	FROM comments
+	WHERE author_id = ?
+	ORDER BY date_created DESC 
+	LIMIT ? OFFSET ?;`
+
+	rows, err := r.db.QueryContext(ctx, query, userID, pagination.Limit(), pagination.Offset())
+	if err != nil {
+		return nil, 0, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+	}
+
+	for rows.Next() {
+		var comment ProfileComment
+		if err := rows.Scan(&totalCount, &comment.ID, &comment.Body, &comment.DateCreated, &comment.ThreadID, &comment.AuthorID); err != nil {
+			return nil, 0, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+		}
+
+		comment.DateCreated, err = config.FormatTime(comment.DateCreated)
+		if err != nil {
+			return nil, 0, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+		}
+
+		comments = append(comments, comment)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+	}
+
+	return comments, totalCount, pagination.Page, nil
+}
+
+func (r *UserRepo) checkPage(ctx context.Context, userID int, paginationData pagination.Pagination) (int, error) {
+	query := `SELECT COUNT(*) OVER() AS total_count
+	FROM comments
+	WHERE author_id = ?;`
+
+	var count int
+	err := r.db.QueryRowContext(ctx, query, userID).Scan(&count)
+	if err != nil {
+		return 0, nil
+	}
+
+	if paginationData.Page > pagination.CalcTotalPages(count, paginationData.PageSize) {
+		return pagination.CalcTotalPages(count, paginationData.PageSize), nil
+	}
+
+	return paginationData.Page, nil
+}

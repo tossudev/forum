@@ -84,3 +84,12 @@ func (s *UserService) GetThreadsByUserID(ctx context.Context, userID int, pagina
 
 	return s.repo.GetThreadsByUserID(ctx, userID, pagination)
 }
+
+func (s *UserService) GetCommentsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileComment, int, int, error) {
+
+	if err := pagination.Validate(); err != nil {
+		return nil, 0, 0, fmt.Errorf("%w: invalid pagination parameters", errs.ErrInvalidUserInput)
+	}
+
+	return s.repo.GetCommentsByUserID(ctx, userID, pagination)
+}
