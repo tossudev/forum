@@ -6,7 +6,17 @@ import (
 	"forum/internal/pagination"
 )
 
-type SearchResult struct {
+type PaginatedSearchResult struct {
+	Threads       []thread.Thread
+	ThreadsCount  int
+	Comments      []comment.Comment
+	CommentsCount int
+	Page          int
+}
+
+type SearchResultPage struct {
+	ThreadPath     string
+	CommentPath    string
 	InputQuery     string
 	Threads        []thread.Thread
 	Comments       []comment.Comment
