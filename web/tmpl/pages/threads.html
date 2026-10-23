@@ -7,8 +7,8 @@
 <div class="contents">
 	<div class="hor-flex-wrapper">
 		<p>
-		{{ range $key, $value := .Path }}
-		<a class="breadcrumbs" href="{{ $value }}">> {{ $key }}</a>
+		{{ range .Breadcrumbs }}
+		<a class="breadcrumbs" href="{{ .URL }}">> {{ .Name }}</a>
 		{{ end }}
 		</p>
 		<a class="button create-thread" href="/categories/{{.CategoryID}}/create">+ Create thread</a>

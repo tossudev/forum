@@ -1,6 +1,7 @@
 package thread
 
 import (
+	"forum/internal/models"
 	"forum/internal/pagination"
 	"html/template"
 )
@@ -19,11 +20,11 @@ type Thread struct {
 }
 
 type ThreadsPage struct {
-	CategoryID int
-	Path       string
-	Threads    []Thread
-	PageNav    pagination.PaginationNav
-	Username   string
+	CategoryID  int
+	Breadcrumbs []models.Breadcrumb
+	Threads     []Thread
+	PageNav     pagination.PaginationNav
+	Username    string
 }
 
 type CreateThreadsPage struct {
@@ -35,14 +36,14 @@ type CreateThreadsPage struct {
 	BodyErr      string
 	OtherErr     string
 	Username     string
-	Path       	 string
-	Threads  	 []Thread
-	Page     	 int
+	Path         string
+	Threads      []Thread
+	Page         int
 }
 
-// Data for thread page with coments
+// Data for thread page with comments
 type ThreadData struct {
-	Path         string
+	Breadcrumbs  []models.Breadcrumb
 	Thread       Thread
 	AuthorName   string
 	AuthorAvatar string
