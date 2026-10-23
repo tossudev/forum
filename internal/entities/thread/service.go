@@ -85,7 +85,7 @@ func (s *ThreadService) Create(ctx context.Context, thread *Thread) (int, error)
 	// No need to Validate AuthorID since user was already authenticated
 	// If CategoryID or AuthorID doesn't exist, there will be a repo level foreign key constraint error CategoryID exists
 
-	now := time.Now().Format(config.TimeFormat)
+	now := time.Now().UTC().Format(config.TimeFormat)
 	thread.DateCreated = now
 
 	return s.repo.Create(ctx, thread)

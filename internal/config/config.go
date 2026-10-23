@@ -17,7 +17,7 @@ type Config struct {
 // TODO: figure out better place for these, global constants are not idiomatic
 const (
 	TimeFormat         string = "20060102T150405"
-	TimeFormatFrontEnd string = "January 02 2006 15:03"
+	TimeFormatFrontEnd string = "January 02 2006 15:04"
 	UploadsPath        string = "./uploads/"
 )
 
