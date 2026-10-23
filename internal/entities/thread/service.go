@@ -128,7 +128,6 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 			data.Comments[i].DisplayError = err
 			slog.Error("comment validation failed", "err:", err, "comment_id:", data.Comments[i].ID, "body:", data.Comments[i].Body)
 		}
-		return data, err
 	}
 
 	return data, nil
