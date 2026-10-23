@@ -6,7 +6,11 @@
 
 <div class="contents">
 	<div class="hor-flex-wrapper">
-		<p>{{.Path}}</p>
+		<p>
+		{{ range .Breadcrumbs }}
+		<a class="breadcrumbs" href="{{ .URL }}">> {{ .Name }}</a>
+		{{ end }}
+		</p>
 		<a class="button create-thread" href="/categories/{{.CategoryID}}/create">+ Create thread</a>
 	</div>
 

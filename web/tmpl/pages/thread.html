@@ -7,7 +7,11 @@
 
 {{ define "content" }}
 <div class="contents">
-	<p>{{.Path}}</p>
+	<p>
+	{{ range .Breadcrumbs }}
+	<a class="breadcrumbs" href="{{ .URL }}">> {{ .Name }}</a>
+	{{ end }}
+	</p>
 
 	<p class="thread-container" data-href="/threads/{{.Thread.ID}}">
 		<div class="comment-container">

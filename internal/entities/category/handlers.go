@@ -10,6 +10,7 @@ import (
 
 	"forum/internal/entities/user"
 	"forum/internal/errs"
+	"forum/internal/models"
 	"forum/internal/pagination"
 	"forum/internal/render"
 )
@@ -60,7 +61,12 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := CategoriesPage{
-		Path:       "⌂ Home",
+		Breadcrumbs: []models.Breadcrumb{
+			models.Breadcrumb{
+				Name: "Home",
+				URL:  "/",
+			},
+		},
 		Categories: categories,
 		Page:       pagination.Page,
 		Username:   username,
