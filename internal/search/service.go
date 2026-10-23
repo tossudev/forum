@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	//"forum/internal/entities/comment"
-	//"forum/internal/entities/thread"
 	"forum/internal/errs"
 	"forum/internal/pagination"
 )
