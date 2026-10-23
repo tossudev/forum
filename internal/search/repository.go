@@ -19,8 +19,6 @@ func NewRepository(db *sql.DB) *SearchRepository {
 	return &SearchRepository{db: db}
 }
 
-//func (r *SearchRepository) Search(ctx context.Context, searchQuery string, tab string, paginationData pagination.Pagination) ([]thread.Thread, int, []comment.Comment, int, int, error) {
-
 func (r *SearchRepository) Search(ctx context.Context, searchQuery string, tab string, paginationData pagination.Pagination) (PaginatedSearchResult, error) {
 
 	//add double quotes around searchQuery so that single quotes (ex apostrophes) don't cause errors
@@ -39,7 +37,6 @@ func (r *SearchRepository) Search(ctx context.Context, searchQuery string, tab s
 		queryCount := `SELECT COUNT(*) FROM threads_fts WHERE threads_fts MATCH ?;`
 		err := r.db.QueryRowContext(ctx, queryCount, queryInput).Scan(&threadsCount)
 		if err != nil {
-			//return nil, 0, nil, 0, 0, fmt.Errorf("Search threads: %w", err)
 			return PaginatedSearchResult{}, fmt.Errorf("Search threads: %w", err)
 		}
 
@@ -51,10 +48,8 @@ func (r *SearchRepository) Search(ctx context.Context, searchQuery string, tab s
 		//get threads matching search term on requested page
 		threads, err = r.searchThreads(ctx, queryInput, paginationData)
 		if err != nil {
-			//return nil, 0, nil, 0, 0, fmt.Errorf("Search threads: %w", err)
 			return PaginatedSearchResult{}, fmt.Errorf("Search thread: %w", err)
 		}
-		//return threads, threadsCount, nil, 0, paginationData.Page, nil
 		return PaginatedSearchResult{Threads: threads, ThreadsCount: threadsCount, Page: page}, nil
 
 		//if tab is "comments", search only comments
@@ -64,7 +59,6 @@ func (r *SearchRepository) Search(ctx context.Context, searchQuery string, tab s
 		queryCount := `SELECT COUNT(*) FROM comments_fts WHERE comments_fts MATCH ?;`
 		err := r.db.QueryRowContext(ctx, queryCount, queryInput).Scan(&commentsCount)
 		if err != nil {
-			//return nil, 0, nil, 0, 0, fmt.Errorf("Search comments: %w", err)
 			return PaginatedSearchResult{}, fmt.Errorf("Search comments: %w", err)
 		}
 
@@ -76,10 +70,8 @@ func (r *SearchRepository) Search(ctx context.Context, searchQuery string, tab s
 		//get comments matching search term on requested page
 		comments, err = r.searchComments(ctx, queryInput, paginationData)
 		if err != nil {
-			//return nil, 0, nil, 0, 0, fmt.Errorf("Search comments: %w", err)
 			return PaginatedSearchResult{}, fmt.Errorf("Search comments: %w", err)
 		}
-		//return nil, 0, comments, commentsCount, paginationData.Page, nil
 		return PaginatedSearchResult{Comments: comments, CommentsCount: commentsCount, Page: page}, nil
 
 		//if no tab (or if tab is anything other than "threads" or "comments", search both
@@ -89,7 +81,6 @@ func (r *SearchRepository) Search(ctx context.Context, searchQuery string, tab s
 		queryCountThreads := `SELECT COUNT(*) FROM threads_fts WHERE threads_fts MATCH ?;`
 		err := r.db.QueryRowContext(ctx, queryCountThreads, queryInput).Scan(&threadsCount)
 		if err != nil {
-			//return nil, 0, nil, 0, 0, fmt.Errorf("Search threads: %w", err)
 			return PaginatedSearchResult{}, fmt.Errorf("Search threads: %w", err)
 		}
 
@@ -97,7 +88,6 @@ func (r *SearchRepository) Search(ctx context.Context, searchQuery string, tab s
 		queryCountComments := `SELECT COUNT(*) FROM comments_fts WHERE comments_fts MATCH ?;`
 		err = r.db.QueryRowContext(ctx, queryCountComments, queryInput).Scan(&commentsCount)
 		if err != nil {
-			//return nil, 0, nil, 0, 0, fmt.Errorf("Search comments: %w", err)
 			return PaginatedSearchResult{}, fmt.Errorf("Search comments: %w", err)
 		}
 
@@ -113,14 +103,12 @@ func (r *SearchRepository) Search(ctx context.Context, searchQuery string, tab s
 		//get threads matching search term on requested page
 		threads, err = r.searchThreads(ctx, queryInput, paginationData)
 		if err != nil {
-			//return nil, 0, nil, 0, 0, fmt.Errorf("Search threads: %w", err)
 			return PaginatedSearchResult{}, fmt.Errorf("Search threads: %w", err)
 		}
 
 		//get comments matching search term on requested page
 		comments, err = r.searchComments(ctx, queryInput, paginationData)
 		if err != nil {
-			//return nil, 0, nil, 0, 0, fmt.Errorf("Search comments: %w", err)
 			return PaginatedSearchResult{}, fmt.Errorf("Search comments: %w", err)
 		}
 	}
@@ -132,7 +120,6 @@ func (r *SearchRepository) Search(ctx context.Context, searchQuery string, tab s
 		CommentsCount: commentsCount,
 		Page:          page,
 	}
-	//return threads, threadsCount, comments, commentsCount, paginationData.Page, nil
 	return searchResult, nil
 }
 

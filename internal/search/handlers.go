@@ -51,7 +51,6 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//perform search, check for errs
-	//threads, threadsCount, comments, commentsCount, page, err := h.service.Search(ctx, searchQuery, tab, paginationData)
 	searchResult, err := h.service.Search(ctx, searchQuery, tab, paginationData)
 	paginationData.Page = searchResult.Page
 
