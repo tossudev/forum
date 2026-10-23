@@ -252,8 +252,8 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 	h.renderer.RenderPage(w, "profile-threads.html", pageData)
 }
 
-// ProfileLikesPage gets all liked threads by a user and renders the data on the user's profile page.
-func (h *UserHandler) ProfileLikesPage(w http.ResponseWriter, r *http.Request) {
+// ProfileLikedThreadsPage gets all liked threads by a user and renders the data on the user's profile page.
+func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	user := GetUser(r)
@@ -301,5 +301,5 @@ func (h *UserHandler) ProfileLikesPage(w http.ResponseWriter, r *http.Request) {
 		Username: user.Username,
 	}
 
-	h.renderer.RenderPage(w, "profile-threads.html", pageData)
+	h.renderer.RenderPage(w, "profile-liked-threads.html", pageData)
 }
