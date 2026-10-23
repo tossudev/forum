@@ -12,6 +12,7 @@ import (
 
 	"forum/internal/entities/user"
 	"forum/internal/errs"
+	"forum/internal/models"
 	"forum/internal/pagination"
 	"forum/internal/render"
 	"forum/internal/session"
@@ -82,35 +83,23 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := ThreadsPage{
-		// TODO: use category name instead of ID
 		CategoryID: id,
-		Path:       fmt.Sprintf("⌂ Home / %s", categoryName),
-		Threads:    threads,
-		PageNav:    pageNav,
-		Username:   username,
+		Breadcrumbs: []models.Breadcrumb{
+			models.Breadcrumb{
+				Name: "Home",
+				URL:  "/",
+			},
+			models.Breadcrumb{
+				Name: categoryName,
+				URL:  "/categories/" + strconv.Itoa(id),
+			},
+		},
+		Threads:  threads,
+		PageNav:  pageNav,
+		Username: username,
 	}
 
 	h.renderer.RenderPage(w, "threads.html", data)
-}
-
-// TODO: if not being used by front end, make this func repo only??
-func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
-		return
-	}
-
-	//TODO: change _ to thread and send to front end
-	_, err = h.service.GetByID(ctx, id)
-	if err != nil {
-		errs.WriteError(w, err)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func (h *ThreadHandler) CreateThreadPage(w http.ResponseWriter, r *http.Request) {
@@ -185,6 +174,7 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 		}
 		w.WriteHeader(http.StatusInternalServerError)
 		h.renderer.RenderPage(w, "error-500.html", CreateThreadsPage{})
+		return
 	}
 
 	thread := Thread{
@@ -257,7 +247,6 @@ func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		errs.WriteError(w, err)
 		return
 	}
-
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -271,7 +260,7 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 	}
 
 	threadID, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
+	if err != nil || threadID < 1 {
 		w.WriteHeader(http.StatusNotFound)
 		h.renderer.RenderPage(w, "error-404.html", ThreadData{Username: username})
 		return
@@ -289,9 +278,34 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	categoryName, err := h.service.GetCategoryName(ctx, pageData.Thread.CategoryID)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", ThreadData{Username: username})
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderer.RenderPage(w, "error-500.html", ThreadData{Username: username})
+		return
+	}
+
 	pageData.Username = username
-	// TODO: fix path
-	pageData.Path = "Thread > " + pageData.Thread.Title
+
+	pageData.Breadcrumbs = []models.Breadcrumb{
+		models.Breadcrumb{
+			Name: "Home",
+			URL:  "/",
+		},
+		models.Breadcrumb{
+			Name: categoryName,
+			URL:  "/categories/" + strconv.Itoa(pageData.Thread.CategoryID),
+		},
+		models.Breadcrumb{
+			Name: pageData.Thread.Title,
+			URL:  "/threads/" + strconv.Itoa(threadID),
+		},
+	}
 
 	h.renderer.RenderPage(w, "thread.html", pageData)
 }

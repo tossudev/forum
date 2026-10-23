@@ -12,7 +12,11 @@
 </div>
 
 <div class="contents">
-	<p>{{.Path}}</p>
+	<p>
+	{{ range .Breadcrumbs }}
+	<a class="breadcrumbs" href="{{ .URL }}">> {{ .Name }}</a>
+	{{ end }}
+	</p>
 
 	<table class="listing-container">
 		<tr class="listing-header">

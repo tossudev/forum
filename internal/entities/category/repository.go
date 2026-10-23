@@ -45,17 +45,6 @@ func (r *CategoryRepository) GetAll(ctx context.Context, pagination pagination.P
 	return categories, nil
 }
 
-func (r *CategoryRepository) GetByID(ctx context.Context, id int) (*Category, error) {
-	query := "SELECT id, name FROM categories WHERE id = ?;"
-	var category Category
-	err := r.db.QueryRowContext(ctx, query, id).Scan(&category.ID, &category.Name)
-	if err != nil {
-		return nil, fmt.Errorf("Category GetByID: %w", err)
-	}
-
-	return &category, nil
-}
-
 func (r *CategoryRepository) Create(ctx context.Context, category *Category) error {
 	query := "INSERT INTO categories (name) VALUES (?);"
 	_, err := r.db.ExecContext(ctx, query, category.Name)

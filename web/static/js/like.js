@@ -24,6 +24,7 @@ async function like(elementRef, like) {
 			})
         });
     } catch(err) {
+		window.alert("Server Error: couldn't send like");
         console.log('Error:', err);
     }
 
@@ -71,5 +72,7 @@ async function like(elementRef, like) {
 			dislikeCounter.textContent = Number(initialDislikes) + 1
 		}
 		elementRef.classList.add("pressed")
-    }
+    } else {
+		window.alert("You need to be signed in!");
+	}
 }
