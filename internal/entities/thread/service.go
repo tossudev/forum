@@ -8,10 +8,9 @@ import (
 
 	"forum/internal/config"
 	"forum/internal/errs"
-	"forum/internal/middleware" // this is where the timezone func lives for now
+	"forum/internal/middleware"
 	"forum/internal/pagination"
 	"forum/internal/validate"
-	//should we add a better place for it later?
 )
 
 type ThreadService struct {

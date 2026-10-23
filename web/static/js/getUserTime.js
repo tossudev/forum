@@ -1,4 +1,3 @@
-
 //Intl = Internationalization. This js object holds tools for handling timezone related things. 
 //DateTimeFormat = Creates a formatter. Since here we dont have parameters in the func, it uses the browsers own settings (language, timezone etc)
 //resolvedOptions = asks formatter which settings did we end up using, returning the stuff that are in use, one of them being the timezone

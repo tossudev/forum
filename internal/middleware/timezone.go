@@ -7,8 +7,7 @@ import (
 	"time"
 )
 
-// here we pass the cookie value to the context from the incoming request
-// this middlewares function is to save the timezone to the other handlers, not to save the time itself.
+// this middlewares function is to save the timezone to the other handlers
 type timezoneContextKey struct{}
 
 func Timezone(next http.Handler) http.Handler {
