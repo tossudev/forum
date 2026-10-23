@@ -11,6 +11,10 @@ import (
 	"forum/internal/errs"
 )
 
+const (
+	templatesDir string = "web/tmpl"
+)
+
 type Renderer struct {
 	Templates map[string]*template.Template
 }
@@ -39,18 +43,22 @@ func (r *Renderer) RenderPage(w http.ResponseWriter, templateName string, data a
 }
 
 // Prepare all templates and cache page templates in map
-// TODO: probably want to change hardcoded paths?
 func parseTemplates() map[string]*template.Template {
 	templates := make(map[string]*template.Template)
 
 	// Create base template (base + components)
-	baseTmpl, err := template.ParseFiles("web/tmpl/base.html")
+	baseTmpl, err := template.ParseFiles(templatesDir + "/base.html")
+	if err != nil {
+		slog.Error(fmt.Sprintf("Template parsing failure: %v", err))
+	}
+
+	baseTmpl, err = baseTmpl.ParseGlob(templatesDir + "/partials/*.html")
 	if err != nil {
 		slog.Error(fmt.Sprintf("Template parsing failure: %v", err))
 	}
 
 	// Get all files from pages folder -> []DirEntry
-	files, err := os.ReadDir("web/tmpl/pages")
+	files, err := os.ReadDir(templatesDir + "/pages")
 	if err != nil {
 		slog.Error(fmt.Sprintf("Read directory failure: %v", err))
 	}
@@ -62,7 +70,7 @@ func parseTemplates() map[string]*template.Template {
 			slog.Error(fmt.Sprintf("Template cloning failure: %v", err))
 		}
 
-		pageTmpl, err := tmpl.ParseFiles("web/tmpl/pages/" + file.Name()) // file.Name() -> e.g. "home.html"
+		pageTmpl, err := tmpl.ParseFiles(templatesDir + "/pages/" + file.Name()) // file.Name() -> e.g. "home.html"
 		if err != nil {
 			slog.Error(fmt.Sprintf("Template parsing failure: %v", err))
 		}

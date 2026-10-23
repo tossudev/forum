@@ -377,11 +377,13 @@ form .button {
 	align-items: center;
 	cursor: pointer;
 	margin: 0px;
+	min-width: 85px;
 }
 .delete-button {
 	padding: 5px;
 	margin-left: 25px;
 	background-color: rgb(255, 89, 89);
+	flex-direction: column;
 }
 
 .reaction-btn.pressed {

@@ -2,9 +2,7 @@ package category
 
 import (
 	"context"
-	"fmt"
 
-	"forum/internal/errs"
 	"forum/internal/pagination"
 )
 
@@ -18,14 +16,6 @@ func NewService(r *CategoryRepository) *CategoryService {
 
 func (s *CategoryService) GetAll(ctx context.Context, pagination pagination.Pagination) ([]Category, error) {
 	return s.repo.GetAll(ctx, pagination)
-}
-
-func (s *CategoryService) GetByID(ctx context.Context, id int) (*Category, error) {
-	if id <= 0 {
-		return nil, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput)
-	}
-
-	return s.repo.GetByID(ctx, id)
 }
 
 func (s *CategoryService) Create(ctx context.Context, category *Category) error {

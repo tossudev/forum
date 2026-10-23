@@ -25,7 +25,7 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	query := r.URL.Query()
 
-	input := r.URL.Query().Get("search")
+	searchQuery := r.URL.Query().Get("search")
 	tab := r.URL.Query().Get("tab")
 
 	//get username if logged in
@@ -36,42 +36,38 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//get pagination data from query
-	paginationSearch, err := pagination.Parse(query)
+	paginationData, err := pagination.Parse(query)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		h.renderer.RenderPage(w, "error-404.html", SearchResult{Username: username})
+		h.renderer.RenderPage(w, "error-404.html", SearchResultPage{Username: username})
 		return
 	}
 
-	//check for empty or too long search input
-	if input == "" || len(input) > 1000 {
+	//check for empty or too long search searchQuery
+	if searchQuery == "" || len(searchQuery) > 1000 {
 		msg := "Search query must be 1-1000 characters long."
-		h.renderer.RenderPage(w, "search.html", SearchResult{Username: username, ResponseMsg: msg})
+		h.renderer.RenderPage(w, "search.html", SearchResultPage{Username: username, ResponseMsg: msg})
 		return
 	}
 
 	//perform search, check for errs
-	threads, threadsCount, comments, commentsCount, err := h.service.Search(ctx, input, paginationSearch)
-	if tab == "threads" {
-		comments = nil
-	} else if tab == "comments" {
-		threads = nil
-	}
+	searchResult, err := h.service.Search(ctx, searchQuery, tab, paginationData)
+	paginationData.Page = searchResult.Page
 
 	//if err is 'no search results', send error to frontend and render search page
 	//otherwise, render error 500 page
 	if err != nil {
 		if errors.Is(err, errs.ErrSearchNoResults) {
 			msg := "No results found. Please try a different search term."
-			h.renderer.RenderPage(w, "search.html", SearchResult{Username: username, ResponseMsg: msg})
+			h.renderer.RenderPage(w, "search.html", SearchResultPage{Username: username, ResponseMsg: msg})
 			return
 		} else if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
-			h.renderer.RenderPage(w, "error-404.html", SearchResult{Username: username})
+			h.renderer.RenderPage(w, "error-404.html", SearchResultPage{Username: username})
 			return
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
-			h.renderer.RenderPage(w, "error-500.html", SearchResult{Username: username})
+			h.renderer.RenderPage(w, "error-500.html", SearchResultPage{Username: username})
 			return
 		}
 	}
@@ -79,35 +75,35 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	//if no errors in search, then render search page and display search results
 
 	//pagination for threads
-	threadTotalPages := pagination.CalcTotalPages(threadsCount, paginationSearch.PageSize)
-	threadPageList := pagination.GetDisplayPageNums(paginationSearch.Page, threadTotalPages, 5) //5 is #pages displayed
+	threadTotalPages := pagination.CalcTotalPages(searchResult.ThreadsCount, paginationData.PageSize)
+	threadPageList := pagination.GetDisplayPageNums(paginationData.Page, threadTotalPages, 5) //5 is #pages displayed
 
 	//pagination for comments
-	commentTotalPages := pagination.CalcTotalPages(commentsCount, paginationSearch.PageSize)
-	commentPageList := pagination.GetDisplayPageNums(paginationSearch.Page, commentTotalPages, 5)
+	commentTotalPages := pagination.CalcTotalPages(searchResult.CommentsCount, paginationData.PageSize)
+	commentPageList := pagination.GetDisplayPageNums(paginationData.Page, commentTotalPages, 5)
 
 	threadPageNav := pagination.PaginationNav{
-		Path:       "Search > Thread",
-		Page:       paginationSearch.Page,
+		Page:       paginationData.Page,
 		TotalPages: threadTotalPages,
 		PageList:   threadPageList,
-		PrevPage:   paginationSearch.Page - 1,
-		NextPage:   paginationSearch.Page + 1,
+		PrevPage:   paginationData.Page - 1,
+		NextPage:   paginationData.Page + 1,
 	}
 
 	commentPageNav := pagination.PaginationNav{
-		Path:       "Search > Comment",
-		Page:       paginationSearch.Page,
+		Page:       paginationData.Page,
 		TotalPages: commentTotalPages,
 		PageList:   commentPageList,
-		PrevPage:   paginationSearch.Page - 1,
-		NextPage:   paginationSearch.Page + 1,
+		PrevPage:   paginationData.Page - 1,
+		NextPage:   paginationData.Page + 1,
 	}
 
-	pageData := SearchResult{
-		InputQuery:     input,
-		Threads:        threads,
-		Comments:       comments,
+	pageData := SearchResultPage{
+		ThreadPath:     "Search > Thread",
+		CommentPath:    "Search > Comment",
+		InputQuery:     searchQuery,
+		Threads:        searchResult.Threads,
+		Comments:       searchResult.Comments,
 		ThreadPageNav:  threadPageNav,
 		CommentPageNav: commentPageNav,
 		Username:       username,
