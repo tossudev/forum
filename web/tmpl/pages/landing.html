@@ -12,11 +12,7 @@
 </div>
 
 <div class="contents">
-	<p>
-	{{ range .Breadcrumbs }}
-	<a class="breadcrumbs" href="{{ .URL }}">> {{ .Name }}</a>
-	{{ end }}
-	</p>
+	{{ template "breadcrumbs" . }}
 
 	<table class="listing-container">
 		<tr class="listing-header">

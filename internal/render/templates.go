@@ -52,6 +52,11 @@ func parseTemplates() map[string]*template.Template {
 		slog.Error(fmt.Sprintf("Template parsing failure: %v", err))
 	}
 
+	baseTmpl, err = baseTmpl.ParseGlob(templatesDir + "/partials/*.html")
+	if err != nil {
+		slog.Error(fmt.Sprintf("Template parsing failure: %v", err))
+	}
+
 	// Get all files from pages folder -> []DirEntry
 	files, err := os.ReadDir(templatesDir + "/pages")
 	if err != nil {
