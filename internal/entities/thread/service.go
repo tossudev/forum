@@ -100,7 +100,12 @@ func (s *ThreadService) Delete(ctx context.Context, threadID int, userID int) er
 
 func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, username string) (*ThreadData, error) {
 	if threadID <= 0 {
-		return nil, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput)
+		return nil, errs.ErrNotFound
+	}
+
+	// Check if thread exists
+	if _, err := s.repo.GetByID(ctx, threadID); err != nil {
+		return nil, err
 	}
 
 	data, err := s.repo.DisplayThreadPage(ctx, threadID, username)
@@ -108,35 +113,30 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 		return nil, err
 	}
 
-	var errFormat error
-	data.Thread.DateCreated, errFormat = config.FormatTime(data.Thread.DateCreated)
-	if errFormat != nil {
-		return nil, errFormat
-	}
+	//TODO: Could refactor to move the HTML sanitization into the scan loops at the repo layer to avoid double looping
 
 	data.Thread.TitleHTML, err = validate.ParseHTML(data.Thread.Title)
 	if err != nil {
 		data.Thread.DisplayError = err
 		slog.Error("thread title validation failed", "err:", err, "thread_id:", data.Thread.ID, "title:", data.Thread.Title)
+		return data, err
 	}
 
 	data.Thread.BodyHTML, err = validate.ParseHTML(data.Thread.Body)
 	if err != nil {
 		data.Thread.DisplayError = err
 		slog.Error("thread body validation failed", "err:", err, "thread_id:", data.Thread.ID, "body:", data.Thread.Body)
+		return data, err
 	}
 
 	for i, comment := range data.Comments {
-		data.Comments[i].DateCreated, errFormat = config.FormatTime(comment.DateCreated)
-		if errFormat != nil {
-			return nil, errFormat
-		}
-
-		data.Comments[i].BodyHTML, err = validate.ParseHTML(data.Comments[i].Body)
+		data.Comments[i].BodyHTML, err = validate.ParseHTML(comment.Body)
 		if err != nil {
 			data.Comments[i].DisplayError = err
 			slog.Error("comment validation failed", "err:", err, "comment_id:", data.Comments[i].ID, "body:", data.Comments[i].Body)
 		}
+		return data, err
 	}
-	return data, err
+
+	return data, nil
 }

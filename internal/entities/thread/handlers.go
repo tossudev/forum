@@ -257,39 +257,40 @@ func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		errs.WriteError(w, err)
 		return
 	}
-
 	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil || id < 1 {
-		w.WriteHeader(http.StatusNotFound)
-		h.renderer.RenderPage(w, "error-404.html", CreateThreadsPage{})
-		return
-	}
 	var username string
 	user := user.GetUser(r)
 	if user != nil {
 		username = user.Username
 	}
-	data, err := h.service.DisplayThreadPage(ctx, id, username)
+
+	threadID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || threadID < 1 {
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", ThreadData{Username: username})
+		return
+	}
+
+	pageData, err := h.service.DisplayThreadPage(ctx, threadID, username)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
-			h.renderer.RenderPage(w, "error-404.html", CreateThreadsPage{})
+			h.renderer.RenderPage(w, "error-404.html", ThreadData{Username: username})
 			return
 		}
 		w.WriteHeader(http.StatusInternalServerError)
-		h.renderer.RenderPage(w, "error-500.html", CreateThreadsPage{})
-		slog.Error("DisplayThreadPage, service level err: ", "err", err)
+		h.renderer.RenderPage(w, "error-500.html", ThreadData{Username: username})
 		return
 	}
-	data.Username = username
-	// TODO: fix path
-	data.Path = "Thread > " + data.Thread.Title
 
-	h.renderer.RenderPage(w, "thread.html", data)
+	pageData.Username = username
+	// TODO: fix path
+	pageData.Path = "Thread > " + pageData.Thread.Title
+
+	h.renderer.RenderPage(w, "thread.html", pageData)
 }
