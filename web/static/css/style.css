@@ -353,6 +353,10 @@ form .button {
 	margin: 0px;
 }
 
+.comment .error-msg, .listing .error-msg {
+	color: red;
+}
+
 .comment .content {
 	display: flex;
 	flex-direction: column;
@@ -364,7 +368,7 @@ form .button {
 	max-width: 20%;
 }
 
-.reaction-btn {
+.reaction-btn, .delete-button {
 	background-color: #ffffff;
 	border: solid #000;
 	border-width: 1px 1px 3px 1px;
@@ -373,6 +377,13 @@ form .button {
 	align-items: center;
 	cursor: pointer;
 	margin: 0px;
+	min-width: 85px;
+}
+.delete-button {
+	padding: 5px;
+	margin-left: 25px;
+	background-color: rgb(255, 89, 89);
+	flex-direction: column;
 }
 
 .reaction-btn.pressed {

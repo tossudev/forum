@@ -101,38 +101,52 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (User, erro
 }
 
 // GetThreadsByUserID gets all the threads posted by a user within the given pagination parameters.
-// Returns the threads, the total number of threads found, and a potential error.
-func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
-	var threads []ProfileThread
-	var totalCount int
+// Returns the threads, the total number of threads found, possibly modified page number and a potential error.
+func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, paginationData pagination.Pagination) ([]ProfileThread, int, int, error) {
 
-	query := `SELECT COUNT(*) OVER() AS total_count, id, title, body, date_created, author_id, category_id FROM threads 
+	//get count of threads created by user
+	queryCount := `SELECT COUNT(*) FROM threads WHERE author_id = ?;`
+	var totalCount int
+	err := r.db.QueryRowContext(ctx, queryCount, userID).Scan(&totalCount)
+	if err != nil {
+		return nil, 0, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+	}
+
+	//check if requested page is larger than last possible page based on number of results & page size
+	//if so, set page to last possible page
+	page := pagination.CheckPageTooLarge(paginationData, totalCount)
+	paginationData.Page = page
+
+	//get threads created by user on requested page
+	var threads []ProfileThread
+
+	query := `SELECT id, title, body, date_created, author_id, category_id FROM threads 
 	WHERE author_id = ? ORDER BY date_created DESC LIMIT ? OFFSET ?;`
 
-	rows, err := r.db.QueryContext(ctx, query, userID, pagination.Limit(), pagination.Offset())
+	rows, err := r.db.QueryContext(ctx, query, userID, paginationData.Limit(), paginationData.Offset())
 	if err != nil {
-		return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+		return nil, 0, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
 	}
 
 	for rows.Next() {
 		var thread ProfileThread
-		if err := rows.Scan(&totalCount, &thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
-			return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+		if err := rows.Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
+			return nil, 0, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
 		}
 
 		thread.DateCreated, err = config.FormatTime(thread.DateCreated)
 		if err != nil {
-			return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+			return nil, 0, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
 		}
 
 		threads = append(threads, thread)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+		return nil, 0, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
 	}
 
-	return threads, totalCount, nil
+	return threads, totalCount, 0, nil
 }
 
 // GetLikedThreadsByUserID gets all the threads liked by a user within the given pagination parameters.

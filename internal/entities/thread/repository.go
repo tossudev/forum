@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"slices"
 
+	"forum/internal/config"
 	"forum/internal/errs"
 	"forum/internal/pagination"
 )
@@ -19,42 +19,50 @@ func NewRepository(db *sql.DB) *ThreadRepository {
 	return &ThreadRepository{db: db}
 }
 
-// Returns threads, the total number of threads, and a potential error.
-func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, int, error) {
-	var threads []Thread
+// Returns threads, the total number of threads, possibly modified page, and a potential error.
+func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, paginationData pagination.Pagination) ([]Thread, int, int, error) {
+
+	//get count of threads in requested category
+	queryCount := `SELECT COUNT (*) FROM threads WHERE category_id = ?;`
 	var totalCount int
+	err := r.db.QueryRowContext(ctx, queryCount, id).Scan(&totalCount)
+	if err != nil {
+		return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+	}
+
+	//check if requested page is larger than last possible page based on number of results & page size
+	//if so, set page to last possible page
+	page := pagination.CheckPageTooLarge(paginationData, totalCount)
+	paginationData.Page = page
+
+	var threads []Thread
 
 	query := `SELECT COUNT(*) OVER() AS total_count, id, title, body, date_created, author_id, category_id
 	FROM threads WHERE category_id = ? ORDER BY date_created ASC LIMIT ? OFFSET ?;`
 
-	rows, err := r.db.QueryContext(ctx, query, id, pagination.Limit(), pagination.Offset())
+	rows, err := r.db.QueryContext(ctx, query, id, paginationData.Limit(), paginationData.Offset())
 	if err != nil {
-		return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+		return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 	}
 
 	for rows.Next() {
 		var thread Thread
 		if err := rows.Scan(&totalCount, &thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
-			return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+			return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
 
 		queryCount := "SELECT COUNT(*) FROM comments WHERE thread_id = ?"
 		if err := r.db.QueryRowContext(ctx, queryCount, thread.ID).Scan(&thread.ReplyCount); err != nil {
-			return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+			return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
 
 		threads = append(threads, thread)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+		return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 	}
 
-	// Fetched threads can be nil without error if no results on page
-	if threads == nil {
-		return nil, 0, errs.ErrNotFound
-	}
-
-	return threads, totalCount, nil
+	return threads, totalCount, page, nil
 }
 
 func (r *ThreadRepository) GetByID(ctx context.Context, id int) (*Thread, error) {
@@ -62,6 +70,9 @@ func (r *ThreadRepository) GetByID(ctx context.Context, id int) (*Thread, error)
 	var thread Thread
 	err := r.db.QueryRowContext(ctx, query, id).Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrNotFound
+		}
 		return nil, fmt.Errorf("Thread GetByID: %w", err)
 	}
 
@@ -76,7 +87,7 @@ func (r *ThreadRepository) GetCategoryName(ctx context.Context, categoryID int) 
 	err := r.db.QueryRowContext(ctx, query, categoryID).Scan(&categoryName)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", errs.ErrNotFound
+			return "", fmt.Errorf("GetCategoryName: %w", errs.ErrNotFound)
 		}
 		return "", fmt.Errorf("GetCategoryName: %w", err)
 	}
@@ -118,39 +129,33 @@ func (r *ThreadRepository) Delete(ctx context.Context, threadID int, userID int)
 	return nil
 }
 
+// DisplayThreadPage returns *ThreadData, containing all the data needed for displaying a single thread page (including comments and associated likes).
 func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, username string) (*ThreadData, error) {
-	threadQuery := `SELECT threads.id, title, body, threads.date_created, threads.author_id, threads.category_id, username FROM users INNER JOIN threads ON users.id = threads.author_id WHERE threads.id = ?;`
-	//query := `SELECT threads.id, title, body, date_created, username, thread_like, thread_likes.user_id FROM threads INNER JOIN users ON users.id = threads.author_id LEFT JOIN thread_likes ON threads.id = thread_likes.thread_id;`
-	//query := "SELECT id, title, body, date_created, author_id, category_id FROM threads WHERE id = ?;"
+	// Get thread data along with thread author name
+	threadQuery := `SELECT threads.id, title, body, threads.date_created, threads.author_id, threads.category_id, username
+	FROM users INNER JOIN threads ON users.id = threads.author_id WHERE threads.id = ?;`
 
 	var authorName string
 	var thread Thread
-
 	err := r.db.QueryRowContext(ctx, threadQuery, threadID).Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID, &authorName)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrNotFound
+		}
 		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 	}
 
-	//this is a separate query because otherwise there would be a distinct row in the above query for every like on every thread
-	threadLikesQuery := `SELECT username, thread_like FROM thread_likes INNER JOIN users ON users.id = thread_likes.user_id WHERE thread_id = ?`
-
-	rows, err := r.db.QueryContext(ctx, threadLikesQuery, threadID)
+	thread.DateCreated, err = config.FormatTime(thread.DateCreated)
 	if err != nil {
 		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 	}
-	var likeUsers []string
-	var dislikeUsers []string
-	for rows.Next() {
-		var likeUser string
-		var like bool
-		if err := rows.Scan(&likeUser, &like); err != nil {
-			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
-		}
-		if like {
-			likeUsers = append(likeUsers, likeUser)
-		} else {
-			dislikeUsers = append(dislikeUsers, likeUser)
-		}
+
+	// Get thread likes data
+	//this is a separate query because otherwise there would be a distinct row in the above query for every like on every thread
+	threadLikeQuery := `SELECT username, thread_like FROM thread_likes INNER JOIN users ON users.id = thread_likes.user_id WHERE thread_id = ?`
+	threadLikeData, err := r.getLikeData(ctx, threadLikeQuery, threadID, username)
+	if err != nil {
+		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 	}
 
 	//get all comments for this thread plus username of comment author
@@ -160,63 +165,79 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 	}
 
-	//query for comment likes/dislikes
-	commentLikesQuery := `SELECT username, comment_like FROM comment_likes INNER JOIN users ON users.id = comment_likes.user_id WHERE comment_id = ?`
-
 	var comments []CommentData
 
-	//for every comment on thread:
+	// Get the data for each comment in the thread
 	for commentRows.Next() {
 		var comment CommentData
 		if err := commentRows.Scan(&comment.ID, &comment.Body, &comment.ThreadID, &comment.AuthorName, &comment.DateCreated); err != nil {
 			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 		}
 
-		//get comment likes/dislikes
-		likeRows, err := r.db.QueryContext(ctx, commentLikesQuery, comment.ID)
+		comment.DateCreated, err = config.FormatTime(comment.DateCreated)
 		if err != nil {
-			return nil, fmt.Errorf("DispleyThreadPage: %w", err)
-		}
-		var commentLikeUsers []string
-		var commentDislikeUsers []string
-		for likeRows.Next() {
-			var commentLikeUser string
-			var commentLike bool
-			if err := likeRows.Scan(&commentLikeUser, &commentLike); err != nil {
-				return nil, fmt.Errorf("DisplayThreadPage: %w", err)
-			}
-			if commentLike {
-				commentLikeUsers = append(commentLikeUsers, commentLikeUser)
-			} else {
-				commentDislikeUsers = append(commentDislikeUsers, commentLikeUser)
-			}
+			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 		}
 
-		comment.NumLikes = len(commentLikeUsers)
-		comment.LikeUsers = commentLikeUsers
-		comment.NumDislikes = len(commentDislikeUsers)
-		comment.DislikeUsers = commentDislikeUsers
-
-		if len(username) > 0 && slices.Contains(comment.LikeUsers, username) {
-			comment.LoggedUserLiked = true
+		// Get comment likes data
+		commentLikeQuery := `SELECT username, comment_like FROM comment_likes INNER JOIN users ON users.id = comment_likes.user_id WHERE comment_id = ?;`
+		commentLikeData, err := r.getLikeData(ctx, commentLikeQuery, comment.ID, username)
+		if err != nil {
+			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 		}
-		if len(username) > 0 && slices.Contains(comment.DislikeUsers, username) {
-			comment.LoggedUserDisliked = true
-		}
-
-		//append comment to comments
+		comment.LikeData = *commentLikeData
 		comments = append(comments, comment)
 	}
 
 	data := ThreadData{
-		Thread:       thread,
-		AuthorName:   authorName,
-		NumLikes:     len(likeUsers),
-		LikeUsers:    likeUsers,
-		NumDislikes:  len(dislikeUsers),
-		DislikeUsers: dislikeUsers,
-		Comments:     comments,
+		Thread:     thread,
+		AuthorName: authorName,
+		LikeData:   *threadLikeData,
+		Comments:   comments,
 	}
 
 	return &data, nil
+}
+
+// getLikeData gets the LikeData for a single thread or comment, where id can be either the thread ID or comment ID.
+// The query provided should return rows with 1) the username of the like/dislike, and 2) the like status (bool), in that order.
+func (r *ThreadRepository) getLikeData(ctx context.Context, query string, id int, username string) (*LikeData, error) {
+	rows, err := r.db.QueryContext(ctx, query, id)
+	if err != nil {
+		return nil, fmt.Errorf("getLikeData: %w", err)
+	}
+
+	var likeCount, dislikeCount int
+	var loggedUserLike, loggedUserDislike bool
+	for rows.Next() {
+		var likeUser string
+		var like bool
+		if err := rows.Scan(&likeUser, &like); err != nil {
+			return nil, fmt.Errorf("getLikeData: %w", err)
+		}
+
+		if like {
+			likeCount++
+			if likeUser == username {
+				loggedUserLike = true
+			}
+		} else {
+			dislikeCount++
+			if likeUser == username {
+				loggedUserDislike = true
+			}
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("getLikeData: %w", err)
+	}
+
+	likeData := LikeData{
+		NumLikes:           likeCount,
+		NumDislikes:        dislikeCount,
+		LoggedUserLiked:    loggedUserLike,
+		LoggedUserDisliked: loggedUserDislike,
+	}
+
+	return &likeData, nil
 }

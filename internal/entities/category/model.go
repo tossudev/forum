@@ -1,5 +1,9 @@
 package category
 
+import (
+	"forum/internal/models"
+)
+
 type Category struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
@@ -7,8 +11,8 @@ type Category struct {
 }
 
 type CategoriesPage struct {
-	Path       string
-	Categories []Category
-	Page       int
-	Username   string
+	Breadcrumbs []models.Breadcrumb
+	Categories  []Category
+	Page        int
+	Username    string
 }

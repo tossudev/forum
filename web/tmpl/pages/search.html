@@ -13,7 +13,7 @@
 <div class="contents">
 
 	{{if .Threads}}
-	<p>{{.ThreadPath}}</p>
+	<p>{{ .ThreadPath }}</p>
 	
 	<p class="thread-container">
 	{{range .Threads}}
@@ -36,25 +36,26 @@
 		</div>
 	{{ end }}
 	<div class="pagination">
+		{{ $threadNav := .ThreadPageNav }}
 		Pages: 
-		{{ if gt .ThreadPage 1 }}
+		{{ if gt $threadNav.Page 1 }}
 			<a href="/search?search={{ .InputQuery }}&tab=threads&page=1" title="First page"><<</a>
 		{{ end }}
 
-		{{ if ge .ThreadPrevPage 1 }}
-			<a href="/search?search={{ .InputQuery }}&tag=threads&page={{ .ThreadPrevPage }}" title="Previous page">Prev</a>
+		{{ if ge $threadNav.PrevPage 1 }}
+			<a href="/search?search={{ .InputQuery }}&tab=threads&page={{ $threadNav.PrevPage }}" title="Previous page">Prev</a>
 		{{ end }}
 
-		{{ range .ThreadPageList }}
-			<a class="{{ if eq . $.ThreadPage}}current-page{{ end }}" href="/search?search={{$.InputQuery}}&tab=threads&page={{ . }}">{{ . }}</a>
+		{{ range $threadNav.PageList }}
+			<a class="{{ if eq . $threadNav.Page }}current-page{{ end }}" href="/search?search={{$.InputQuery}}&tab=threads&page={{ . }}">{{ . }}</a>
 		{{ end }}
 
-		{{ if le .ThreadNextPage .ThreadTotalPages }}
-			<a href="/search?search={{ .InputQuery }}&tab=threads&page={{ .ThreadNextPage}}" title="Next page">Next</a>
+		{{ if le $threadNav.NextPage $threadNav.TotalPages }}
+			<a href="/search?search={{ .InputQuery }}&tab=threads&page={{ $threadNav.NextPage }}" title="Next page">Next</a>
 		{{ end }}
 
-		{{ if lt .ThreadPage .ThreadTotalPages }} 
-			<a href="/search?search={{ .InputQuery }}&tab=threads&page={{ .ThreadTotalPages }}" title="Last page">>></a>
+		{{ if lt $threadNav.Page $threadNav.TotalPages }} 
+			<a href="/search?search={{ .InputQuery }}&tab=threads&page={{ $threadNav.TotalPages }}" title="Last page">>></a>
 		{{ end }}
 		</div>
 	</p>
@@ -63,7 +64,7 @@
 	{{ end }}
 
 	{{if .Comments}}
-	<p>{{.CommentPath}}</p>
+	<p>{{ .CommentPath }}</p>
 	<p class="thread-container">
 		{{ range .Comments }}
 		<div class="comment-container">
@@ -83,25 +84,26 @@
 		{{ end }}
 
 	<div class="pagination">
+		{{ $commentNav := .CommentPageNav }}
 		Pages: 
-		{{ if gt .CommentPage 1 }}
+		{{ if gt $commentNav.Page 1 }}
 			<a href="/search?search={{ .InputQuery }}&tab=comments&page=1" title="First page"><<</a>
 		{{ end }}
 
-		{{ if ge .CommentPrevPage 1 }}
-			<a href="/search?search={{ .InputQuery }}&tab=comments&page={{ .CommentPrevPage }}" title="Previous page">Prev</a>
+		{{ if ge $commentNav.PrevPage 1 }}
+			<a href="/search?search={{ .InputQuery }}&tab=comments&page={{ $commentNav.PrevPage }}" title="Previous page">Prev</a>
 		{{ end }}
 
-		{{ range .CommentPageList }}
-			<a class="{{ if eq . $.CommentPage}}current-page{{ end }}" href="/search?search={{$.InputQuery}}&tab=comments&page={{ . }}">{{ . }}</a>
+		{{ range $commentNav.PageList }}
+			<a class="{{ if eq . $commentNav.Page }}current-page{{ end }}" href="/search?search={{$.InputQuery}}&tab=comments&page={{ . }}">{{ . }}</a>
 		{{ end }}
 
-		{{ if le .CommentNextPage .CommentTotalPages }}
-			<a href="/search?search={{ .InputQuery }}&tab=comments&page={{ .CommentNextPage}}" title="Next page">Next</a>
+		{{ if le $commentNav.NextPage $commentNav.TotalPages }}
+			<a href="/search?search={{ .InputQuery }}&tab=comments&page={{ $commentNav.NextPage }}" title="Next page">Next</a>
 		{{ end }}
 
-		{{ if lt .CommentPage .CommentTotalPages }} 
-			<a href="/search?search={{ .InputQuery }}&tab=comments&page={{ .CommentTotalPages }}" title="Last page">>></a>
+		{{ if lt $commentNav.Page $commentNav.TotalPages }} 
+			<a href="/search?search={{ .InputQuery }}&tab=comments&page={{ $commentNav.TotalPages }}" title="Last page">>></a>
 		{{ end }}
 		</div>
 	</p>

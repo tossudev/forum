@@ -6,35 +6,40 @@
 // but since it is only updated on server acceptance,
 // it should always display correctly
 
-async function likeComment(elementRef, like) {
-	const commentID = elementRef.dataset.commentId
+async function like(elementRef, like) {
+	// Assign id and POST path based on if the like was on a comment vs thread
+	const isComment = !!elementRef.dataset.commentId;
+	const id = isComment ? elementRef.dataset.commentId : elementRef.dataset.threadId;
+	const path = isComment ? '/like/comment' : '/like/thread';
+	const dataName = isComment ? "comment" : "thread";
 
 	// Send request to server and await response
     let response;
     try {
-        response = await fetch('/like/comment', {
+        response = await fetch(path, {
             method: 'POST',
             body: JSON.stringify({
-				"comment_id": Number(commentID),
+				"id": Number(id),
 				"like": like
 			})
         });
     } catch(err) {
+		window.alert("Server Error: couldn't send like");
         console.log('Error:', err);
     }
 
 	// Action accepted by server, update frontend
     if (response.ok) {
 		const likeButton = document.querySelector(
-		  `button[data-comment-id="${commentID}"][data-action="like"]`
+		  `button[data-${dataName}-id="${id}"][data-action="like"]`
 		);
 
 		const dislikeButton = document.querySelector(
-		  `button[data-comment-id="${commentID}"][data-action="dislike"]`
+		  `button[data-${dataName}-id="${id}"][data-action="dislike"]`
 		);
 
-		const likeCounter = document.querySelector(`span.likes-${commentID}`)
-		const dislikeCounter = document.querySelector(`span.dislikes-${commentID}`)
+		const likeCounter = likeButton.querySelector(`span.like`)
+		const dislikeCounter = dislikeButton.querySelector(`span.dislike`)
 
 		// Likes and dislikes without current users input
 		// eg. initial values before action
@@ -67,5 +72,7 @@ async function likeComment(elementRef, like) {
 			dislikeCounter.textContent = Number(initialDislikes) + 1
 		}
 		elementRef.classList.add("pressed")
-    }
+    } else {
+		window.alert("You need to be signed in!");
+	}
 }

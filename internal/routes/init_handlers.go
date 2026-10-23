@@ -60,7 +60,7 @@ func InitHandlers(db *sql.DB, validate *validator.Validate, renderer *render.Ren
 
 	searchRepo := search.NewRepository(db)
 	searchService := search.NewService(searchRepo)
-	searchHandler := search.NewHandler(searchService, validate, renderer)
+	searchHandler := search.NewHandler(searchService, renderer)
 
 	app := App{
 		UserHandler:     userHandler,

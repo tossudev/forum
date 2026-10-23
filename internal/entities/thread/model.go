@@ -1,28 +1,30 @@
 package thread
 
 import (
+	"forum/internal/models"
 	"forum/internal/pagination"
 	"html/template"
 )
 
 type Thread struct {
-	ID          int    `json:"id"`
-	Title       string `json:"title"`
-	Body        string `json:"body"`
-	DateCreated string `json:"date_created"`
-	AuthorID    int    `json:"author_id"`
-	CategoryID  int    `json:"category_id"`
-	ReplyCount  int
-	TitleHTML   template.HTML
-	BodyHTML    template.HTML
+	ID           int    `json:"id"`
+	Title        string `json:"title"`
+	Body         string `json:"body"`
+	DateCreated  string `json:"date_created"`
+	AuthorID     int    `json:"author_id"`
+	CategoryID   int    `json:"category_id"`
+	ReplyCount   int
+	TitleHTML    template.HTML
+	BodyHTML     template.HTML
+	DisplayError error
 }
 
 type ThreadsPage struct {
-	CategoryID int
-	Path       string
-	Threads    []Thread
-	PageNav    pagination.PaginationNav
-	Username   string
+	CategoryID  int
+	Breadcrumbs []models.Breadcrumb
+	Threads     []Thread
+	PageNav     pagination.PaginationNav
+	Username    string
 }
 
 type CreateThreadsPage struct {
@@ -34,32 +36,37 @@ type CreateThreadsPage struct {
 	BodyErr      string
 	OtherErr     string
 	Username     string
+	Path         string
+	Threads      []Thread
+	Page         int
 }
 
+// Data for thread page with comments
 type ThreadData struct {
-	Path         string
+	Breadcrumbs  []models.Breadcrumb
 	Thread       Thread
 	AuthorName   string
 	AuthorAvatar string
-	NumLikes     int
-	LikeUsers    []string
-	NumDislikes  int
-	DislikeUsers []string
+	LikeData     LikeData // LikeData for the thread post only
 	Comments     []CommentData
 	Username     string
 }
 
-type CommentData struct {
-	ID                 int
-	Body               string
-	BodyHTML           template.HTML
-	DateCreated        string
-	ThreadID           int
-	AuthorName         string
+type LikeData struct {
 	NumLikes           int
-	LikeUsers          []string
 	NumDislikes        int
-	DislikeUsers       []string
 	LoggedUserLiked    bool
 	LoggedUserDisliked bool
+	DisplayError       error
+}
+
+type CommentData struct {
+	ID           int
+	Body         string
+	BodyHTML     template.HTML
+	DateCreated  string
+	ThreadID     int
+	AuthorName   string
+	LikeData     LikeData
+	DisplayError error
 }

@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"forum/internal/entities/comment"
-	"forum/internal/entities/thread"
 	"forum/internal/errs"
 	"forum/internal/pagination"
 )
@@ -18,20 +16,20 @@ func NewService(r *SearchRepository) *SearchService {
 	return &SearchService{repo: r}
 }
 
-func (s *SearchService) Search(ctx context.Context, input string, pagination pagination.Pagination) ([]thread.Thread, int, []comment.Comment, int, error) {
+func (s *SearchService) Search(ctx context.Context, searchQuery string, tab string, pagination pagination.Pagination) (PaginatedSearchResult, error) {
 
 	if err := pagination.Validate(); err != nil {
-		return nil, 0, nil, 0, fmt.Errorf("%w: invalid pagination parameters", errs.ErrInvalidUserInput)
+		return PaginatedSearchResult{}, fmt.Errorf("%w: invalid pagination parameters", errs.ErrInvalidUserInput)
 	}
 
-	threads, threadsCount, comments, commentsCount, err := s.repo.Search(ctx, input, pagination)
+	searchResult, err := s.repo.Search(ctx, searchQuery, tab, pagination)
 	if err != nil {
-		return nil, 0, nil, 0, err
+		return PaginatedSearchResult{}, err
 	}
 
-	if len(threads) == 0 && len(comments) == 0 {
-		return nil, 0, nil, 0, errs.ErrSearchNoResults
+	if len(searchResult.Threads) == 0 && len(searchResult.Comments) == 0 {
+		return PaginatedSearchResult{}, errs.ErrSearchNoResults
 	}
 
-	return threads, threadsCount, comments, commentsCount, nil
+	return searchResult, nil
 }
