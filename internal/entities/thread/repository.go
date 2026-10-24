@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 
-	"forum/internal/config"
 	"forum/internal/errs"
 	"forum/internal/pagination"
+	"forum/internal/timeformat"
 )
 
 type ThreadRepository struct {
@@ -145,7 +145,7 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 	}
 
-	thread.DateCreated, err = config.FormatTime(thread.DateCreated)
+	thread.DateCreated, err = timeformat.FormatTime(thread.DateCreated, timeformat.GetTimezone(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 	}
@@ -174,7 +174,7 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 		}
 
-		comment.DateCreated, err = config.FormatTime(comment.DateCreated)
+		comment.DateCreated, err = timeformat.FormatTime(comment.DateCreated, timeformat.GetTimezone(ctx))
 		if err != nil {
 			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
 		}

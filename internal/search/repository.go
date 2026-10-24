@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 
-	"forum/internal/config"
 	"forum/internal/entities/comment"
 	"forum/internal/entities/thread"
 	"forum/internal/pagination"
+	"forum/internal/timeformat"
 )
 
 type SearchRepository struct {
@@ -145,17 +145,15 @@ func (r *SearchRepository) searchThreads(ctx context.Context, searchQuery string
 			return nil, fmt.Errorf("Thread Search: %w", err)
 		}
 
-		thread.DateCreated, errFormat = config.FormatTime(thread.DateCreated)
+		thread.DateCreated, errFormat = timeformat.FormatTime(thread.DateCreated, timeformat.GetTimezone(ctx))
 		if errFormat != nil {
 			return nil, errFormat
 		}
-
 		threads = append(threads, thread)
 	}
 	if err = rowsThread.Err(); err != nil {
 		return nil, fmt.Errorf("Thread Search: %w", err)
 	}
-
 	return threads, nil
 }
 
@@ -181,7 +179,7 @@ func (r *SearchRepository) searchComments(ctx context.Context, searchQuery strin
 			return nil, fmt.Errorf("Comment Search: %w", err)
 		}
 
-		comment.DateCreated, errFormat = config.FormatTime(comment.DateCreated)
+		comment.DateCreated, errFormat = timeformat.FormatTime(comment.DateCreated, timeformat.GetTimezone(ctx))
 		if errFormat != nil {
 			return nil, errFormat
 		}
