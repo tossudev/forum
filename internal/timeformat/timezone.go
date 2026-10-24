@@ -1,4 +1,4 @@
-package timeformat 
+package timeformat
 
 import (
 	"context"
