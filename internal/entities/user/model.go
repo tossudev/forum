@@ -30,10 +30,7 @@ type RegistrationPage struct {
 	Username      string // Logged in user, if any (for toggling login/logout button)
 	InputUsername string // From registration form
 	InputEmail    string
-	UsernameErr   string
-	EmailErr      string
-	PasswordErr   string
-	OtherErr      string
+	FieldErrors   map[string]string
 }
 
 type LoginPage struct {

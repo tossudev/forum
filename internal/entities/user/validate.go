@@ -3,12 +3,55 @@ package user
 import (
 	"errors"
 	"forum/internal/errs"
+	"log/slog"
+	"net/http"
 	"regexp"
 )
 
 var (
 	emailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$")
 )
+
+// getRegistrationFieldErrors returns a map of field errors and corresponding error messages for display.
+// Also returns the http status code.
+func getRegistrationFieldErrors(err error) (map[string]string, int) {
+	fieldErrors := make(map[string]string)
+
+	if err == nil {
+		return fieldErrors, http.StatusOK
+	}
+
+	// Username field errors
+	switch {
+	case errors.Is(err, errs.ErrInvalidUsername):
+		fieldErrors["UsernameErr"] = "Username must be 2-20 characters, start with a letter, and only contain letters, numbers, or underscores (_)."
+	case errors.Is(err, errs.ErrDuplicateUsername):
+		fieldErrors["UsernameErr"] = "Username already taken."
+	}
+
+	// Email field errors
+	switch {
+	case errors.Is(err, errs.ErrInvalidEmail):
+		fieldErrors["EmailErr"] = "Enter a valid email address, such as example@email.com."
+	case errors.Is(err, errs.ErrDuplicateEmail):
+		fieldErrors["EmailErr"] = "Email already taken."
+	}
+
+	// Password field errors
+	if errors.Is(err, errs.ErrInvalidPassword) {
+		fieldErrors["PasswordErr"] = "Password must be 8-128 characters."
+	}
+
+	if len(fieldErrors) > 0 {
+		return fieldErrors, http.StatusBadRequest
+	}
+
+	// None of the above errors
+	fieldErrors["OtherErr"] = "Sorry, we're unable to process user registration at the moment. Please try again later."
+	slog.Error("user registration error:", "err", err)
+
+	return fieldErrors, http.StatusInternalServerError
+}
 
 // validateRegistrationCredentials validates the submitted username, email, and password for user registration.
 // Returns an error combining all validation errors (if any).
