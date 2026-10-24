@@ -7,6 +7,7 @@ import (
 
 	"forum/internal/entities/comment"
 	"forum/internal/entities/thread"
+	"forum/internal/errs"
 	"forum/internal/pagination"
 	"forum/internal/timeformat"
 )
@@ -28,7 +29,6 @@ func (r *SearchRepository) Search(ctx context.Context, searchQuery string, tab s
 	var threadsCount int
 	var comments []comment.Comment
 	var commentsCount int
-	var page int
 
 	//if tab is "threads", search only threads
 	if tab == "threads" {
@@ -41,16 +41,18 @@ func (r *SearchRepository) Search(ctx context.Context, searchQuery string, tab s
 		}
 
 		//check if requested page is larger than last possible page based on number of results & page size
-		//if so, set page to last possible page
-		page = pagination.CheckPageTooLarge(paginationData, threadsCount)
-		paginationData.Page = page
+		//if so, return err
+		err = pagination.CheckPageTooLarge(paginationData, threadsCount)
+		if err != nil {
+			return PaginatedSearchResult{}, fmt.Errorf("Search Thread: %w", errs.ErrInvalidUserInput)
+		}
 
 		//get threads matching search term on requested page
 		threads, err = r.searchThreads(ctx, queryInput, paginationData)
 		if err != nil {
 			return PaginatedSearchResult{}, fmt.Errorf("Search thread: %w", err)
 		}
-		return PaginatedSearchResult{Threads: threads, ThreadsCount: threadsCount, Page: page}, nil
+		return PaginatedSearchResult{Threads: threads, ThreadsCount: threadsCount}, nil
 
 		//if tab is "comments", search only comments
 	} else if tab == "comments" {
@@ -64,15 +66,18 @@ func (r *SearchRepository) Search(ctx context.Context, searchQuery string, tab s
 
 		//check if requested page is larger than possible pages based on number of results & page size
 		//if so, set page to last possible page
-		page = pagination.CheckPageTooLarge(paginationData, commentsCount)
-		paginationData.Page = page
+		err = pagination.CheckPageTooLarge(paginationData, commentsCount)
+		if err != nil {
+			return PaginatedSearchResult{}, fmt.Errorf("Search comments: %w", errs.ErrInvalidUserInput)
+		}
+		//paginationData.Page = page
 
 		//get comments matching search term on requested page
 		comments, err = r.searchComments(ctx, queryInput, paginationData)
 		if err != nil {
 			return PaginatedSearchResult{}, fmt.Errorf("Search comments: %w", err)
 		}
-		return PaginatedSearchResult{Comments: comments, CommentsCount: commentsCount, Page: page}, nil
+		return PaginatedSearchResult{Comments: comments, CommentsCount: commentsCount}, nil
 
 		//if no tab (or if tab is anything other than "threads" or "comments", search both
 	} else {
@@ -91,21 +96,24 @@ func (r *SearchRepository) Search(ctx context.Context, searchQuery string, tab s
 			return PaginatedSearchResult{}, fmt.Errorf("Search comments: %w", err)
 		}
 
-		//if there are more comments than threads, get page based on number of results for comments
-		//otherwise, get page based on number of results for threads
+		//check if out of range based on lower value for last possible page
+		var checkCount int
 		if commentsCount > threadsCount {
-			page = pagination.CheckPageTooLarge(paginationData, threadsCount)
+			checkCount = threadsCount
 		} else {
-			page = pagination.CheckPageTooLarge(paginationData, commentsCount)
+			checkCount = commentsCount
 		}
-		paginationData.Page = page
+		err = pagination.CheckPageTooLarge(paginationData, checkCount)
+		if err != nil {
+			return PaginatedSearchResult{}, fmt.Errorf("Search Thread: %w", errs.ErrInvalidUserInput)
+		}
+		//paginationData.Page = page
 
 		//get threads matching search term on requested page
 		threads, err = r.searchThreads(ctx, queryInput, paginationData)
 		if err != nil {
 			return PaginatedSearchResult{}, fmt.Errorf("Search threads: %w", err)
 		}
-
 		//get comments matching search term on requested page
 		comments, err = r.searchComments(ctx, queryInput, paginationData)
 		if err != nil {
@@ -118,7 +126,6 @@ func (r *SearchRepository) Search(ctx context.Context, searchQuery string, tab s
 		ThreadsCount:  threadsCount,
 		Comments:      comments,
 		CommentsCount: commentsCount,
-		Page:          page,
 	}
 	return searchResult, nil
 }

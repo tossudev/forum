@@ -11,7 +11,6 @@ type PaginatedSearchResult struct {
 	ThreadsCount  int
 	Comments      []comment.Comment
 	CommentsCount int
-	Page          int
 }
 
 type SearchResultPage struct {

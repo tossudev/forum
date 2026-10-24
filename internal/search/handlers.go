@@ -2,6 +2,7 @@ package search
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"forum/internal/entities/user"
@@ -52,7 +53,6 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 
 	//perform search, check for errs
 	searchResult, err := h.service.Search(ctx, searchQuery, tab, paginationData)
-	paginationData.Page = searchResult.Page
 
 	//if err is 'no search results', send error to frontend and render search page
 	//otherwise, render error 500 page
@@ -68,6 +68,7 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 			h.renderer.RenderPage(w, "error-500.html", SearchResultPage{Username: username})
+			slog.Error("Search fail", "err", err)
 			return
 		}
 	}

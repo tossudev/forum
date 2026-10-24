@@ -19,21 +19,23 @@ func NewRepository(db *sql.DB) *ThreadRepository {
 	return &ThreadRepository{db: db}
 }
 
-// Returns threads, the total number of threads, possibly modified page, and a potential error.
-func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, paginationData pagination.Pagination) ([]Thread, int, int, error) {
+// Returns threads, the total number of threads, and a potential error.
+func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, paginationData pagination.Pagination) ([]Thread, int, error) {
 
 	//get count of threads in requested category
 	queryCount := `SELECT COUNT (*) FROM threads WHERE category_id = ?;`
 	var totalCount int
 	err := r.db.QueryRowContext(ctx, queryCount, id).Scan(&totalCount)
 	if err != nil {
-		return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+		return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 	}
 
 	//check if requested page is larger than last possible page based on number of results & page size
-	//if so, set page to last possible page
-	page := pagination.CheckPageTooLarge(paginationData, totalCount)
-	paginationData.Page = page
+	//if so, return err
+	err = pagination.CheckPageTooLarge(paginationData, totalCount)
+	if err != nil {
+		return nil, 0, fmt.Errorf("ThreadGetByCategory: %w", errs.ErrInvalidUserInput)
+	}
 
 	var threads []Thread
 
@@ -42,32 +44,32 @@ func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination
 
 	rows, err := r.db.QueryContext(ctx, query, id, paginationData.Limit(), paginationData.Offset())
 	if err != nil {
-		return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+		return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 	}
 
 	for rows.Next() {
 		var thread Thread
 		if err := rows.Scan(&totalCount, &thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
-			return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+			return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
 
 		thread.DateCreated, err = timeformat.FormatTime(thread.DateCreated, timeformat.GetTimezone(ctx))
 		if err != nil {
-			return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+			return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
 
 		queryCount := "SELECT COUNT(*) FROM comments WHERE thread_id = ?"
 		if err := r.db.QueryRowContext(ctx, queryCount, thread.ID).Scan(&thread.ReplyCount); err != nil {
-			return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+			return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
 
 		threads = append(threads, thread)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+		return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 	}
 
-	return threads, totalCount, page, nil
+	return threads, totalCount, nil
 }
 
 func (r *ThreadRepository) GetByID(ctx context.Context, id int) (*Thread, error) {

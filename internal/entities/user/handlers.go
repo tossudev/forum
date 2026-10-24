@@ -229,15 +229,19 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Get all the threads posted by a user
-	threads, totalCount, page, err := h.service.GetThreadsByUserID(ctx, user.ID, paginationData)
+	threads, totalCount, err := h.service.GetThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
+		if errors.Is(err, errs.ErrInvalidUserInput) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", ThreadsPage{Username: user.Username})
+			return
+		}
 		slog.Error("internal server error:", "err", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		h.renderer.RenderPage(w, "error-500.html", ThreadsPage{Username: user.Username})
 		return
 	}
 
-	paginationData.Page = page //page has been returned from repo
 	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
 	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
 
