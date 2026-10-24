@@ -30,8 +30,6 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	mux.HandleFunc("DELETE /threads/{id}", app.ThreadHandler.Delete)
 
 	//Comment routes
-	mux.HandleFunc("GET /comments/{id}", app.CommentHandler.GetByID)
-	mux.HandleFunc("GET /threads/{id}/comments", app.CommentHandler.GetByThread)
 	mux.HandleFunc("POST /threads/{id}/comments", app.CommentHandler.Create)
 	mux.HandleFunc("DELETE /comments/{id}", app.CommentHandler.Delete)
 
