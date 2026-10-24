@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 
-	"forum/internal/config"
 	"forum/internal/errs"
 	"forum/internal/pagination"
+	"forum/internal/timeformat"
 )
 
 type ThreadRepository struct {
@@ -51,7 +51,7 @@ func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination
 			return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
 
-		thread.DateCreated, err = config.FormatTime(thread.DateCreated)
+		thread.DateCreated, err = timeformat.FormatTime(thread.DateCreated, timeformat.GetTimezone(ctx))
 		if err != nil {
 			return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
@@ -180,7 +180,7 @@ func (r *ThreadRepository) getThreadDisplay(ctx context.Context, threadID int, u
 		return nil, fmt.Errorf("getThreadDisplay: %w", err)
 	}
 
-	thread.DateCreated, err = config.FormatTime(thread.DateCreated)
+	thread.DateCreated, err = timeformat.FormatTime(thread.DateCreated, timeformat.GetTimezone(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("getThreadDisplay: %w", err)
 	}
@@ -226,7 +226,7 @@ func (r *ThreadRepository) getCommentsDisplay(ctx context.Context, threadID int,
 			return nil, fmt.Errorf("getCommentsDisplay: %w", err)
 		}
 
-		comment.DateCreated, err = config.FormatTime(comment.DateCreated)
+		comment.DateCreated, err = timeformat.FormatTime(comment.DateCreated, timeformat.GetTimezone(ctx))
 		if err != nil {
 			return nil, fmt.Errorf("getCommentsDisplay: %w", err)
 		}
