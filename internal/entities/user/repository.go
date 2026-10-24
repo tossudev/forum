@@ -150,3 +150,42 @@ func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, paginatio
 
 	return threads, totalCount, 0, nil
 }
+
+// GetLikedThreadsByUserID gets all the threads liked by a user within the given pagination parameters.
+// Returns the threads, the total number of threads found, and a potential error.
+func (r *UserRepo) GetLikedThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
+	var threads []ProfileThread
+	var totalCount int
+
+	query := `SELECT COUNT(*) OVER() AS total_count, id, title, body, date_created, author_id, category_id
+	FROM threads AS t
+	INNER JOIN thread_likes AS tl ON t.id = tl.thread_id
+	WHERE tl.thread_like = true AND tl.user_ID = ?
+	ORDER BY date_created DESC
+	LIMIT ? OFFSET ?;`
+
+	rows, err := r.db.QueryContext(ctx, query, userID, pagination.Limit(), pagination.Offset())
+	if err != nil {
+		return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+	}
+
+	for rows.Next() {
+		var thread ProfileThread
+		if err := rows.Scan(&totalCount, &thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
+			return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+		}
+
+		thread.DateCreated, err = config.FormatTime(thread.DateCreated)
+		if err != nil {
+			return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+		}
+
+		threads = append(threads, thread)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+	}
+
+	return threads, totalCount, nil
+}
