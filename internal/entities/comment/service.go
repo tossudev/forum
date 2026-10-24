@@ -21,7 +21,7 @@ func NewService(r *CommentRepository) *CommentService {
 
 func (s *CommentService) Create(ctx context.Context, req *Comment) (Comment, error) {
 	if _, err := validate.ParseHTML(req.Body); err != nil {
-		return Comment{}, err
+		return Comment{}, errs.ErrInvalidUserInput
 	}
 
 	isoTime := time.Now().UTC()

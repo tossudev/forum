@@ -1,6 +1,7 @@
 package comment
 
 import (
+	"errors"
 	"fmt"
 	"forum/internal/errs"
 	"log/slog"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	"forum/internal/entities/user"
+	"forum/internal/render"
 	"forum/internal/session"
 
 	"github.com/go-playground/validator/v10"
@@ -17,10 +19,11 @@ import (
 type CommentHandler struct {
 	service   *CommentService
 	validator *validator.Validate
+	renderer  *render.Renderer
 }
 
-func NewHandler(service *CommentService, validator *validator.Validate) *CommentHandler {
-	return &CommentHandler{service: service, validator: validator}
+func NewHandler(service *CommentService, validator *validator.Validate, renderer *render.Renderer) *CommentHandler {
+	return &CommentHandler{service: service, validator: validator, renderer: renderer}
 }
 
 // TODO: user friendly error handling
@@ -32,6 +35,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	threadID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || threadID < 1 {
 		w.WriteHeader(http.StatusBadRequest)
+
 		slog.Error("comment creation fail", "err", err)
 		return
 	}
@@ -51,19 +55,36 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//ErrorPage is used to relay values to the frontend in error pages
+	ep := ErrorPage{
+		Username: user.Username,
+		Message:  "Comment has to include characters",
+	}
+
+	// to check if there is only spaces in comment body
+	commentBody := strings.TrimSpace(r.PostFormValue("body"))
+	if commentBody == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		h.renderer.RenderPage(w, "error-400.html", ep)
+		return
+	}
 	comment := Comment{
-		Body:     strings.TrimSpace(r.PostFormValue("body")),
+		Body:     commentBody,
 		ThreadID: threadID,
 		AuthorID: user.ID,
 	}
-
+	//call to service layer
 	_, err = h.service.Create(ctx, &comment)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		slog.Error("comment creation fail", "err", err)
+		if errors.Is(err, errs.ErrInvalidUserInput) {
+			w.WriteHeader(http.StatusBadRequest)
+			ep.Message = "comment has invalid formatting"
+			h.renderer.RenderPage(w, "error-400.html", ep)
+			return
+		}
+		errs.WriteError(w, err)
 		return
 	}
-
 	// On successful submission, reload the page
 	http.Redirect(w, r, "/threads/"+strconv.Itoa(threadID), http.StatusSeeOther)
 }

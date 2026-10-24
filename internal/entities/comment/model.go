@@ -12,3 +12,8 @@ type Comment struct {
 	AuthorID    int    `json:"author_id"`
 	BodyHTML    template.HTML
 }
+
+type ErrorPage struct {
+	Username string
+	Message  string
+}
