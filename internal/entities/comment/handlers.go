@@ -56,7 +56,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//ErrorPage is used to relay values to the frontend in error pages
-	ep := ErrorPage{
+	pageData := ErrorPage{
 		Username: user.Username,
 		Message:  "Comment has to include characters",
 	}
@@ -65,7 +65,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	commentBody := strings.TrimSpace(r.PostFormValue("body"))
 	if commentBody == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		h.renderer.RenderPage(w, "error-400.html", ep)
+		h.renderer.RenderPage(w, "error-400.html", pageData)
 		return
 	}
 	comment := Comment{
@@ -73,13 +73,14 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		ThreadID: threadID,
 		AuthorID: user.ID,
 	}
+
 	//call to service layer
 	_, err = h.service.Create(ctx, &comment)
 	if err != nil {
 		if errors.Is(err, errs.ErrInvalidUserInput) {
 			w.WriteHeader(http.StatusBadRequest)
-			ep.Message = "comment has invalid formatting"
-			h.renderer.RenderPage(w, "error-400.html", ep)
+			pageData.Message = "comment has invalid formatting"
+			h.renderer.RenderPage(w, "error-400.html", pageData)
 			return
 		}
 		errs.WriteError(w, err)
