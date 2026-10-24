@@ -3,8 +3,9 @@ package config
 import (
 	"flag"
 	"log/slog"
-	"time"
 )
+
+const UploadsPath string = "./uploads/"
 
 type Config struct {
 	Port           int
@@ -13,13 +14,6 @@ type Config struct {
 	Reset          bool
 	LogLevel       slog.Level
 }
-
-// TODO: figure out better place for these, global constants are not idiomatic
-const (
-	TimeFormat         string = "20060102T150405"
-	TimeFormatFrontEnd string = "January 02 2006 15:04"
-	UploadsPath        string = "./uploads/"
-)
 
 func Load() Config {
 	cfg := Config{
@@ -33,16 +27,4 @@ func Load() Config {
 	flag.Parse()
 
 	return cfg
-}
-
-// func changed to include the users location
-func FormatTime(timeString string, loc *time.Location) (string, error) {
-	time, err := time.Parse(TimeFormat, timeString)
-	if err != nil {
-		return "", err
-	}
-	// location = users location
-	time = time.In(loc)
-	formattedTime := time.Format(TimeFormatFrontEnd)
-	return formattedTime, nil
 }

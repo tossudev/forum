@@ -6,11 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"forum/internal/config"
 	"forum/internal/database"
 	"forum/internal/errs"
-	"forum/internal/middleware"
 	"forum/internal/pagination"
+	"forum/internal/timeformat"
 )
 
 type UserRepo struct {
@@ -136,7 +135,7 @@ func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, paginatio
 			return nil, 0, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
 		}
 
-		thread.DateCreated, err = config.FormatTime(thread.DateCreated, middleware.GetTimezone(ctx))
+		thread.DateCreated, err = timeformat.FormatTime(thread.DateCreated, timeformat.GetTimezone(ctx))
 		if err != nil {
 			return nil, 0, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
 		}
@@ -174,8 +173,7 @@ func (r *UserRepo) GetLikedThreadsByUserID(ctx context.Context, userID int, pagi
 		if err := rows.Scan(&totalCount, &thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
 			return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
 		}
-
-		thread.DateCreated, err = config.FormatTime(thread.DateCreated)
+		thread.DateCreated, err = timeformat.FormatTime(thread.DateCreated, timeformat.GetTimezone(ctx))
 		if err != nil {
 			return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
 		}

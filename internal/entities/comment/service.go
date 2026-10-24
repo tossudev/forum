@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"forum/internal/config"
 	"forum/internal/errs"
 	"forum/internal/pagination"
+	"forum/internal/timeformat"
 	"forum/internal/validate"
 )
 
@@ -25,7 +25,7 @@ func (s *CommentService) Create(ctx context.Context, req *Comment) (Comment, err
 	}
 
 	isoTime := time.Now().UTC()
-	isoString := isoTime.Format(config.TimeFormat)
+	isoString := isoTime.Format(timeformat.TimeFormat)
 
 	req.DateCreated = isoString
 
