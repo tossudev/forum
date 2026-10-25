@@ -7,7 +7,7 @@
 # the defacto golang image seems like a more stable option
 FROM golang:1.27 AS build
 
-# Name container root dir (good practice, does not affect containerization process)
+# Create and cd working directory (good practice)
 WORKDIR /app
 
 # Acquire dependencies first
@@ -24,6 +24,7 @@ RUN go build -tags fts5 -o forum ./cmd
 # Expose HTTP port for the container
 EXPOSE 8080
 
-# Run server and reset database
+# Run server, reset (and seed) database
+# TODO: Have options for pre-seeded database and completely empty database
 CMD ["./forum", "--reset"]
 

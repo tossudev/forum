@@ -1,6 +1,6 @@
 services:
   forum:
-    build: . 					# Build the image using the Dockerfile in this directory, if not specified (docker compose --build), docker will reuse cached image from last run
+    build: . 					# Build the image using the Dockerfile in this directory. Only executed when "docker compose --build" is used, otherwise docker will reuse cached image from last run
     image: forum:latest
     container_name: forum
     ports: 						# Host port to container port
