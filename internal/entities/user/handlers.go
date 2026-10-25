@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"forum/internal/errs"
 	"forum/internal/pagination"
 	"forum/internal/password"
@@ -178,13 +179,17 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Get all the threads posted by a user
-	threads, totalCount, page, err := h.service.GetThreadsByUserID(ctx, user.ID, paginationData)
+	threads, totalCount, err := h.service.GetThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
+		if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", ThreadsPage{Username: user.Username})
+			return
+		}
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}
 
-	paginationData.Page = page //page has been returned from repo
 	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
 	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
 
@@ -235,6 +240,11 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 	// Get all the liked threads posted by a user
 	threads, totalCount, err := h.service.GetLikedThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
+		if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", LikesPage{Username: user.Username})
+			return
+		}
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}

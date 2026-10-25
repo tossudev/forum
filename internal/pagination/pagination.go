@@ -138,9 +138,9 @@ func GetDisplayPageNums(want, total, displayLimit int) []int {
 	return pages
 }
 
-func CheckPageTooLarge(paginationData Pagination, count int) int {
+func CheckPageTooLarge(paginationData Pagination, count int) error {
 	if paginationData.Page > CalcTotalPages(count, paginationData.PageSize) {
-		return CalcTotalPages(count, paginationData.PageSize)
+		return fmt.Errorf("%w: page number too large", ErrPaginationParams)
 	}
-	return paginationData.Page
+	return nil
 }
