@@ -102,7 +102,7 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (User, erro
 }
 
 // GetThreadsByUserID gets all the threads posted by a user within the given pagination parameters.
-// Returns the threads, the total number of threads found, and a potential error.
+// Returns the threads, the total number of threads found, and a potential erro|| errors.Is(err, errs.ErrNotFound) r.
 func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, paginationData pagination.Pagination) ([]ProfileThread, int, error) {
 
 	//get count of threads created by user
@@ -121,7 +121,7 @@ func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, paginatio
 	//if so, return err
 	err = pagination.CheckPageTooLarge(paginationData, totalCount)
 	if err != nil {
-		return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", errs.ErrInvalidUserInput)
+		return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", errs.ErrNotFound)
 	}
 
 	//get threads created by user on requested page
@@ -176,7 +176,7 @@ func (r *UserRepo) GetLikedThreadsByUserID(ctx context.Context, userID int, pagi
 	//if so, return err
 	err = pagination.CheckPageTooLarge(paginationData, totalCount)
 	if err != nil {
-		return nil, 0, fmt.Errorf("GetLikedThreadsByUserID: %w", errs.ErrInvalidUserInput)
+		return nil, 0, fmt.Errorf("GetLikedThreadsByUserID: %w", errs.ErrNotFound)
 	}
 
 	var threads []ProfileThread

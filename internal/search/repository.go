@@ -91,7 +91,7 @@ func (r *SearchRepository) searchThreads(ctx context.Context, queryInput string,
 	//if so, return err
 	err = pagination.CheckPageTooLarge(paginationData, threadsCount)
 	if err != nil {
-		return nil, 0, fmt.Errorf("Search Thread: %w", errs.ErrInvalidUserInput)
+		return nil, 0, fmt.Errorf("Search Thread: %w", errs.ErrNotFound)
 	}
 
 	//get threads
@@ -141,7 +141,7 @@ func (r *SearchRepository) searchComments(ctx context.Context, queryInput string
 	//if so, set page to last possible page
 	err = pagination.CheckPageTooLarge(paginationData, commentsCount)
 	if err != nil {
-		return nil, 0, fmt.Errorf("Search comments: %w", errs.ErrInvalidUserInput)
+		return nil, 0, fmt.Errorf("Search comments: %w", errs.ErrNotFound)
 	}
 
 	//get comments
