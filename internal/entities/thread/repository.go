@@ -30,7 +30,7 @@ func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination
 		return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 	}
 
-	//check if requested page is larger than last possible page based on number of results & page size
+	//check if requested page is larger than last possible page based on number of threads & page size
 	//if so, return err
 	err = pagination.CheckPageTooLarge(paginationData, totalCount)
 	if err != nil {
@@ -147,7 +147,11 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 		return nil, nil, 0, fmt.Errorf("DisplayThreadPage: %w", err)
 	}
 
-	// TODO: Use pagination.CheckPageTooLarge once it has been updated to return error
+	//check if requested page is larger than last possible page based on number of comments & page size
+	err = pagination.CheckPageTooLarge(paginationData, totalCount)
+	if err != nil {
+		return nil, nil, 0, fmt.Errorf("DisplayThreadPage: %w", errs.ErrInvalidUserInput)
+	}
 
 	// Get thread data along with thread author name
 	threadDisplay, err := r.getThreadDisplay(ctx, threadID, username)

@@ -294,6 +294,11 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 	// Get all the liked threads posted by a user
 	threads, totalCount, err := h.service.GetLikedThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
+		if errors.Is(err, errs.ErrInvalidUserInput) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", LikesPage{Username: user.Username})
+			return
+		}
 		slog.Error("internal server error:", "err", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		h.renderer.RenderPage(w, "error-500.html", LikesPage{Username: user.Username})

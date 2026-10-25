@@ -281,7 +281,7 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 
 	threadDisplay, commentsDisplay, totalCount, err := h.service.DisplayThreadPage(ctx, threadID, username, paginationData)
 	if err != nil {
-		if errors.Is(err, errs.ErrNotFound) {
+		if errors.Is(err, errs.ErrNotFound) || errors.Is(err, errs.ErrInvalidUserInput) {
 			w.WriteHeader(http.StatusNotFound)
 			h.renderer.RenderPage(w, "error-404.html", ThreadCommentsPage{Username: username})
 			return
