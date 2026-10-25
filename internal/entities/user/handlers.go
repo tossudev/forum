@@ -181,11 +181,6 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 	// Get all the threads posted by a user
 	threads, totalCount, err := h.service.GetThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
-		if errors.Is(err, errs.ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			h.renderer.RenderPage(w, "error-404.html", ThreadsPage{Username: user.Username})
-			return
-		}
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}
@@ -347,23 +342,18 @@ func (h *UserHandler) ProfileDislikedThreadsPage(w http.ResponseWriter, r *http.
 
 	paginationData, err := pagination.Parse(r.URL.Query())
 	if err != nil {
-		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	if paginationData.Validate() != nil {
-		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	// Get all the disliked threads posted by a user
 	threads, totalCount, err := h.service.GetDislikedThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
-		if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			h.renderer.RenderPage(w, "error-404.html", DislikesPage{Username: user.Username})
-			return
-		}
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}
