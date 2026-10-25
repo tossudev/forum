@@ -312,3 +312,58 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 
 	h.renderer.RenderPage(w, "profile-liked-threads.html", pageData)
 }
+
+// ProfileDislikedThreadsPage gets all disliked threads by a user and renders the data on the user's profile page.
+func (h *UserHandler) ProfileDislikedThreadsPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	user := GetUser(r)
+	if user == nil {
+		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
+		return
+	}
+
+	type DislikesPage struct {
+		Threads  []ProfileThread
+		PageNav  pagination.PaginationNav
+		Username string
+	}
+
+	paginationData, err := pagination.Parse(r.URL.Query())
+	if err != nil {
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
+		return
+	}
+
+	if paginationData.Validate() != nil {
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
+		return
+	}
+
+	// Get all the disliked threads posted by a user
+	threads, totalCount, err := h.service.GetDislikedThreadsByUserID(ctx, user.ID, paginationData)
+	if err != nil {
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
+		return
+	}
+
+	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
+	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
+
+	pageNav := pagination.PaginationNav{
+		Path:       r.URL.Path,
+		Page:       paginationData.Page,
+		TotalPages: totalPages,
+		PageList:   pageList,
+		PrevPage:   paginationData.Page - 1,
+		NextPage:   paginationData.Page + 1,
+	}
+
+	pageData := DislikesPage{
+		Threads:  threads,
+		PageNav:  pageNav,
+		Username: user.Username,
+	}
+
+	h.renderer.RenderPage(w, "profile-disliked-threads.html", pageData)
+}

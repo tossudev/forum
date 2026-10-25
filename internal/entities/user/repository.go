@@ -160,7 +160,7 @@ func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, paginatio
 // Returns the threads, the total number of threads found, and a potential error.
 func (r *UserRepo) GetLikedThreadsByUserID(ctx context.Context, userID int, paginationData pagination.Pagination) ([]ProfileThread, int, error) {
 
-	//get count of threads created by user
+	//get count of threads liked by user
 	queryCount := `SELECT COUNT(*) FROM thread_likes WHERE thread_like = true AND user_id = ?;`
 	var totalCount int
 	err := r.db.QueryRowContext(ctx, queryCount, userID).Scan(&totalCount)
@@ -266,4 +266,60 @@ func (r *UserRepo) GetCommentsByUserID(ctx context.Context, userID int, paginati
 	}
 
 	return comments, totalCount, nil
+}
+
+// Returns the threads, the total number of threads found, and a potential error.
+func (r *UserRepo) GetDislikedThreadsByUserID(ctx context.Context, userID int, paginationData pagination.Pagination) ([]ProfileThread, int, error) {
+
+	//get count of threads disliked by user
+	queryCount := `SELECT COUNT(*) FROM thread_likes WHERE thread_like = false AND user_id = ?;`
+	var totalCount int
+	err := r.db.QueryRowContext(ctx, queryCount, userID).Scan(&totalCount)
+	if err != nil {
+		return nil, 0, fmt.Errorf("GetLikedThreadsByUserID: %w", err)
+	}
+
+	if totalCount == 0 {
+		return nil, 0, nil
+	}
+
+	//check if requested page is larger than last possible page based on number of results & page size
+	//if so, return err
+	err = pagination.CheckPageTooLarge(paginationData, totalCount)
+	if err != nil {
+		return nil, 0, fmt.Errorf("GetLikedThreadsByUserID: %w", errs.ErrNotFound)
+	}
+
+	var threads []ProfileThread
+
+	query := `SELECT id, title, body, date_created, author_id, category_id
+	FROM threads AS t
+	INNER JOIN thread_likes AS tl ON t.id = tl.thread_id
+	WHERE tl.thread_like = false AND tl.user_ID = ?
+	ORDER BY date_created DESC
+	LIMIT ? OFFSET ?;`
+
+	rows, err := r.db.QueryContext(ctx, query, userID, paginationData.Limit(), paginationData.Offset())
+	if err != nil {
+		return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+	}
+
+	for rows.Next() {
+		var thread ProfileThread
+		if err := rows.Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
+			return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+		}
+		thread.DateCreated, err = timeformat.FormatTime(thread.DateCreated, timeformat.GetTimezone(ctx))
+		if err != nil {
+			return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+		}
+
+		threads = append(threads, thread)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+	}
+
+	return threads, totalCount, nil
 }
