@@ -40,9 +40,6 @@ type CreateThreadsPage struct {
 	BodyErr      string
 	OtherErr     string
 	Username     string
-	Path         string
-	Threads      []Thread
-	Page         int
 }
 
 // ThreadCommentsPage contains page data for viewing the comments within a thread
