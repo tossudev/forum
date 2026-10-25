@@ -212,3 +212,58 @@ func (r *UserRepo) GetLikedThreadsByUserID(ctx context.Context, userID int, pagi
 
 	return threads, totalCount, nil
 }
+
+func (r *UserRepo) GetCommentsByUserID(ctx context.Context, userID int, paginationData pagination.Pagination) ([]ProfileComment, int, error) {
+
+	//get count of comments created by user
+	queryCount := `SELECT COUNT(*) FROM comments WHERE author_id = ?;`
+	var totalCount int
+	err := r.db.QueryRowContext(ctx, queryCount, userID).Scan(&totalCount)
+	if err != nil {
+		return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+	}
+
+	if totalCount == 0 {
+		return nil, 0, nil
+	}
+
+	//check if page number is larger than last possible page based on number of results & page size
+	//if so, return err
+	err = pagination.CheckPageTooLarge(paginationData, totalCount)
+	if err != nil {
+		return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", errs.ErrNotFound)
+	}
+
+	var comments []ProfileComment
+
+	query := `SELECT id, body, date_created, thread_id, author_id
+	FROM comments
+	WHERE author_id = ?
+	ORDER BY date_created DESC 
+	LIMIT ? OFFSET ?;`
+
+	rows, err := r.db.QueryContext(ctx, query, userID, paginationData.Limit(), paginationData.Offset())
+	if err != nil {
+		return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+	}
+
+	for rows.Next() {
+		var comment ProfileComment
+		if err := rows.Scan(&comment.ID, &comment.Body, &comment.DateCreated, &comment.ThreadID, &comment.AuthorID); err != nil {
+			return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+		}
+
+		comment.DateCreated, err = timeformat.FormatTime(comment.DateCreated, timeformat.GetTimezone(ctx))
+		if err != nil {
+			return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+		}
+
+		comments = append(comments, comment)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+	}
+
+	return comments, totalCount, nil
+}
