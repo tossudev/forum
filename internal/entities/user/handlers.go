@@ -7,7 +7,6 @@ import (
 	"forum/internal/password"
 	"forum/internal/render"
 	"forum/internal/session"
-	"log/slog"
 	"net/http"
 	"strings"
 )
@@ -187,8 +186,6 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 			h.renderer.RenderPage(w, "error-404.html", ThreadsPage{Username: user.Username})
 			return
 		}
-		slog.Error("internal server error:", "err", err)
-		w.WriteHeader(http.StatusInternalServerError)
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}
@@ -248,8 +245,6 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 			h.renderer.RenderPage(w, "error-404.html", LikesPage{Username: user.Username})
 			return
 		}
-		slog.Error("internal server error:", "err", err)
-		w.WriteHeader(http.StatusInternalServerError)
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}
