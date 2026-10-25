@@ -9,20 +9,24 @@ import (
 )
 
 var (
-	ErrInvalidUserInput   = errors.New("invalid input")
 	ErrInvalidFiletype    = errors.New("invalid file type")
-	ErrInvalidUsername    = errors.New("invalid username")
-	ErrInvalidEmail       = errors.New("invalid email")
-	ErrInvalidPassword    = errors.New("invalid password")
 	ErrFileTooLarge       = errors.New("file too large")
-	ErrNotFound           = errors.New("record not found")
 	ErrDuplicate          = errors.New("duplicate entry")
-	ErrDuplicateUsername  = errors.New("username already exists")
-	ErrDuplicateEmail     = errors.New("email already exists")
 	ErrUnauthorized       = errors.New("unauthorized")
 	ErrSearchNoResults    = errors.New("no results found")
 	ErrInvalidThreadTitle = errors.New("invalid thread title")
 	ErrInvalidThreadBody  = errors.New("invalid thread body")
+
+	// Errors used for determining which error page to render
+	ErrNotFound         = errors.New("record not found") // 404
+	ErrInvalidUserInput = errors.New("invalid input")    // 400
+
+	// User facing errors (error message visible to users)
+	ErrInvalidUsername   = errors.New("Username must be 2-20 characters, start with a letter, and only contain letters, numbers, or underscores (_).")
+	ErrInvalidEmail      = errors.New("Enter a valid email address, such as example@email.com.")
+	ErrInvalidPassword   = errors.New("Password must be 8-128 characters.")
+	ErrDuplicateUsername = errors.New("Username already taken.")
+	ErrDuplicateEmail    = errors.New("Email already taken.")
 )
 
 // WriteError chooses the appropriate error response and writes to http.ResponseWrite

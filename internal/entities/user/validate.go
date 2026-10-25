@@ -12,7 +12,7 @@ var (
 	emailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$")
 )
 
-// getRegistrationFieldErrors returns a map of field errors and corresponding error messages for display.
+// getRegistrationFieldErrors returns a map of field errors and corresponding error messages for display for the registration form.
 // Also returns the http status code.
 func getRegistrationFieldErrors(err error) (map[string]string, int) {
 	fieldErrors := make(map[string]string)
@@ -24,22 +24,22 @@ func getRegistrationFieldErrors(err error) (map[string]string, int) {
 	// Username field errors
 	switch {
 	case errors.Is(err, errs.ErrInvalidUsername):
-		fieldErrors["UsernameErr"] = "Username must be 2-20 characters, start with a letter, and only contain letters, numbers, or underscores (_)."
+		fieldErrors["UsernameErr"] = errs.ErrInvalidUsername.Error()
 	case errors.Is(err, errs.ErrDuplicateUsername):
-		fieldErrors["UsernameErr"] = "Username already taken."
+		fieldErrors["UsernameErr"] = errs.ErrDuplicateUsername.Error()
 	}
 
 	// Email field errors
 	switch {
 	case errors.Is(err, errs.ErrInvalidEmail):
-		fieldErrors["EmailErr"] = "Enter a valid email address, such as example@email.com."
+		fieldErrors["EmailErr"] = errs.ErrInvalidEmail.Error()
 	case errors.Is(err, errs.ErrDuplicateEmail):
-		fieldErrors["EmailErr"] = "Email already taken."
+		fieldErrors["EmailErr"] = errs.ErrDuplicateEmail.Error()
 	}
 
 	// Password field errors
 	if errors.Is(err, errs.ErrInvalidPassword) {
-		fieldErrors["PasswordErr"] = "Password must be 8-128 characters."
+		fieldErrors["PasswordErr"] = errs.ErrInvalidPassword.Error()
 	}
 
 	if len(fieldErrors) > 0 {
@@ -51,6 +51,34 @@ func getRegistrationFieldErrors(err error) (map[string]string, int) {
 	slog.Error("user registration error:", "err", err)
 
 	return fieldErrors, http.StatusInternalServerError
+}
+
+// getLoginFieldErrors returns a map of field errors and corresponding error messages for display for the login form.
+// Also returns the http status code.
+func getLoginFieldErrors(err error) (map[string]string, int) {
+	fieldErrors := make(map[string]string)
+
+	if err == nil {
+		return fieldErrors, http.StatusOK
+	}
+
+	switch {
+	case errors.Is(err, errs.ErrInvalidUserInput):
+		if errors.Is(err, errs.ErrInvalidEmail) {
+			fieldErrors["EmailErr"] = errs.ErrInvalidEmail.Error()
+		}
+		if errors.Is(err, errs.ErrInvalidPassword) {
+			fieldErrors["PasswordErr"] = errs.ErrInvalidPassword.Error()
+		}
+		return fieldErrors, http.StatusBadRequest
+	case errors.Is(err, errs.ErrUnauthorized):
+		fieldErrors["OtherErr"] = "Invalid credentials."
+		return fieldErrors, http.StatusUnauthorized
+	default:
+		fieldErrors["OtherErr"] = "Sorry, we're unable to process user login at the moment. Please try again later."
+		slog.Error("internal server error:", "err", err)
+		return fieldErrors, http.StatusInternalServerError
+	}
 }
 
 // validateRegistrationCredentials validates the submitted username, email, and password for user registration.

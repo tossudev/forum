@@ -1,13 +1,11 @@
 package user
 
 import (
-	"errors"
 	"forum/internal/errs"
 	"forum/internal/pagination"
 	"forum/internal/password"
 	"forum/internal/render"
 	"forum/internal/session"
-	"log/slog"
 	"net/http"
 	"strings"
 )
@@ -126,24 +124,9 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	userID, err := h.service.Authenticate(ctx, input)
 	if err != nil {
 		pageData := LoginPage{Email: inputEmail}
-
-		switch {
-		case errors.Is(err, errs.ErrInvalidUserInput):
-			if errors.Is(err, errs.ErrInvalidEmail) {
-				pageData.EmailErr = "Enter a valid email address, such as example@email.com."
-			}
-			if errors.Is(err, errs.ErrInvalidPassword) {
-				pageData.PasswordErr = "Password must be 8-128 characters."
-			}
-			w.WriteHeader(http.StatusBadRequest)
-		case errors.Is(err, errs.ErrUnauthorized):
-			pageData.OtherErr = "Invalid credentials."
-			w.WriteHeader(http.StatusUnauthorized)
-		default:
-			pageData.OtherErr = "Sorry, we're unable to process user login at the moment. Please try again later."
-			slog.Error("internal server error:", "err", err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		fieldErrors, statusCode := getLoginFieldErrors(err)
+		pageData.FieldErrors = fieldErrors
+		w.WriteHeader(statusCode)
 		h.renderer.RenderPage(w, "login.html", pageData)
 		return
 	}
