@@ -1,7 +1,6 @@
 package user
 
 import (
-	"errors"
 	"forum/internal/errs"
 	"forum/internal/pagination"
 	"forum/internal/password"
@@ -169,23 +168,18 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 
 	paginationData, err := pagination.Parse(r.URL.Query())
 	if err != nil {
-		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	if paginationData.Validate() != nil {
-		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	// Get all the threads posted by a user
 	threads, totalCount, err := h.service.GetThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
-		if errors.Is(err, errs.ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			h.renderer.RenderPage(w, "error-404.html", ThreadsPage{Username: user.Username})
-			return
-		}
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}
@@ -227,24 +221,19 @@ func (h *UserHandler) ProfileCommentsPage(w http.ResponseWriter, r *http.Request
 
 	paginationData, err := pagination.Parse(r.URL.Query())
 	if err != nil {
-		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	if paginationData.Validate() != nil {
-		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	//Get all comments posted by a user
 	comments, totalCount, err := h.service.GetCommentsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
-		if errors.Is(err, errs.ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			h.renderer.RenderPage(w, "error-404.html", CommentsPage{Username: user.Username})
-			return
-		}
-		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}
 
@@ -287,23 +276,18 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 
 	paginationData, err := pagination.Parse(r.URL.Query())
 	if err != nil {
-		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	if paginationData.Validate() != nil {
-		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	// Get all the liked threads posted by a user
 	threads, totalCount, err := h.service.GetLikedThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
-		if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			h.renderer.RenderPage(w, "error-404.html", LikesPage{Username: user.Username})
-			return
-		}
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}
