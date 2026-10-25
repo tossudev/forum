@@ -181,7 +181,7 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 	// Get all the threads posted by a user
 	threads, totalCount, err := h.service.GetThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
-		if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
+		if errors.Is(err, errs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			h.renderer.RenderPage(w, "error-404.html", ThreadsPage{Username: user.Username})
 			return
@@ -237,13 +237,17 @@ func (h *UserHandler) ProfileCommentsPage(w http.ResponseWriter, r *http.Request
 	}
 
 	//Get all comments posted by a user
-	comments, totalCount, page, err := h.service.GetCommentsByUserID(ctx, user.ID, paginationData)
+	comments, totalCount, err := h.service.GetCommentsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", CommentsPage{Username: user.Username})
+			return
+		}
 		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
 		return
 	}
 
-	paginationData.Page = page //page number returned from repo
 	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
 	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) //5 visible pages in navigation
 

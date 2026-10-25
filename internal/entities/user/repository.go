@@ -213,18 +213,28 @@ func (r *UserRepo) GetLikedThreadsByUserID(ctx context.Context, userID int, pagi
 	return threads, totalCount, nil
 }
 
-func (r *UserRepo) GetCommentsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileComment, int, int, error) {
+func (r *UserRepo) GetCommentsByUserID(ctx context.Context, userID int, paginationData pagination.Pagination) ([]ProfileComment, int, error) {
 
-	//check if page number is beyond possible pages
-	//if so, make page number equal last page
-	page, err := r.checkPage(ctx, userID, pagination)
+	//get count of comments created by user
+	queryCount := `SELECT COUNT(*) FROM comments WHERE author_id = ?;`
+	var totalCount int
+	err := r.db.QueryRowContext(ctx, queryCount, userID).Scan(&totalCount)
 	if err != nil {
-		return nil, 0, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+		return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
 	}
-	pagination.Page = page
+
+	if totalCount == 0 {
+		return nil, 0, nil
+	}
+
+	//check if page number is larger than last possible page based on number of results & page size
+	//if so, return err
+	err = pagination.CheckPageTooLarge(paginationData, totalCount)
+	if err != nil {
+		return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", errs.ErrNotFound)
+	}
 
 	var comments []ProfileComment
-	var totalCount int
 
 	query := `SELECT COUNT(*) OVER() AS total_count, id, body, date_created, thread_id, author_id
 	FROM comments
@@ -232,30 +242,30 @@ func (r *UserRepo) GetCommentsByUserID(ctx context.Context, userID int, paginati
 	ORDER BY date_created DESC 
 	LIMIT ? OFFSET ?;`
 
-	rows, err := r.db.QueryContext(ctx, query, userID, pagination.Limit(), pagination.Offset())
+	rows, err := r.db.QueryContext(ctx, query, userID, paginationData.Limit(), paginationData.Offset())
 	if err != nil {
-		return nil, 0, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+		return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
 	}
 
 	for rows.Next() {
 		var comment ProfileComment
 		if err := rows.Scan(&totalCount, &comment.ID, &comment.Body, &comment.DateCreated, &comment.ThreadID, &comment.AuthorID); err != nil {
-			return nil, 0, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+			return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
 		}
 
 		comment.DateCreated, err = timeformat.FormatTime(comment.DateCreated, timeformat.GetTimezone(ctx))
 		if err != nil {
-			return nil, 0, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+			return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
 		}
 
 		comments = append(comments, comment)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, 0, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+		return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
 	}
 
-	return comments, totalCount, pagination.Page, nil
+	return comments, totalCount, nil
 }
 
 func (r *UserRepo) checkPage(ctx context.Context, userID int, paginationData pagination.Pagination) (int, error) {
