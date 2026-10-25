@@ -15,7 +15,6 @@ import (
 	"forum/internal/models"
 	"forum/internal/pagination"
 	"forum/internal/render"
-	"forum/internal/session"
 )
 
 type ThreadHandler struct {
@@ -204,12 +203,11 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	session := session.GetSession(r)
-	if session == nil {
-		errs.WriteError(w, fmt.Errorf("%w: not authenticated", errs.ErrUnauthorized))
+	user := user.GetUser(r)
+	if user == nil {
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	userID := session.UserID()
 
 	threadID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
@@ -217,7 +215,7 @@ func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.service.Delete(ctx, threadID, userID)
+	err = h.service.Delete(ctx, threadID, user.ID)
 	if err != nil {
 		errs.WriteError(w, err)
 		return
