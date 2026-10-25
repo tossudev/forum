@@ -1,0 +1,8 @@
+services:
+  forum:
+    build: . 					# Build the image using the Dockerfile in this directory, if not specified (docker compose --build), docker will reuse cached image from last run
+    image: forum:latest
+    container_name: forum
+    ports: 						# Host port to container port
+      - "8080:8080"
+    restart: unless-stopped 	# Auto restart container if it crashes
