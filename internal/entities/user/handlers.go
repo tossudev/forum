@@ -2,7 +2,6 @@ package user
 
 import (
 	"errors"
-	"fmt"
 	"forum/internal/errs"
 	"forum/internal/pagination"
 	"forum/internal/password"
@@ -28,17 +27,10 @@ func NewHandler(service *UserService, sm *session.SessionManager, renderer *rend
 }
 
 func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	userSession := session.GetSession(r)
-	if userSession == nil {
+	user := GetUser(r)
+	if user == nil {
 		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
 		return
-	}
-
-	user, err := h.service.GetUserByID(ctx, userSession.UserID())
-	if err != nil {
-		errs.WriteError(w, fmt.Errorf("get user by id: %w", err))
 	}
 
 	// TODO: figure out roles
