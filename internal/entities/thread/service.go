@@ -23,9 +23,6 @@ func NewService(r *ThreadRepository) *ThreadService {
 // GetByCategory gets threads (paginated) by category ID.
 // Returns the threads, total found, the category name, and a potential error.
 func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pagination.Pagination) ([]Thread, int, string, error) {
-	if id <= 0 {
-		return nil, 0, "", fmt.Errorf("%w: invalid category id", errs.ErrInvalidUserInput)
-	}
 	// This validates that the category exists and also fetches the category name
 	categoryName, err := s.repo.GetCategoryName(ctx, id)
 	if err != nil {
@@ -33,7 +30,7 @@ func (s *ThreadService) GetByCategory(ctx context.Context, id int, pagination pa
 	}
 
 	if err := pagination.Validate(); err != nil {
-		return nil, 0, "", fmt.Errorf("%w: invalid pagination parameters", errs.ErrInvalidUserInput)
+		return nil, 0, "", errs.ErrInvalidUserInput
 	}
 
 	threads, totalCount, err := s.repo.GetByCategory(ctx, id, pagination)
@@ -69,9 +66,6 @@ func (s *ThreadService) Create(ctx context.Context, thread *Thread) (int, error)
 		return 0, err
 	}
 
-	// No need to Validate AuthorID since user was already authenticated
-	// If CategoryID or AuthorID doesn't exist, there will be a repo level foreign key constraint error CategoryID exists
-
 	now := time.Now().UTC().Format(timeformat.TimeFormat)
 	thread.DateCreated = now
 
@@ -88,10 +82,6 @@ func (s *ThreadService) Delete(ctx context.Context, threadID int, userID int) er
 // DisplayThreadPage gets the data needed for displaying a single thread page (including comments and associated likes).
 // Also returns an int of the total comments count for pagination.
 func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, username string, paginationData pagination.Pagination) (*ThreadDisplay, []CommentDisplay, int, error) {
-	if threadID <= 0 {
-		return nil, nil, 0, errs.ErrNotFound
-	}
-
 	// Check if thread exists
 	if _, err := s.repo.GetByID(ctx, threadID); err != nil {
 		return nil, nil, 0, err
