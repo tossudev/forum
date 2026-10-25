@@ -267,21 +267,3 @@ func (r *UserRepo) GetCommentsByUserID(ctx context.Context, userID int, paginati
 
 	return comments, totalCount, nil
 }
-
-func (r *UserRepo) checkPage(ctx context.Context, userID int, paginationData pagination.Pagination) (int, error) {
-	query := `SELECT COUNT(*) OVER() AS total_count
-	FROM comments
-	WHERE author_id = ?;`
-
-	var count int
-	err := r.db.QueryRowContext(ctx, query, userID).Scan(&count)
-	if err != nil {
-		return 0, nil
-	}
-
-	if paginationData.Page > pagination.CalcTotalPages(count, paginationData.PageSize) {
-		return pagination.CalcTotalPages(count, paginationData.PageSize), nil
-	}
-
-	return paginationData.Page, nil
-}
