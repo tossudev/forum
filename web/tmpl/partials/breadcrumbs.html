@@ -1,0 +1,12 @@
+{{ define "breadcrumbs" }}
+
+<p>
+{{ range $i, $crumb := .Breadcrumbs }}
+{{ if gt $i 0 }}
+> 
+{{ end }}
+<a class="breadcrumbs" href="{{ .URL }}">{{ $crumb.Name }}</a>
+{{ end }}
+</p>
+
+{{ end }}

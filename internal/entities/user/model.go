@@ -30,18 +30,13 @@ type RegistrationPage struct {
 	Username      string // Logged in user, if any (for toggling login/logout button)
 	InputUsername string // From registration form
 	InputEmail    string
-	UsernameErr   string
-	EmailErr      string
-	PasswordErr   string
-	OtherErr      string
+	FieldErrors   map[string]string
 }
 
 type LoginPage struct {
 	Username    string // Only needed because this field is required by the base layout
 	Email       string
-	EmailErr    string
-	PasswordErr string
-	OtherErr    string
+	FieldErrors map[string]string
 }
 
 // ProfileThread contains thread data for displaying user's posted threads.

@@ -12,6 +12,7 @@ import (
 
 	"forum/internal/entities/user"
 	"forum/internal/errs"
+	"forum/internal/models"
 	"forum/internal/pagination"
 	"forum/internal/render"
 	"forum/internal/session"
@@ -33,9 +34,8 @@ func NewHandler(service *ThreadService, validator *validator.Validate, renderer 
 
 func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	query := r.URL.Query()
 
-	paginationData, err := pagination.Parse(query)
+	paginationData, err := pagination.Parse(r.URL.Query())
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{})
@@ -49,7 +49,7 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	threads, totalCount, categoryName, err := h.service.GetByCategory(ctx, id, paginationData)
+	threads, totalCount, categoryName, page, err := h.service.GetByCategory(ctx, id, paginationData)
 	if err != nil {
 		if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -68,6 +68,7 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 		username = user.Username
 	}
 
+	paginationData.Page = page //page has been returned from repo
 	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
 	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
 
@@ -81,35 +82,23 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := ThreadsPage{
-		// TODO: use category name instead of ID
 		CategoryID: id,
-		Path:       fmt.Sprintf("⌂ Home / %s", categoryName),
-		Threads:    threads,
-		PageNav:    pageNav,
-		Username:   username,
+		Breadcrumbs: []models.Breadcrumb{
+			models.Breadcrumb{
+				Name: "Home",
+				URL:  "/",
+			},
+			models.Breadcrumb{
+				Name: categoryName,
+				URL:  "/categories/" + strconv.Itoa(id),
+			},
+		},
+		Threads:  threads,
+		PageNav:  pageNav,
+		Username: username,
 	}
 
 	h.renderer.RenderPage(w, "threads.html", data)
-}
-
-// TODO: if not being used by front end, make this func repo only??
-func (h *ThreadHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
-		return
-	}
-
-	//TODO: change _ to thread and send to front end
-	_, err = h.service.GetByID(ctx, id)
-	if err != nil {
-		errs.WriteError(w, err)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func (h *ThreadHandler) CreateThreadPage(w http.ResponseWriter, r *http.Request) {
@@ -184,6 +173,7 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 		}
 		w.WriteHeader(http.StatusInternalServerError)
 		h.renderer.RenderPage(w, "error-500.html", CreateThreadsPage{})
+		return
 	}
 
 	thread := Thread{
@@ -256,7 +246,6 @@ func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		errs.WriteError(w, err)
 		return
 	}
-
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -269,28 +258,87 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 		username = user.Username
 	}
 
-	threadID, err := strconv.Atoi(r.PathValue("id"))
+	paginationData, err := pagination.Parse(r.URL.Query())
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		h.renderer.RenderPage(w, "error-404.html", ThreadData{Username: username})
+		h.renderer.RenderPage(w, "error-404.html", ThreadCommentsPage{Username: username})
 		return
 	}
 
-	pageData, err := h.service.DisplayThreadPage(ctx, threadID, username)
+	if err := paginationData.Validate(); err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", ThreadCommentsPage{Username: username})
+		return
+	}
+
+	threadID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil || threadID < 1 {
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", ThreadCommentsPage{Username: username})
+		return
+	}
+
+	threadDisplay, commentsDisplay, totalCount, err := h.service.DisplayThreadPage(ctx, threadID, username, paginationData)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
-			h.renderer.RenderPage(w, "error-404.html", ThreadData{Username: username})
+			h.renderer.RenderPage(w, "error-404.html", ThreadCommentsPage{Username: username})
 			return
 		}
 		w.WriteHeader(http.StatusInternalServerError)
-		h.renderer.RenderPage(w, "error-500.html", ThreadData{Username: username})
+		h.renderer.RenderPage(w, "error-500.html", ThreadCommentsPage{Username: username})
+		slog.Error("DisplayThreadPage fail", "err", err)
 		return
 	}
 
-	pageData.Username = username
-	// TODO: fix path
-	pageData.Path = "Thread > " + pageData.Thread.Title
+	catID := threadDisplay.Thread.CategoryID
+
+	categoryName, err := h.service.GetCategoryName(ctx, catID)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", ThreadCommentsPage{Username: username})
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderer.RenderPage(w, "error-500.html", ThreadCommentsPage{Username: username})
+		slog.Error("DisplayThreadPage fail", "err", err)
+		return
+	}
+
+	breadcrumbs := []models.Breadcrumb{
+		models.Breadcrumb{
+			Name: "Home",
+			URL:  "/",
+		},
+		models.Breadcrumb{
+			Name: categoryName,
+			URL:  "/categories/" + strconv.Itoa(catID),
+		},
+		models.Breadcrumb{
+			Name: threadDisplay.Thread.Title,
+			URL:  "/threads/" + strconv.Itoa(threadID),
+		},
+	}
+
+	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
+	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
+	pageNav := pagination.PaginationNav{
+		Path:       r.URL.Path,
+		Page:       paginationData.Page,
+		TotalPages: totalPages,
+		PageList:   pageList,
+		PrevPage:   paginationData.Page - 1,
+		NextPage:   paginationData.Page + 1,
+	}
+
+	pageData := ThreadCommentsPage{
+		Breadcrumbs:   breadcrumbs,
+		PageNav:       pageNav,
+		Username:      username,
+		ThreadDisplay: *threadDisplay,
+		Comments:      commentsDisplay,
+	}
 
 	h.renderer.RenderPage(w, "thread.html", pageData)
 }

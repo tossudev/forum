@@ -5,7 +5,7 @@
 	<div>
 		<a href="/profile/threads">Threads</a>
 		<a href="/profile/comments">Comments</a>
-		<a href="/profile/likes">Likes</a>
+		<a href="/profile/liked-threads">Liked Threads</a>
 		<a href="/profile/dislikes">Dislikes</a>
 	</div>
 
@@ -56,7 +56,7 @@
 				<a href="{{ $nav.Path }}?page={{ $nav.TotalPages }}" title="Last page">>></a>
 			{{ end }}
 		{{ else }}
-			<p>{{ .Username }} has no threads.</p>
+			<p>{{ .Username }} has no liked threads.</p>
 		{{ end }}
 	</div>
 </div>

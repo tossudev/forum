@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/go-playground/validator/v10"
 
 	"forum/internal/entities/user"
 	"forum/internal/errs"
+	"forum/internal/models"
 	"forum/internal/pagination"
 	"forum/internal/render"
 )
@@ -60,30 +60,18 @@ func (h *CategoryHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := CategoriesPage{
-		Path:       "⌂ Home",
+		Breadcrumbs: []models.Breadcrumb{
+			models.Breadcrumb{
+				Name: "Home",
+				URL:  "/",
+			},
+		},
 		Categories: categories,
 		Page:       pagination.Page,
 		Username:   username,
 	}
 
 	h.renderer.RenderPage(w, "landing.html", data)
-}
-
-func (h *CategoryHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
-		return
-	}
-
-	//TODO: change _ to category and send to front end
-	_, err = h.service.GetByID(ctx, id)
-
-	//TODO: find out what front end needs this result to do/look like
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func (h *CategoryHandler) Create(w http.ResponseWriter, r *http.Request) {

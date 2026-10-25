@@ -14,6 +14,7 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	mux.HandleFunc("GET /profile", app.UserHandler.GetProfile)
 	mux.HandleFunc("GET /profile/threads", app.UserHandler.ProfileThreadsPage)
 	mux.HandleFunc("GET /profile/comments", app.UserHandler.ProfileCommentsPage)
+	mux.HandleFunc("GET /profile/liked-threads", app.UserHandler.ProfileLikedThreadsPage)
 	mux.HandleFunc("POST /users/register", app.UserHandler.RegisterUser)
 	mux.HandleFunc("POST /users/login", app.UserHandler.Login)
 	mux.HandleFunc("POST /users/logout", app.UserHandler.Logout)
@@ -30,8 +31,6 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	mux.HandleFunc("DELETE /threads/{id}", app.ThreadHandler.Delete)
 
 	//Comment routes
-	mux.HandleFunc("GET /comments/{id}", app.CommentHandler.GetByID)
-	mux.HandleFunc("GET /threads/{id}/comments", app.CommentHandler.GetByThread)
 	mux.HandleFunc("POST /threads/{id}/comments", app.CommentHandler.Create)
 	mux.HandleFunc("DELETE /comments/{id}", app.CommentHandler.Delete)
 
