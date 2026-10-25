@@ -7,6 +7,7 @@ import (
 
 	"forum/internal/entities/user"
 	"forum/internal/errs"
+	"forum/internal/models"
 	"forum/internal/pagination"
 	"forum/internal/render"
 )
@@ -99,15 +100,37 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 		NextPage:   paginationData.Page + 1,
 	}
 
+	threadBreadcrumbs := []models.Breadcrumb{
+		models.Breadcrumb{
+			Name: "Home",
+			URL:  "/",
+		},
+		models.Breadcrumb{
+			Name: "Search: Threads",
+			URL:  "/search?tab=threads&page=1&search=" + searchQuery,
+		},
+	}
+
+	commentBreadcrumbs := []models.Breadcrumb{
+		models.Breadcrumb{
+			Name: "Home",
+			URL:  "/",
+		},
+		models.Breadcrumb{
+			Name: "Search: Comments",
+			URL:  "/search?tab=comments&page=1&search=" + searchQuery,
+		},
+	}
+
 	pageData := SearchResultPage{
-		ThreadPath:     "Search > Thread",
-		CommentPath:    "Search > Comment",
-		InputQuery:     searchQuery,
-		Threads:        searchResult.Threads,
-		Comments:       searchResult.Comments,
-		ThreadPageNav:  threadPageNav,
-		CommentPageNav: commentPageNav,
-		Username:       username,
+		ThreadBreadcrumbs:  ThreadBreadcrumbs{Breadcrumbs: threadBreadcrumbs},
+		CommentBreadcrumbs: CommentBreadcrumbs{Breadcrumbs: commentBreadcrumbs},
+		InputQuery:         searchQuery,
+		Threads:            searchResult.Threads,
+		Comments:           searchResult.Comments,
+		ThreadPageNav:      threadPageNav,
+		CommentPageNav:     commentPageNav,
+		Username:           username,
 	}
 
 	h.renderer.RenderPage(w, "search.html", pageData)
