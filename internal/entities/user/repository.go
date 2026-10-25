@@ -236,7 +236,7 @@ func (r *UserRepo) GetCommentsByUserID(ctx context.Context, userID int, paginati
 
 	var comments []ProfileComment
 
-	query := `SELECT COUNT(*) OVER() AS total_count, id, body, date_created, thread_id, author_id
+	query := `SELECT id, body, date_created, thread_id, author_id
 	FROM comments
 	WHERE author_id = ?
 	ORDER BY date_created DESC 
@@ -249,7 +249,7 @@ func (r *UserRepo) GetCommentsByUserID(ctx context.Context, userID int, paginati
 
 	for rows.Next() {
 		var comment ProfileComment
-		if err := rows.Scan(&totalCount, &comment.ID, &comment.Body, &comment.DateCreated, &comment.ThreadID, &comment.AuthorID); err != nil {
+		if err := rows.Scan(&comment.ID, &comment.Body, &comment.DateCreated, &comment.ThreadID, &comment.AuthorID); err != nil {
 			return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
 		}
 
