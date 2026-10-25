@@ -2,7 +2,6 @@ package render
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"forum/internal/errs"
 	"html/template"
@@ -25,10 +24,6 @@ func NewRenderer() *Renderer {
 	}
 }
 
-type ErrorPage struct {
-	Username string
-}
-
 func (r *Renderer) RenderPage(w http.ResponseWriter, templateName string, data any) {
 	tmpl, ok := r.Templates[templateName]
 	if !ok {
@@ -44,22 +39,6 @@ func (r *Renderer) RenderPage(w http.ResponseWriter, templateName string, data a
 	}
 
 	buf.WriteTo(w)
-}
-
-// WriteErrorPage renders a generic error page based on the error along with writing the http status code
-func (r *Renderer) WriteErrorPage(w http.ResponseWriter, err error, pageData ErrorPage) {
-	switch {
-	case errors.Is(err, errs.ErrInvalidUserInput):
-		w.WriteHeader(http.StatusBadRequest)
-		r.RenderPage(w, "error-400.html", pageData)
-	case errors.Is(err, errs.ErrNotFound):
-		w.WriteHeader(http.StatusNotFound)
-		r.RenderPage(w, "error-404.html", pageData)
-	default:
-		w.WriteHeader(http.StatusInternalServerError)
-		r.RenderPage(w, "error-500.html", pageData)
-		slog.Error("internal server error", "err", err)
-	}
 }
 
 // Prepare all templates and cache page templates in map
