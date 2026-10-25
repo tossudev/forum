@@ -22,11 +22,13 @@ var (
 	ErrInvalidUserInput = errors.New("invalid input")    // 400
 
 	// User facing errors (error message visible to users)
-	ErrInvalidUsername   = errors.New("Username must be 2-20 characters, start with a letter, and only contain letters, numbers, or underscores (_).")
-	ErrInvalidEmail      = errors.New("Enter a valid email address, such as example@email.com.")
-	ErrInvalidPassword   = errors.New("Password must be 8-128 characters.")
-	ErrDuplicateUsername = errors.New("Username already taken.")
-	ErrDuplicateEmail    = errors.New("Email already taken.")
+	ErrInvalidUsername    = errors.New("Username must be 2-20 characters, start with a letter, and only contain letters, numbers, or underscores (_).")
+	ErrInvalidEmail       = errors.New("Enter a valid email address, such as example@email.com.")
+	ErrInvalidPassword    = errors.New("Password must be 8-128 characters.")
+	ErrDuplicateUsername  = errors.New("Username already taken.")
+	ErrDuplicateEmail     = errors.New("Email already taken.")
+	ErrInvalidCredentials = errors.New("Invalid credentials.")
+	ErrInternal           = errors.New("Sorry, we're unable to process your request at the moment. Please try again later.")
 )
 
 // WriteError chooses the appropriate error response and writes to http.ResponseWrite

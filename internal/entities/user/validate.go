@@ -47,7 +47,7 @@ func getRegistrationFieldErrors(err error) (map[string]string, int) {
 	}
 
 	// None of the above errors
-	fieldErrors["OtherErr"] = "Sorry, we're unable to process user registration at the moment. Please try again later."
+	fieldErrors["OtherErr"] = errs.ErrInternal.Error()
 	slog.Error("user registration error:", "err", err)
 
 	return fieldErrors, http.StatusInternalServerError
@@ -72,10 +72,10 @@ func getLoginFieldErrors(err error) (map[string]string, int) {
 		}
 		return fieldErrors, http.StatusBadRequest
 	case errors.Is(err, errs.ErrUnauthorized):
-		fieldErrors["OtherErr"] = "Invalid credentials."
+		fieldErrors["OtherErr"] = errs.ErrInvalidCredentials.Error()
 		return fieldErrors, http.StatusUnauthorized
 	default:
-		fieldErrors["OtherErr"] = "Sorry, we're unable to process user login at the moment. Please try again later."
+		fieldErrors["OtherErr"] = errs.ErrInternal.Error()
 		slog.Error("internal server error:", "err", err)
 		return fieldErrors, http.StatusInternalServerError
 	}
