@@ -39,7 +39,7 @@ func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination
 
 	var threads []Thread
 
-	query := `SELECT COUNT(*) OVER() AS total_count, id, title, body, date_created, author_id, category_id
+	query := `SELECT id, title, body, date_created, author_id, category_id
 	FROM threads WHERE category_id = ? ORDER BY date_created ASC LIMIT ? OFFSET ?;`
 
 	rows, err := r.db.QueryContext(ctx, query, id, paginationData.Limit(), paginationData.Offset())
@@ -49,7 +49,7 @@ func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination
 
 	for rows.Next() {
 		var thread Thread
-		if err := rows.Scan(&totalCount, &thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
+		if err := rows.Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
 			return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
 
