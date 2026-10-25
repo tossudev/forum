@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"forum/internal/config"
 	"forum/internal/errs"
+	"forum/internal/timeformat"
 	"time"
 )
 
@@ -21,8 +21,8 @@ func (r *SessionRepo) addSession(ctx context.Context, session *Session) error {
 	query := `INSERT INTO sessions (id, user_id, session_hash, csrf_token, date_created, expires_at)
 	VALUES (?, ?, ?, ?, ?, ?);`
 
-	createdAtStr := session.createdAt.Format(config.TimeFormat)
-	expiresAtStr := session.idleExpiresAt.Format(config.TimeFormat)
+	createdAtStr := session.createdAt.Format(timeformat.TimeFormat)
+	expiresAtStr := session.idleExpiresAt.Format(timeformat.TimeFormat)
 
 	_, err := r.db.ExecContext(ctx, query, session.id, session.userID, session.sessionHash, session.csrfToken, createdAtStr, expiresAtStr)
 	if err != nil {
@@ -48,12 +48,12 @@ func (r *SessionRepo) getSessionByID(ctx context.Context, id string) (*Session, 
 		return nil, fmt.Errorf("getSessionByID: scanning row: %w", err)
 	}
 
-	s.createdAt, parseErr = time.Parse(config.TimeFormat, createdAtStr)
+	s.createdAt, parseErr = time.Parse(timeformat.TimeFormat, createdAtStr)
 	if parseErr != nil {
 		return nil, fmt.Errorf("getSessionByID: created at time parsing failure: %w", parseErr)
 	}
 
-	s.idleExpiresAt, parseErr = time.Parse(config.TimeFormat, expiresAtStr)
+	s.idleExpiresAt, parseErr = time.Parse(timeformat.TimeFormat, expiresAtStr)
 	if parseErr != nil {
 		return nil, fmt.Errorf("getSessionByID: expires at time parsing failure: %w", parseErr)
 	}
@@ -73,7 +73,7 @@ func (r *SessionRepo) deleteSession(ctx context.Context, id string) error {
 func (r *SessionRepo) updateExpiry(ctx context.Context, session *Session) error {
 	query := `UPDATE sessions SET expires_at = ? WHERE id = ?;`
 
-	expiresAtStr := session.idleExpiresAt.Format(config.TimeFormat)
+	expiresAtStr := session.idleExpiresAt.Format(timeformat.TimeFormat)
 	if _, err := r.db.ExecContext(ctx, query, expiresAtStr, session.id); err != nil {
 		return fmt.Errorf("refreshing session expiry: %w", err)
 	}

@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"forum/internal/entities/user"
-	"forum/internal/pagination"
 	"forum/internal/session"
 
 	"github.com/go-playground/validator/v10"
@@ -67,47 +66,6 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	// On successful submission, reload the page
 	http.Redirect(w, r, "/threads/"+strconv.Itoa(threadID), http.StatusSeeOther)
-}
-
-func (h *CommentHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	idString := r.PathValue("id")
-	id, err := strconv.Atoi(idString)
-	if err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid comment id", errs.ErrInvalidUserInput))
-		return
-	}
-
-	_, err = h.service.GetByID(ctx, id)
-	if err != nil {
-		errs.WriteError(w, err)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-}
-
-func (h *CommentHandler) GetByThread(w http.ResponseWriter, r *http.Request) {
-	pagination, err := pagination.Parse(r.URL.Query())
-	if err != nil {
-		errs.WriteError(w, err)
-		return
-	}
-
-	idString := r.PathValue("id")
-	id, err := strconv.Atoi(idString)
-	if err != nil {
-		errs.WriteError(w, fmt.Errorf("%w: invalid thread id", errs.ErrInvalidUserInput))
-		return
-	}
-
-	_, err = h.service.GetByThread(r.Context(), id, pagination)
-	if err != nil {
-		errs.WriteError(w, err)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {

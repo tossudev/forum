@@ -9,69 +9,72 @@
 <div class="contents">
 	{{ template "breadcrumbs" . }}
 
-	<p class="thread-container" data-href="/threads/{{.Thread.ID}}">
+	<p class="thread-container" data-href="/threads/{{ .ThreadDisplay.Thread.ID }}">
+
+		{{ if eq .PageNav.Page 1 }} 
+		<!-- Show thread post -->
 		<div class="comment-container">
 			<div class="comment">
 				<div class="user-sidebar">
 					<img class="user-avatar" src="/web/static/img/default-avatar.png" alt="Avatar">
-					<div class="username">{{.AuthorName}}</div>
+					<div class="username">{{ .ThreadDisplay.AuthorName }}</div>
 					<!-- TODO: add role -->
 					<div class="role">Member</div> 
 				</div>
 
 				<div class="content">
-					
-					{{ if .Thread.DisplayError }}
+					{{ if .ThreadDisplay.DisplayError }}
 					<p class="error-msg">Error: Message cannot be displayed.</p>
 					{{ else }}
 					<div class="thread-header">
-						{{.Thread.TitleHTML}}
+						{{ .ThreadDisplay.Thread.TitleHTML }}
 					</div>
-					{{.Thread.BodyHTML}}
+					{{ .ThreadDisplay.Thread.BodyHTML }}
 					<div class="thread-footer">
-						<button data-thread-id="{{.Thread.ID}}" data-action="like"
-							{{ if .LikeData.LoggedUserLiked }}
+						<button data-thread-id="{{ .ThreadDisplay.Thread.ID }}" data-action="like"
+							{{ if .ThreadDisplay.LikeData.LoggedUserLiked }}
 							class="reaction-btn pressed"
 							{{ else }}
 							class="reaction-btn"
 							{{ end }}
 							onclick="like(this, true)">
-							<span class="like" name="{{.LikeData.LoggedUserLiked}}">{{.LikeData.NumLikes}}</span>
+							<span class="like" name="{{ .ThreadDisplay.LikeData.LoggedUserLiked}}">{{ .ThreadDisplay.LikeData.NumLikes }}</span>
 							<span>👍</span>
 						</button>
-						<button data-thread-id="{{.Thread.ID}}" data-action="dislike"
-							{{ if .LikeData.LoggedUserDisliked }}
+						<button data-thread-id="{{ .ThreadDisplay.Thread.ID }}" data-action="dislike"
+							{{ if .ThreadDisplay.LikeData.LoggedUserDisliked }}
 							class="reaction-btn pressed"
 							{{ else }}
 							class="reaction-btn"
 							{{ end }}
 							onclick="like(this, false)">
-							<span class="dislike" name="{{.LikeData.LoggedUserDisliked}}">{{.LikeData.NumDislikes}}</span>
+							<span class="dislike" name="{{ .ThreadDisplay.LikeData.LoggedUserDisliked }}">{{ .ThreadDisplay.LikeData.NumDislikes }}</span>
 							<span>👎</span>
 						</button>
 
-						{{ if eq .Username .AuthorName}}
-						<button data-thread-id="{{.Thread.ID}}" 
-								data-category-id="{{.Thread.CategoryID}}"
+						{{ if eq .Username .ThreadDisplay.AuthorName}}
+						<button data-thread-id="{{ .ThreadDisplay.Thread.ID }}" 
+								data-category-id="{{ .ThreadDisplay.Thread.CategoryID }}"
 								class="delete-button"
 							onclick="deleteThread(this)">
 							Delete
 						</button>
 						{{ end }}
 
-						<div class="date">{{.Thread.DateCreated}}</div>
+						<div class="date">{{ .ThreadDisplay.Thread.DateCreated }}</div>
 					</div>
 					{{ end }}
 				</div>
 			</div>
 		</div>
+		{{ end }}
 
 		{{ range .Comments }}
 		<div class="comment-container">
 			<div class="comment">
 				<div class="user-sidebar">
 					<img class="user-avatar" src="/web/static/img/default-avatar.png" alt="Avatar">
-					<div class="username">{{.AuthorName}}</div>
+					<div class="username">{{ .AuthorName }}</div>
 					<!-- TODO: add role -->
 					<div class="role">Member</div> 
 				</div>
@@ -81,37 +84,37 @@
 					<p class="error-msg">Error: Message cannot be displayed.</p>
 					{{ else }}
 
-					{{.BodyHTML}}
+					{{ .Comment.BodyHTML }}
 					<div class="thread-footer">
-						<button data-comment-id="{{.ID}}" data-action="like"
+						<button data-comment-id="{{ .Comment.ID }}" data-action="like"
 							{{ if .LikeData.LoggedUserLiked }}
 							class="reaction-btn pressed"
 							{{ else }}
 							class="reaction-btn"
 							{{ end }}
 							onclick="like(this, true)">
-							<span class="like" name="{{.LikeData.LoggedUserLiked}}">{{.LikeData.NumLikes}}</span>
+							<span class="like" name="{{ .LikeData.LoggedUserLiked }}">{{ .LikeData.NumLikes }}</span>
 							<span>👍</span>
 						</button>
-						<button data-comment-id="{{.ID}}" data-action="dislike"
+						<button data-comment-id="{{ .Comment.ID }}" data-action="dislike"
 							{{ if .LikeData.LoggedUserDisliked }}
 							class="reaction-btn pressed"
 							{{ else }}
 							class="reaction-btn"
 							{{ end }}
 							onclick="like(this, false)">
-							<span class="dislike" name="{{.LikeData.LoggedUserDisliked}}">{{.LikeData.NumDislikes}}</span>
+							<span class="dislike" name="{{ .LikeData.LoggedUserDisliked  }}">{{ .LikeData.NumDislikes }}</span>
 							<span>👎</span>
 						</button>
 
-						{{if eq $.Username .AuthorName}}
-							<button data-comment-id="{{.ID}}" class="delete-button"
+						{{ if eq $.Username .AuthorName }}
+							<button data-comment-id="{{ .Comment.ID }}" class="delete-button"
 								onclick="deleteComment(this)">
 							Delete
 							</button>
 						{{ end }}
 
-						<div class="date">{{.DateCreated}}</div>
+						<div class="date">{{ .Comment.DateCreated }}</div>
 					</div>
 					{{ end }}
 				</div>
@@ -120,10 +123,37 @@
 		{{ end }}
 	</p>
 
+	<div class="pagination">
+		{{ $nav := .PageNav }}
+		
+		{{ if .Comments }}
+			Pages:
+			{{ if gt $nav.Page 1 }}
+				<a href="{{ $nav.Path }}?page=1" title="First page"><<</a>
+			{{ end }}
+
+			{{ if ge $nav.PrevPage 1 }}
+				<a href="{{ $nav.Path }}?page={{ $nav.PrevPage }}" title="Previous page">Prev</a>
+			{{ end }}
+
+			{{ range $nav.PageList }}
+				<a class="{{ if eq . $nav.Page}}current-page{{ end }}" href="{{ $nav.Path }}?page={{ . }}">{{ . }}</a>
+			{{ end }}
+
+			{{ if le $nav.NextPage $nav.TotalPages }}
+				<a href="{{ $nav.Path }}?page={{ $nav.NextPage }}" title="Next page">Next</a>
+			{{ end }}
+
+			{{ if lt $nav.Page $nav.TotalPages }}
+				<a href="{{ $nav.Path }}?page={{ $nav.TotalPages }}" title="Last page">>></a>
+			{{ end }}
+		{{ end }}
+	</div>
+
 	{{ if .Username }}
 	<div class="center-content">
 		<h2>Reply to thread</h2>
-		<form class="create-thread" action="/threads/{{ .Thread.ID }}/comments" method="post">
+		<form class="create-thread" action="/threads/{{ .ThreadDisplay.Thread.ID }}/comments" method="post">
 			<label for="body">Body text</label>
 			<textarea id="body" name="body" placeholder="Write your comment..." minlength="1" maxlength="5000" required></textarea>
 			<p class="error-msg"></p>

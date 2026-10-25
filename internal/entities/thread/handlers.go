@@ -34,9 +34,8 @@ func NewHandler(service *ThreadService, validator *validator.Validate, renderer 
 
 func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	query := r.URL.Query()
 
-	paginationData, err := pagination.Parse(query)
+	paginationData, err := pagination.Parse(r.URL.Query())
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{})
@@ -259,52 +258,86 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 		username = user.Username
 	}
 
+	paginationData, err := pagination.Parse(r.URL.Query())
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", ThreadCommentsPage{Username: username})
+		return
+	}
+
+	if err := paginationData.Validate(); err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", ThreadCommentsPage{Username: username})
+		return
+	}
+
 	threadID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || threadID < 1 {
 		w.WriteHeader(http.StatusNotFound)
-		h.renderer.RenderPage(w, "error-404.html", ThreadData{Username: username})
+		h.renderer.RenderPage(w, "error-404.html", ThreadCommentsPage{Username: username})
 		return
 	}
 
-	pageData, err := h.service.DisplayThreadPage(ctx, threadID, username)
+	threadDisplay, commentsDisplay, totalCount, err := h.service.DisplayThreadPage(ctx, threadID, username, paginationData)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
-			h.renderer.RenderPage(w, "error-404.html", ThreadData{Username: username})
+			h.renderer.RenderPage(w, "error-404.html", ThreadCommentsPage{Username: username})
 			return
 		}
 		w.WriteHeader(http.StatusInternalServerError)
-		h.renderer.RenderPage(w, "error-500.html", ThreadData{Username: username})
+		h.renderer.RenderPage(w, "error-500.html", ThreadCommentsPage{Username: username})
+		slog.Error("DisplayThreadPage fail", "err", err)
 		return
 	}
 
-	categoryName, err := h.service.GetCategoryName(ctx, pageData.Thread.CategoryID)
+	catID := threadDisplay.Thread.CategoryID
+
+	categoryName, err := h.service.GetCategoryName(ctx, catID)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
-			h.renderer.RenderPage(w, "error-404.html", ThreadData{Username: username})
+			h.renderer.RenderPage(w, "error-404.html", ThreadCommentsPage{Username: username})
 			return
 		}
 		w.WriteHeader(http.StatusInternalServerError)
-		h.renderer.RenderPage(w, "error-500.html", ThreadData{Username: username})
+		h.renderer.RenderPage(w, "error-500.html", ThreadCommentsPage{Username: username})
+		slog.Error("DisplayThreadPage fail", "err", err)
 		return
 	}
 
-	pageData.Username = username
-
-	pageData.Breadcrumbs = []models.Breadcrumb{
+	breadcrumbs := []models.Breadcrumb{
 		models.Breadcrumb{
 			Name: "Home",
 			URL:  "/",
 		},
 		models.Breadcrumb{
 			Name: categoryName,
-			URL:  "/categories/" + strconv.Itoa(pageData.Thread.CategoryID),
+			URL:  "/categories/" + strconv.Itoa(catID),
 		},
 		models.Breadcrumb{
-			Name: pageData.Thread.Title,
+			Name: threadDisplay.Thread.Title,
 			URL:  "/threads/" + strconv.Itoa(threadID),
 		},
+	}
+
+	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
+	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
+	pageNav := pagination.PaginationNav{
+		Path:       r.URL.Path,
+		Page:       paginationData.Page,
+		TotalPages: totalPages,
+		PageList:   pageList,
+		PrevPage:   paginationData.Page - 1,
+		NextPage:   paginationData.Page + 1,
+	}
+
+	pageData := ThreadCommentsPage{
+		Breadcrumbs:   breadcrumbs,
+		PageNav:       pageNav,
+		Username:      username,
+		ThreadDisplay: *threadDisplay,
+		Comments:      commentsDisplay,
 	}
 
 	h.renderer.RenderPage(w, "thread.html", pageData)

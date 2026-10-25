@@ -86,11 +86,6 @@ func (r *CommentRepository) GetByThread(ctx context.Context, id int, pag paginat
 
 func (r *CommentRepository) Delete(ctx context.Context, commentID, userID int) error {
 
-	//	comment, err := r.GetByID(ctx, commentID)
-	//	if err != nil {
-	//		return fmt.Errorf("Comment id: %w", err)
-	//	}
-
 	query := `DELETE FROM comments WHERE id = ? AND author_id = ?`
 	res, err := r.db.ExecContext(ctx, query, commentID, userID)
 	if err != nil {

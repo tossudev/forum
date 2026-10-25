@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 
-	"forum/internal/config"
 	"forum/internal/errs"
 	"forum/internal/pagination"
+	"forum/internal/timeformat"
 )
 
 type ThreadRepository struct {
@@ -48,6 +48,11 @@ func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination
 	for rows.Next() {
 		var thread Thread
 		if err := rows.Scan(&totalCount, &thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
+			return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
+		}
+
+		thread.DateCreated, err = timeformat.FormatTime(thread.DateCreated, timeformat.GetTimezone(ctx))
+		if err != nil {
 			return nil, 0, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
 
@@ -129,74 +134,121 @@ func (r *ThreadRepository) Delete(ctx context.Context, threadID int, userID int)
 	return nil
 }
 
-// DisplayThreadPage returns *ThreadData, containing all the data needed for displaying a single thread page (including comments and associated likes).
-func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, username string) (*ThreadData, error) {
+// DisplayThreadPage gets the data needed for displaying a single thread page (including comments and associated likes).
+// Also returns an int of the total comments count for pagination.
+func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, username string, paginationData pagination.Pagination) (*ThreadDisplay, []CommentDisplay, int, error) {
+	// Get count of comments in requested thread
+	countQuery := `SELECT COUNT (*) FROM comments WHERE thread_id = ?;`
+	var totalCount int
+	err := r.db.QueryRowContext(ctx, countQuery, threadID).Scan(&totalCount)
+	if err != nil {
+		return nil, nil, 0, fmt.Errorf("DisplayThreadPage: %w", err)
+	}
+
+	// TODO: Use pagination.CheckPageTooLarge once it has been updated to return error
+
 	// Get thread data along with thread author name
-	threadQuery := `SELECT threads.id, title, body, threads.date_created, threads.author_id, threads.category_id, username
+	threadDisplay, err := r.getThreadDisplay(ctx, threadID, username)
+	if err != nil {
+		return nil, nil, 0, err
+	}
+
+	// Get comment data along with comment author data
+	commentsDisplay, err := r.getCommentsDisplay(ctx, threadID, username, paginationData)
+	if err != nil {
+		return nil, nil, 0, err
+	}
+
+	return threadDisplay, commentsDisplay, totalCount, nil
+}
+
+// getThreadDisplay is a helper for getting all data for displaying a single thread post.
+func (r *ThreadRepository) getThreadDisplay(ctx context.Context, threadID int, username string) (*ThreadDisplay, error) {
+	// Get thread data along with thread author name
+	query := `SELECT threads.id, title, body, threads.date_created, threads.author_id, threads.category_id, username
 	FROM users INNER JOIN threads ON users.id = threads.author_id WHERE threads.id = ?;`
+
+	//TODO: Modify query to get author avatar
 
 	var authorName string
 	var thread Thread
-	err := r.db.QueryRowContext(ctx, threadQuery, threadID).Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID, &authorName)
+	err := r.db.QueryRowContext(ctx, query, threadID).Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID, &authorName)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errs.ErrNotFound
 		}
-		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
+		return nil, fmt.Errorf("getThreadDisplay: %w", err)
 	}
 
-	thread.DateCreated, err = config.FormatTime(thread.DateCreated)
+	thread.DateCreated, err = timeformat.FormatTime(thread.DateCreated, timeformat.GetTimezone(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
+		return nil, fmt.Errorf("getThreadDisplay: %w", err)
 	}
 
 	// Get thread likes data
-	//this is a separate query because otherwise there would be a distinct row in the above query for every like on every thread
-	threadLikeQuery := `SELECT username, thread_like FROM thread_likes INNER JOIN users ON users.id = thread_likes.user_id WHERE thread_id = ?`
-	threadLikeData, err := r.getLikeData(ctx, threadLikeQuery, threadID, username)
+	// TODO: Reevaluate whether the queries can be optimized further instead of this being separate
+	likeQuery := `SELECT username, thread_like FROM thread_likes INNER JOIN users ON users.id = thread_likes.user_id WHERE thread_id = ?`
+	likeData, err := r.getLikeData(ctx, likeQuery, threadID, username)
 	if err != nil {
-		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
+		return nil, fmt.Errorf("getThreadDisplay: %w", err)
 	}
 
-	//get all comments for this thread plus username of comment author
-	threadCommentsQuery := `SELECT comments.id, comments.body, comments.thread_id, username, comments.date_created FROM comments INNER JOIN users ON comments.author_id = users.id WHERE comments.thread_id = ?;`
-	commentRows, err := r.db.QueryContext(ctx, threadCommentsQuery, threadID)
-	if err != nil {
-		return nil, fmt.Errorf("DisplayThreadPage: %w", err)
+	threadDisplay := ThreadDisplay{
+		Thread:     thread,
+		AuthorName: authorName,
+		//AuthorAvatar: authorAvatar,
+		LikeData: *likeData,
+		//DisplayError: ?,
 	}
 
-	var comments []CommentData
+	return &threadDisplay, nil
+}
+
+// getCommentsDisplay is a helper for getting all the comment data (paginated) for displaying comments.
+func (r *ThreadRepository) getCommentsDisplay(ctx context.Context, threadID int, username string, paginationData pagination.Pagination) ([]CommentDisplay, error) {
+	// Get all comments for this thread plus username of comment author
+	commentsQuery := `SELECT c.id, c.body, c.thread_id, u.username, c.date_created
+	FROM comments AS c INNER JOIN users AS u ON c.author_id = u.id WHERE c.thread_id = ?
+	ORDER BY c.date_created ASC LIMIT ? OFFSET ?;`
+	commentRows, err := r.db.QueryContext(ctx, commentsQuery, threadID, paginationData.Limit(), paginationData.Offset())
+	if err != nil {
+		return nil, fmt.Errorf("getCommentsDisplay: %w", err)
+	}
+
+	var comments []CommentDisplay
 
 	// Get the data for each comment in the thread
 	for commentRows.Next() {
-		var comment CommentData
-		if err := commentRows.Scan(&comment.ID, &comment.Body, &comment.ThreadID, &comment.AuthorName, &comment.DateCreated); err != nil {
-			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
+		var comment Comment
+		var authorName string
+		//TODO: Get author avator
+		if err := commentRows.Scan(&comment.ID, &comment.Body, &comment.ThreadID, &authorName, &comment.DateCreated); err != nil {
+			return nil, fmt.Errorf("getCommentsDisplay: %w", err)
 		}
 
-		comment.DateCreated, err = config.FormatTime(comment.DateCreated)
+		comment.DateCreated, err = timeformat.FormatTime(comment.DateCreated, timeformat.GetTimezone(ctx))
 		if err != nil {
-			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
+			return nil, fmt.Errorf("getCommentsDisplay: %w", err)
 		}
 
 		// Get comment likes data
-		commentLikeQuery := `SELECT username, comment_like FROM comment_likes INNER JOIN users ON users.id = comment_likes.user_id WHERE comment_id = ?;`
-		commentLikeData, err := r.getLikeData(ctx, commentLikeQuery, comment.ID, username)
+		// TODO: Refactor to combine this and above query
+		likeQuery := `SELECT username, comment_like FROM comment_likes INNER JOIN users ON users.id = comment_likes.user_id WHERE comment_id = ?;`
+		likeData, err := r.getLikeData(ctx, likeQuery, comment.ID, username)
 		if err != nil {
-			return nil, fmt.Errorf("DisplayThreadPage: %w", err)
+			return nil, fmt.Errorf("getCommentsDisplay: %w", err)
 		}
-		comment.LikeData = *commentLikeData
-		comments = append(comments, comment)
+
+		commentDisplay := CommentDisplay{
+			Comment:    comment,
+			AuthorName: authorName,
+			//AuthorAvatar: authorAvatar,
+			LikeData: *likeData,
+		}
+		comments = append(comments, commentDisplay)
 	}
 
-	data := ThreadData{
-		Thread:     thread,
-		AuthorName: authorName,
-		LikeData:   *threadLikeData,
-		Comments:   comments,
-	}
-
-	return &data, nil
+	return comments, nil
 }
 
 // getLikeData gets the LikeData for a single thread or comment, where id can be either the thread ID or comment ID.
