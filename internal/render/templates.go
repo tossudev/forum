@@ -3,12 +3,11 @@ package render
 import (
 	"bytes"
 	"fmt"
+	"forum/internal/errs"
 	"html/template"
 	"log/slog"
 	"net/http"
 	"os"
-
-	"forum/internal/errs"
 )
 
 const (
