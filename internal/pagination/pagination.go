@@ -98,6 +98,9 @@ func Parse(query url.Values) (Pagination, error) {
 
 // CalcTotalPages calculates the total pages of paginated data available (equivalent to the last page number)
 func CalcTotalPages(totalCount, pageSize int) int {
+	if totalCount == 0 {
+		return minPage
+	}
 	return (totalCount + pageSize - 1) / pageSize // round up trick for totalCount/pageSize
 }
 

@@ -17,6 +17,9 @@ func (r *Renderer) WriteErrorPage(w http.ResponseWriter, err error, pageData Err
 	case errors.Is(err, errs.ErrInvalidUserInput):
 		w.WriteHeader(http.StatusBadRequest)
 		r.RenderPage(w, "error-400.html", pageData)
+	case errors.Is(err, errs.ErrUnauthorized):
+		w.WriteHeader(http.StatusUnauthorized)
+		r.RenderPage(w, "error-401.html", pageData)
 	case errors.Is(err, errs.ErrNotFound):
 		w.WriteHeader(http.StatusNotFound)
 		r.RenderPage(w, "error-404.html", pageData)
