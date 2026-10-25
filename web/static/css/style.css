@@ -325,7 +325,7 @@ form .button {
 	margin: 16px 0px 16px 0px;
 }
 
-.thread-footer .comment-footer {
+.thread-footer, .comment-footer {
 	display: flex;
 	font-size: 22px;
 	align-items: end;
