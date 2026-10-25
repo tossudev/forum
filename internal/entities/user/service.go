@@ -88,3 +88,7 @@ func (s *UserService) GetCommentsByUserID(ctx context.Context, userID int, pagin
 func (s *UserService) GetLikedThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
 	return s.repo.GetLikedThreadsByUserID(ctx, userID, pagination)
 }
+
+func (s *UserService) GetDislikedThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
+	return s.repo.GetDislikedThreadsByUserID(ctx, userID, pagination)
+}

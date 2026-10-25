@@ -1,0 +1,63 @@
+{{ define "content" }}
+<div class="center-content">
+
+
+    <div>
+        <a href="/profile/threads">Threads</a>
+        <a href="/profile/comments">Comments</a>
+        <a href="/profile/liked-threads">Liked Threads</a>
+        <a href="/profile/disliked-threads">Disliked Threads</a>
+    </div>
+
+     <h2>Disliked threads</h2>
+
+        {{range .Threads}}
+        <div class="comment-container">
+            <div class="comment">
+                <div class="clickable">
+                <a href="/threads/{{.ID}}" class="hidden-link"></a>
+
+                    <div class="content">
+                        <div class="thread-header">
+                            {{.Title}}
+                        </div>
+                        {{.Body}}
+                        <div class="thread-footer">
+                            <div>{{.DateCreated}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{ end }}
+
+    <div class="pagination">
+        {{ $nav := .PageNav }}
+
+        {{ if .Threads }}
+            Pages:
+            {{ if gt $nav.Page 1 }}
+                <a href="{{ $nav.Path }}?page=1" title="First page"><<</a>
+            {{ end }}
+
+            {{ if ge $nav.PrevPage 1 }}
+                <a href="{{ $nav.Path }}?page={{ $nav.PrevPage }}" title="Previous page">Prev</a>
+            {{ end }}
+
+            {{ range $nav.PageList }}
+                <a class="{{ if eq . $nav.Page}}current-page{{ end }}" href="{{ $nav.Path }}?page={{ . }}">{{ . }}</a>
+            {{ end }}
+
+            {{ if le $nav.NextPage $nav.TotalPages }}
+                <a href="{{ $nav.Path }}?page={{ $nav.NextPage }}" title="Next page">Next</a>
+            {{ end }}
+
+            {{ if lt $nav.Page $nav.TotalPages }}
+                <a href="{{ $nav.Path }}?page={{ $nav.TotalPages }}" title="Last page">>></a>
+            {{ end }}
+        {{ else }}
+            <p>{{ .Username }} has no dislikes.</p>
+        {{ end }}
+    </div>
+</div>
+{{ end }}
