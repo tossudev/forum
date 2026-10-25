@@ -18,24 +18,22 @@ with simple frontend, mostly HTML & CSS, minimal JavaScript
 
 # Usage / Quickstart
 ## With Docker
-- Make sure Docker is installed on your computer. 
+- Install [Docker](https://www.docker.com/)
 - Navigate to the root directory of the project.
-- The first time running the image, use `docker compose up --build`. 
-- On subsequent runs, Docker will use the cached images, and `docker compose up` can be used.
+- Run `docker compose up --build` to build the image. 
+- On subsequent runs, Docker will use the cached image, and `docker compose up` can be used.
 - To stop the container, run `docker compose down`.
+
 ## Without Docker
 - Navigate to the root directory of the project.
 - To reset the database with seed data, use `make reset`. 
 - To run the program without resetting the database, use `make run`. 
+
 ##
-- After starting the program, open your browser and go to http://localhost:8080.
+Once the server is running, open your browser and navigate to http://localhost:8080.
 
 # Documentation
-(links to relevant docs located in docs/)
-
-# License
-
-[LICENSE](LICENSE)
+[docs](/docs)
 
 # Authors
 
