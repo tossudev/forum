@@ -3,12 +3,83 @@ package user
 import (
 	"errors"
 	"forum/internal/errs"
+	"log/slog"
+	"net/http"
 	"regexp"
 )
 
 var (
 	emailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$")
 )
+
+// getRegistrationFieldErrors returns a map of field errors and corresponding error messages for display for the registration form.
+// Also returns the http status code.
+func getRegistrationFieldErrors(err error) (map[string]string, int) {
+	fieldErrors := make(map[string]string)
+
+	if err == nil {
+		return fieldErrors, http.StatusOK
+	}
+
+	// Username field errors
+	switch {
+	case errors.Is(err, errs.ErrInvalidUsername):
+		fieldErrors["UsernameErr"] = errs.ErrInvalidUsername.Error()
+	case errors.Is(err, errs.ErrDuplicateUsername):
+		fieldErrors["UsernameErr"] = errs.ErrDuplicateUsername.Error()
+	}
+
+	// Email field errors
+	switch {
+	case errors.Is(err, errs.ErrInvalidEmail):
+		fieldErrors["EmailErr"] = errs.ErrInvalidEmail.Error()
+	case errors.Is(err, errs.ErrDuplicateEmail):
+		fieldErrors["EmailErr"] = errs.ErrDuplicateEmail.Error()
+	}
+
+	// Password field errors
+	if errors.Is(err, errs.ErrInvalidPassword) {
+		fieldErrors["PasswordErr"] = errs.ErrInvalidPassword.Error()
+	}
+
+	if len(fieldErrors) > 0 {
+		return fieldErrors, http.StatusBadRequest
+	}
+
+	// None of the above errors
+	fieldErrors["OtherErr"] = errs.ErrInternal.Error()
+	slog.Error("user registration error:", "err", err)
+
+	return fieldErrors, http.StatusInternalServerError
+}
+
+// getLoginFieldErrors returns a map of field errors and corresponding error messages for display for the login form.
+// Also returns the http status code.
+func getLoginFieldErrors(err error) (map[string]string, int) {
+	fieldErrors := make(map[string]string)
+
+	if err == nil {
+		return fieldErrors, http.StatusOK
+	}
+
+	switch {
+	case errors.Is(err, errs.ErrInvalidUserInput):
+		if errors.Is(err, errs.ErrInvalidEmail) {
+			fieldErrors["EmailErr"] = errs.ErrInvalidEmail.Error()
+		}
+		if errors.Is(err, errs.ErrInvalidPassword) {
+			fieldErrors["PasswordErr"] = errs.ErrInvalidPassword.Error()
+		}
+		return fieldErrors, http.StatusBadRequest
+	case errors.Is(err, errs.ErrUnauthorized):
+		fieldErrors["OtherErr"] = errs.ErrInvalidCredentials.Error()
+		return fieldErrors, http.StatusUnauthorized
+	default:
+		fieldErrors["OtherErr"] = errs.ErrInternal.Error()
+		slog.Error("internal server error:", "err", err)
+		return fieldErrors, http.StatusInternalServerError
+	}
+}
 
 // validateRegistrationCredentials validates the submitted username, email, and password for user registration.
 // Returns an error combining all validation errors (if any).
