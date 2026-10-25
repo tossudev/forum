@@ -2,10 +2,12 @@ package search
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"forum/internal/entities/user"
 	"forum/internal/errs"
+	"forum/internal/models"
 	"forum/internal/pagination"
 	"forum/internal/render"
 )
@@ -52,7 +54,6 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 
 	//perform search, check for errs
 	searchResult, err := h.service.Search(ctx, searchQuery, tab, paginationData)
-	paginationData.Page = searchResult.Page
 
 	//if err is 'no search results', send error to frontend and render search page
 	//otherwise, render error 500 page
@@ -68,6 +69,7 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 			h.renderer.RenderPage(w, "error-500.html", SearchResultPage{Username: username})
+			slog.Error("Search fail", "err", err)
 			return
 		}
 	}
@@ -98,15 +100,37 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 		NextPage:   paginationData.Page + 1,
 	}
 
+	threadBreadcrumbs := []models.Breadcrumb{
+		models.Breadcrumb{
+			Name: "Home",
+			URL:  "/",
+		},
+		models.Breadcrumb{
+			Name: "Search: Threads",
+			URL:  "/search?tab=threads&page=1&search=" + searchQuery,
+		},
+	}
+
+	commentBreadcrumbs := []models.Breadcrumb{
+		models.Breadcrumb{
+			Name: "Home",
+			URL:  "/",
+		},
+		models.Breadcrumb{
+			Name: "Search: Comments",
+			URL:  "/search?tab=comments&page=1&search=" + searchQuery,
+		},
+	}
+
 	pageData := SearchResultPage{
-		ThreadPath:     "Search > Thread",
-		CommentPath:    "Search > Comment",
-		InputQuery:     searchQuery,
-		Threads:        searchResult.Threads,
-		Comments:       searchResult.Comments,
-		ThreadPageNav:  threadPageNav,
-		CommentPageNav: commentPageNav,
-		Username:       username,
+		ThreadBreadcrumbs:  ThreadBreadcrumbs{Breadcrumbs: threadBreadcrumbs},
+		CommentBreadcrumbs: CommentBreadcrumbs{Breadcrumbs: commentBreadcrumbs},
+		InputQuery:         searchQuery,
+		Threads:            searchResult.Threads,
+		Comments:           searchResult.Comments,
+		ThreadPageNav:      threadPageNav,
+		CommentPageNav:     commentPageNav,
+		Username:           username,
 	}
 
 	h.renderer.RenderPage(w, "search.html", pageData)

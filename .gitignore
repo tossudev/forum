@@ -30,6 +30,10 @@
 !Makefile
 !.githooks/pre-commit
 
+!docker-compose.*
+!Dockerfile
+!.dockerignore
+
 # ...even if they are in subdirectories
 !*/
 

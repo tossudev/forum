@@ -35,40 +35,39 @@ func NewHandler(service *ThreadService, validator *validator.Validate, renderer 
 func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	paginationData, err := pagination.Parse(r.URL.Query())
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{})
-		return
-	}
-
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{})
-		return
-	}
-
-	threads, totalCount, categoryName, page, err := h.service.GetByCategory(ctx, id, paginationData)
-	if err != nil {
-		if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			h.renderer.RenderPage(w, "error-404.html", ThreadsPage{})
-			return
-		}
-		slog.Error("threads get by category failed", "err:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		h.renderer.RenderPage(w, "error-500.html", ThreadsPage{})
-		return
-	}
-
 	var username string
 	user := user.GetUser(r)
 	if user != nil {
 		username = user.Username
 	}
 
-	paginationData.Page = page //page has been returned from repo
+	paginationData, err := pagination.Parse(r.URL.Query())
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{Username: username})
+		return
+	}
+
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{Username: username})
+		return
+	}
+
+	threads, totalCount, categoryName, err := h.service.GetByCategory(ctx, id, paginationData)
+	if err != nil {
+		if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			h.renderer.RenderPage(w, "error-404.html", ThreadsPage{Username: username})
+			return
+		}
+		slog.Error("threads get by category failed", "err:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		h.renderer.RenderPage(w, "error-500.html", ThreadsPage{Username: username})
+		return
+	}
+
 	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
 	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
 
@@ -104,16 +103,18 @@ func (h *ThreadHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
 func (h *ThreadHandler) CreateThreadPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	var username string
 	user := user.GetUser(r)
 	if user == nil {
 		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
 		return
 	}
+	username = user.Username
 
 	categoryID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || categoryID < 1 {
 		w.WriteHeader(http.StatusNotFound)
-		h.renderer.RenderPage(w, "error-404.html", CreateThreadsPage{})
+		h.renderer.RenderPage(w, "error-404.html", CreateThreadsPage{Username: username})
 		return
 	}
 
@@ -121,11 +122,11 @@ func (h *ThreadHandler) CreateThreadPage(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
-			h.renderer.RenderPage(w, "error-404.html", CreateThreadsPage{})
+			h.renderer.RenderPage(w, "error-404.html", CreateThreadsPage{Username: username})
 			return
 		}
 		w.WriteHeader(http.StatusInternalServerError)
-		h.renderer.RenderPage(w, "error-500.html", CreateThreadsPage{})
+		h.renderer.RenderPage(w, "error-500.html", CreateThreadsPage{Username: username})
 		return
 	}
 
@@ -168,11 +169,11 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
-			h.renderer.RenderPage(w, "error-404.html", CreateThreadsPage{})
+			h.renderer.RenderPage(w, "error-404.html", pageData)
 			return
 		}
 		w.WriteHeader(http.StatusInternalServerError)
-		h.renderer.RenderPage(w, "error-500.html", CreateThreadsPage{})
+		h.renderer.RenderPage(w, "error-500.html", pageData)
 		return
 	}
 
@@ -280,7 +281,7 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 
 	threadDisplay, commentsDisplay, totalCount, err := h.service.DisplayThreadPage(ctx, threadID, username, paginationData)
 	if err != nil {
-		if errors.Is(err, errs.ErrNotFound) {
+		if errors.Is(err, errs.ErrNotFound) || errors.Is(err, errs.ErrInvalidUserInput) {
 			w.WriteHeader(http.StatusNotFound)
 			h.renderer.RenderPage(w, "error-404.html", ThreadCommentsPage{Username: username})
 			return

@@ -13,7 +13,9 @@
 <div class="contents">
 
 	{{if .Threads}}
-	<p>{{ .ThreadPath }}</p>
+	<div class="hor-flex-wrapper">
+	{{ template "breadcrumbs" .ThreadBreadcrumbs }}
+	</div>
 	
 	<p class="thread-container">
 	{{range .Threads}}
@@ -64,7 +66,9 @@
 	{{ end }}
 
 	{{if .Comments}}
-	<p>{{ .CommentPath }}</p>
+	<div class="hor-flex-wrapper">
+		{{ template "breadcrumbs" .CommentBreadcrumbs }}
+	</div>
 	<p class="thread-container">
 		{{ range .Comments }}
 		<div class="comment-container">

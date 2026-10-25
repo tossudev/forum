@@ -3,6 +3,7 @@ package search
 import (
 	"forum/internal/entities/comment"
 	"forum/internal/entities/thread"
+	"forum/internal/models"
 	"forum/internal/pagination"
 )
 
@@ -11,17 +12,24 @@ type PaginatedSearchResult struct {
 	ThreadsCount  int
 	Comments      []comment.Comment
 	CommentsCount int
-	Page          int
 }
 
 type SearchResultPage struct {
-	ThreadPath     string
-	CommentPath    string
-	InputQuery     string
-	Threads        []thread.Thread
-	Comments       []comment.Comment
-	ThreadPageNav  pagination.PaginationNav
-	CommentPageNav pagination.PaginationNav
-	Username       string
-	ResponseMsg    string
+	ThreadBreadcrumbs  ThreadBreadcrumbs
+	CommentBreadcrumbs CommentBreadcrumbs
+	InputQuery         string
+	Threads            []thread.Thread
+	Comments           []comment.Comment
+	ThreadPageNav      pagination.PaginationNav
+	CommentPageNav     pagination.PaginationNav
+	Username           string
+	ResponseMsg        string
+}
+
+type ThreadBreadcrumbs struct {
+	Breadcrumbs []models.Breadcrumb
+}
+
+type CommentBreadcrumbs struct {
+	Breadcrumbs []models.Breadcrumb
 }

@@ -6,7 +6,6 @@ require (
 	github.com/go-playground/validator/v10 v10.30.4
 	github.com/mattn/go-sqlite3 v1.14.52
 	github.com/microcosm-cc/bluemonday v1.0.27
-	github.com/russross/blackfriday/v2 v2.1.0
 )
 
 require (
