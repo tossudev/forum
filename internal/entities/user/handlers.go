@@ -58,7 +58,7 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	if err := r.ParseForm(); err != nil {
-		errs.WriteError(w, errs.ErrInvalidUserInput)
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{})
 		return
 	}
 
@@ -82,10 +82,9 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If registration successful, login user and redirect to home
-	// Create new session
+	// If registration successful, login user (create new session) and redirect to home
 	if err := h.sm.Login(user.ID, w, r); err != nil {
-		errs.WriteError(w, err)
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -112,7 +111,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseForm(); err != nil {
-		errs.WriteError(w, errs.ErrInvalidUserInput)
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{})
 		return
 	}
 
@@ -151,7 +150,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	// Create new session
 	if err := h.sm.Login(userID, w, r); err != nil {
-		errs.WriteError(w, err)
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{})
 		return
 	}
 
@@ -161,7 +160,8 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	if err := h.sm.Logout(w, r); err != nil {
-		slog.Error("logout error", "err", err)
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{})
+		return
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -185,23 +185,19 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 
 	paginationData, err := pagination.Parse(r.URL.Query())
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	if paginationData.Validate() != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	// Get all the threads posted by a user
 	threads, totalCount, page, err := h.service.GetThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
-		slog.Error("internal server error:", "err", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		h.renderer.RenderPage(w, "error-500.html", ThreadsPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}
 
@@ -244,23 +240,19 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 
 	paginationData, err := pagination.Parse(r.URL.Query())
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		h.renderer.RenderPage(w, "error-404.html", LikesPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	if paginationData.Validate() != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		h.renderer.RenderPage(w, "error-404.html", LikesPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	// Get all the liked threads posted by a user
 	threads, totalCount, err := h.service.GetLikedThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
-		slog.Error("internal server error:", "err", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		h.renderer.RenderPage(w, "error-500.html", LikesPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}
 
