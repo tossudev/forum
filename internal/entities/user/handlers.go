@@ -1,14 +1,11 @@
 package user
 
 import (
-	"errors"
-	"fmt"
 	"forum/internal/errs"
 	"forum/internal/pagination"
 	"forum/internal/password"
 	"forum/internal/render"
 	"forum/internal/session"
-	"log/slog"
 	"net/http"
 	"strings"
 )
@@ -28,17 +25,10 @@ func NewHandler(service *UserService, sm *session.SessionManager, renderer *rend
 }
 
 func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	userSession := session.GetSession(r)
-	if userSession == nil {
+	user := GetUser(r)
+	if user == nil {
 		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
 		return
-	}
-
-	user, err := h.service.GetUserByID(ctx, userSession.UserID())
-	if err != nil {
-		errs.WriteError(w, fmt.Errorf("get user by id: %w", err))
 	}
 
 	// TODO: figure out roles
@@ -66,7 +56,7 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	if err := r.ParseForm(); err != nil {
-		errs.WriteError(w, errs.ErrInvalidUserInput)
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{})
 		return
 	}
 
@@ -83,41 +73,16 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	user, err := h.service.RegisterUser(ctx, user, r.PostFormValue("password"))
 	if err != nil {
 		pageData := RegistrationPage{InputUsername: inputUsername, InputEmail: inputEmail} // service.RegisterUser returns a nil user on error, so values are taken from the form
-
-		switch { // Username field errors
-		case errors.Is(err, errs.ErrInvalidUsername):
-			pageData.UsernameErr = "Username must be 2-20 characters, start with a letter, and only contain letters, numbers, or underscores (_)."
-		case errors.Is(err, errs.ErrDuplicateUsername):
-			pageData.UsernameErr = "Username already taken."
-		}
-
-		switch { // Email field errors
-		case errors.Is(err, errs.ErrInvalidEmail):
-			pageData.EmailErr = "Enter a valid email address, such as example@email.com."
-		case errors.Is(err, errs.ErrDuplicateEmail):
-			pageData.EmailErr = "Email already taken."
-		}
-
-		// Password field errors
-		if errors.Is(err, errs.ErrInvalidPassword) {
-			pageData.PasswordErr = "Password must be 8-128 characters."
-		}
-
-		if !errors.Is(err, errs.ErrInvalidUserInput) && !errors.Is(err, errs.ErrDuplicateUsername) && !errors.Is(err, errs.ErrDuplicateEmail) {
-			pageData.OtherErr = "Sorry, we're unable to process user registration at the moment. Please try again later."
-			slog.Error("internal server error:", "err", err)
-		}
-
-		w.WriteHeader(http.StatusBadRequest) //TODO: determine status code based on error
+		fieldErrors, statusCode := getRegistrationFieldErrors(err)
+		pageData.FieldErrors = fieldErrors
+		w.WriteHeader(statusCode)
 		h.renderer.RenderPage(w, "register.html", pageData)
-		//errs.WriteError(w, err)
 		return
 	}
 
-	// If registration successful, login user and redirect to home
-	// Create new session
+	// If registration successful, login user (create new session) and redirect to home
 	if err := h.sm.Login(user.ID, w, r); err != nil {
-		errs.WriteError(w, err)
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -144,7 +109,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseForm(); err != nil {
-		errs.WriteError(w, errs.ErrInvalidUserInput)
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{})
 		return
 	}
 
@@ -159,31 +124,16 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	userID, err := h.service.Authenticate(ctx, input)
 	if err != nil {
 		pageData := LoginPage{Email: inputEmail}
-
-		switch {
-		case errors.Is(err, errs.ErrInvalidUserInput):
-			if errors.Is(err, errs.ErrInvalidEmail) {
-				pageData.EmailErr = "Enter a valid email address, such as example@email.com."
-			}
-			if errors.Is(err, errs.ErrInvalidPassword) {
-				pageData.PasswordErr = "Password must be 8-128 characters."
-			}
-			w.WriteHeader(http.StatusBadRequest)
-		case errors.Is(err, errs.ErrUnauthorized):
-			pageData.OtherErr = "Invalid credentials."
-			w.WriteHeader(http.StatusUnauthorized)
-		default:
-			pageData.OtherErr = "Sorry, we're unable to process user login at the moment. Please try again later."
-			slog.Error("internal server error:", "err", err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		fieldErrors, statusCode := getLoginFieldErrors(err)
+		pageData.FieldErrors = fieldErrors
+		w.WriteHeader(statusCode)
 		h.renderer.RenderPage(w, "login.html", pageData)
 		return
 	}
 
 	// Create new session
 	if err := h.sm.Login(userID, w, r); err != nil {
-		errs.WriteError(w, err)
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{})
 		return
 	}
 
@@ -193,7 +143,8 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	if err := h.sm.Logout(w, r); err != nil {
-		slog.Error("logout error", "err", err)
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{})
+		return
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -217,23 +168,19 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 
 	paginationData, err := pagination.Parse(r.URL.Query())
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	if paginationData.Validate() != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		h.renderer.RenderPage(w, "error-404.html", ThreadsPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	// Get all the threads posted by a user
 	threads, totalCount, page, err := h.service.GetThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
-		slog.Error("internal server error:", "err", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		h.renderer.RenderPage(w, "error-500.html", ThreadsPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}
 
@@ -276,23 +223,19 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 
 	paginationData, err := pagination.Parse(r.URL.Query())
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		h.renderer.RenderPage(w, "error-404.html", LikesPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	if paginationData.Validate() != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		h.renderer.RenderPage(w, "error-404.html", LikesPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrNotFound, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	// Get all the liked threads posted by a user
 	threads, totalCount, err := h.service.GetLikedThreadsByUserID(ctx, user.ID, paginationData)
 	if err != nil {
-		slog.Error("internal server error:", "err", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		h.renderer.RenderPage(w, "error-500.html", LikesPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}
 
