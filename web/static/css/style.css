@@ -155,6 +155,7 @@ input[type=search] {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
+	overflow-wrap: break-word;
 }
 
 .contents p {
@@ -362,6 +363,8 @@ form .button {
 	flex-direction: column;
 	flex-grow: 1;
 	margin: 4px;
+	overflow-wrap: anywhere;
+
 }
 
 .content img {
