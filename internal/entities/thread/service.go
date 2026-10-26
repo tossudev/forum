@@ -89,7 +89,7 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 
 	threadDisplay, commentsDisplay, totalCount, err := s.repo.DisplayThreadPage(ctx, threadID, username, paginationData)
 	if err != nil {
-		return nil, nil, 0, err
+		return nil, nil, totalCount, err // totalCount needed when err is ErrPageOverTotal for redirection to last page
 	}
 
 	//TODO: Could refactor to move the HTML sanitization into the scan loops at the repo layer to avoid double looping

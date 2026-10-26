@@ -29,7 +29,10 @@ const (
 	maxPageSize = 100
 )
 
-var ErrPaginationParams = errors.New("invalid pagination parameter")
+var (
+	ErrPaginationParams = errors.New("invalid pagination parameter")
+	ErrPageOverTotal    = errors.New("page is larger than the total number of pages")
+)
 
 // Limit returns the number of results per page (i.e. page size).
 func (p *Pagination) Limit() int {

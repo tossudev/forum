@@ -150,7 +150,7 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 	//check if requested page is larger than last possible page based on number of comments & page size
 	err = pagination.CheckPageTooLarge(paginationData, totalCount)
 	if err != nil {
-		return nil, nil, 0, fmt.Errorf("DisplayThreadPage: %w", errs.ErrNotFound)
+		return nil, nil, totalCount, fmt.Errorf("DisplayThreadPage: %w", pagination.ErrPageOverTotal) // totalCount needed for calculating the last page
 	}
 
 	// Get thread data along with thread author name

@@ -69,7 +69,6 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {
-
 	sess := session.GetSession(r)
 	if sess == nil {
 		errs.WriteError(w, fmt.Errorf("%w: login required", errs.ErrUnauthorized))
