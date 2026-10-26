@@ -14,7 +14,12 @@
 
         <label for="password">Password</label>
         <input type="password" id="password" name="password" minlength="8" maxlength="128" required />
-        <input type="checkbox" onclick="showPassword()" />Show Password
+
+        <div class="hor-flex-wrapper">
+            <label for="pw-visibility-toggle">Show Password</label>
+            <input type="checkbox" id="pw-visibility-toggle" onclick="showPassword()" />
+        </div>
+        
 
         <p class="error-msg password-error">{{ index .FieldErrors "PasswordErr" }}</p>
 
