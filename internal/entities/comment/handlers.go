@@ -3,6 +3,7 @@ package comment
 import (
 	"fmt"
 	"forum/internal/errs"
+	"forum/internal/pagination"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -57,15 +58,17 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		AuthorID: user.ID,
 	}
 
-	_, err = h.service.Create(ctx, &comment)
+	_, totalComments, err := h.service.Create(ctx, &comment)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		slog.Error("comment creation fail", "err", err)
 		return
 	}
 
-	// On successful submission, reload the page
-	http.Redirect(w, r, "/threads/"+strconv.Itoa(threadID), http.StatusSeeOther)
+	lastPage := pagination.CalcTotalPages(totalComments, pagination.DefaultPageSize)
+
+	// On successful submission, redirect to the last page of the thread
+	http.Redirect(w, r, "/threads/"+strconv.Itoa(threadID)+"?page="+strconv.Itoa(lastPage), http.StatusSeeOther)
 }
 
 func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {

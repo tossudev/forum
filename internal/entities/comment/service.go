@@ -19,9 +19,10 @@ func NewService(r *CommentRepository) *CommentService {
 	return &CommentService{repo: r}
 }
 
-func (s *CommentService) Create(ctx context.Context, req *Comment) (Comment, error) {
+// Create creates a new comment, and returns the added comment, the total number of comments, and a potential error.
+func (s *CommentService) Create(ctx context.Context, req *Comment) (Comment, int, error) {
 	if _, err := validate.ParseHTML(req.Body); err != nil {
-		return Comment{}, err
+		return Comment{}, 0, err
 	}
 
 	isoTime := time.Now().UTC()
@@ -29,12 +30,12 @@ func (s *CommentService) Create(ctx context.Context, req *Comment) (Comment, err
 
 	req.DateCreated = isoString
 
-	newComment, err := s.repo.Create(ctx, req)
+	newComment, totalComments, err := s.repo.Create(ctx, req)
 	if err != nil {
-		return Comment{}, err
+		return Comment{}, 0, err
 	}
 
-	return newComment, nil
+	return newComment, totalComments, nil
 }
 
 func (s *CommentService) GetByID(ctx context.Context, id int) (Comment, error) {

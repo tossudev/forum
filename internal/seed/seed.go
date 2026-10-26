@@ -423,7 +423,7 @@ func seedComments(ctx context.Context, app *SeedApp) error {
 	}
 
 	for _, newComment := range comments {
-		_, err := app.CommentService.Create(ctx, &newComment)
+		_, _, err := app.CommentService.Create(ctx, &newComment)
 		if err != nil {
 			return err
 		}
