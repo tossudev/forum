@@ -33,7 +33,9 @@ with simple frontend, mostly HTML & CSS, minimal JavaScript
 Once the server is running, open your browser and navigate to http://localhost:8080.
 
 # Documentation
-[docs](/docs)
+- [Documentation](/docs)
+- [Forum Architecture](/docs/architecture.md)
+- [Search Feature](/docs/search.md)
 
 # Authors
 
