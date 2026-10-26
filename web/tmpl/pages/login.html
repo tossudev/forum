@@ -1,5 +1,5 @@
 {{ define "js" }}
-<!-- <script src="/web/static/js/login.js" defer></script> -->
+<script src="/web/static/js/login.js" defer></script>
 {{ end }}
 
 {{ define "content" }}
@@ -14,6 +14,8 @@
 
         <label for="password">Password</label>
         <input type="password" id="password" name="password" minlength="8" maxlength="128" required />
+        <input type="checkbox" onclick="showPassword()" />Show Password
+
         <p class="error-msg password-error">{{ index .FieldErrors "PasswordErr" }}</p>
 
         <input class="button login-btn" type="submit" value="Login" />
