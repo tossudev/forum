@@ -21,7 +21,7 @@ Pagination is implemented anywhere in the project where multiple items are displ
 
 Page numbers can be found at the bottom of the search results section for threads and the bottom of the search results section for comments. If more than one page of results exists, buttons for Next page, an arrow for the last page, and page numbers for up to five surrounding pages appear.
 
-<img src="docs/screenshots/screenshot4.png" width="50%" align="top"/>
+<img src="screenshots/screenshot4.png" width="50%" align="top"/>
 
 Default page size is set to 5, but it can be modified to anything between 1 and 100 with the "size" URL argument. Validation is done to ensure that page number and page size arguments are valid. A check is also performed to make sure that the requested page number is not larger than the number of pages of search results.
 
