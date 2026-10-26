@@ -45,7 +45,7 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := ProfilePage{
-		ProfileUsername: profileUsername,
+		ProfileUsername: userProfile.Username,
 		Username:        user.Username,
 		Role:            "Member",
 		DateCreated:     userProfile.CreatedAt, //userProfile.CreatedAt.Format("02 Jan 2006"),
