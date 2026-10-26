@@ -18,7 +18,8 @@ func NewRepository(db *sql.DB) *CommentRepository {
 	return &CommentRepository{db: db}
 }
 
-func (r *CommentRepository) Create(ctx context.Context, req *Comment) (Comment, error) {
+// Create inserts a new comment, and returns the added comment, the total number of comments, and a potential error.
+func (r *CommentRepository) Create(ctx context.Context, req *Comment) (Comment, int, error) {
 
 	var comment Comment
 
@@ -29,10 +30,18 @@ func (r *CommentRepository) Create(ctx context.Context, req *Comment) (Comment, 
 	row := r.db.QueryRowContext(ctx, query, req.Body, req.DateCreated, req.ThreadID, req.AuthorID)
 	err := row.Scan(&comment.ID, &comment.Body, &comment.DateCreated, &comment.ThreadID, &comment.AuthorID)
 	if err != nil {
-		return Comment{}, err
+		return Comment{}, 0, fmt.Errorf("create comment: %w", err)
 	}
 
-	return comment, nil
+	// This is needed so that the user can be redirected to the latest page of the thread after posting a comment
+	var totalComments int
+	countQuery := `SELECT COUNT(*) FROM comments WHERE thread_id =  ?;`
+	err = r.db.QueryRowContext(ctx, countQuery, comment.ThreadID).Scan(&totalComments)
+	if err != nil {
+		return Comment{}, 0, fmt.Errorf("create comment: %w", err)
+	}
+
+	return comment, totalComments, nil
 }
 
 func (r *CommentRepository) GetByID(ctx context.Context, id int) (Comment, error) {

@@ -23,10 +23,11 @@ type PaginationNav struct {
 }
 
 const (
-	minPage     = 1
-	maxPage     = 100000000 // capped to 100 million prevent int64 overflow on Offset calculation
-	minPageSize = 1
-	maxPageSize = 100
+	minPage         = 1
+	maxPage         = 100000000 // capped to 100 million prevent int64 overflow on Offset calculation
+	minPageSize     = 1
+	maxPageSize     = 100
+	DefaultPageSize = 5
 )
 
 var ErrPaginationParams = errors.New("invalid pagination parameter")
@@ -64,7 +65,7 @@ func Parse(query url.Values) (Pagination, error) {
 	// Set default vaules
 	pagination := Pagination{
 		Page:     minPage,
-		PageSize: 5,
+		PageSize: DefaultPageSize,
 	}
 
 	// Parse "page" from query
