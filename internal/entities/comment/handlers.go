@@ -3,7 +3,6 @@ package comment
 import (
 	"errors"
 	"fmt"
-	"forum/internal/errs"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -11,6 +10,7 @@ import (
 
 	"forum/internal/entities/thread"
 	"forum/internal/entities/user"
+	"forum/internal/errs"
 	"forum/internal/pagination"
 	"forum/internal/render"
 	"forum/internal/session"
@@ -95,8 +95,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		AuthorID: user.ID,
 	}
 
-	//call to service layer
-	_, err = h.service.Create(ctx, &comment)
+	_, totalComments, err := h.service.Create(ctx, &comment)
 	if err != nil {
 		if errors.Is(err, errs.ErrInvalidUserInput) {
 			pageData, err := h.threadService.CollectPageData(ctx, params)
@@ -113,12 +112,14 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		errs.WriteError(w, err)
 		return
 	}
-	// On successful submission, reload the page
-	http.Redirect(w, r, "/threads/"+strconv.Itoa(threadID), http.StatusSeeOther)
+
+	lastPage := pagination.CalcTotalPages(totalComments, pagination.DefaultPageSize)
+
+	// On successful submission, redirect to the last page of the thread
+	http.Redirect(w, r, "/threads/"+strconv.Itoa(threadID)+"?page="+strconv.Itoa(lastPage), http.StatusSeeOther)
 }
 
 func (h *CommentHandler) Delete(w http.ResponseWriter, r *http.Request) {
-
 	sess := session.GetSession(r)
 	if sess == nil {
 		errs.WriteError(w, fmt.Errorf("%w: login required", errs.ErrUnauthorized))

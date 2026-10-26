@@ -58,9 +58,8 @@ VALUES (new.id, new.title, new.body, new.date_created); END;
 
 CREATE TRIGGER IF NOT EXISTS threads_delete AFTER 
 DELETE ON threads BEGIN
-DELETE 
-FROM threads_fts
-WHERE rowid = old.id; END;
+INSERT INTO threads_fts (threads_fts, rowid, title, body, date_created)
+VALUES ('delete', old.id, old.title, old.body, old.date_created); END;
 /*-----------------------------------------------------------------------------------*/
 
 CREATE TABLE IF NOT EXISTS comments (
@@ -105,9 +104,8 @@ VALUES (new.id, new.body, new.date_created, new.thread_id); END;
 
 CREATE TRIGGER IF NOT EXISTS comments_delete AFTER 
 DELETE ON comments BEGIN
-DELETE 
-FROM comments_fts
-WHERE rowid = old.id; END;
+INSERT INTO comments_fts (comments_fts, rowid, body, date_created, thread_id)
+VALUES ('delete', old.id, old.body, old.date_created, old.thread_id); END;
 /*----------------------------------------------------------------------------------*/
 
 CREATE TABLE IF NOT EXISTS categories (

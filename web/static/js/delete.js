@@ -23,6 +23,7 @@ async function deleteThread(elementRef) {
     if (!confirm("Confirm to delete thread")) {
         return;
     }
+
     let response;
     try {
         response = await fetch('/threads/' + threadID, { method: 'DELETE' }); 
@@ -30,7 +31,12 @@ async function deleteThread(elementRef) {
         console.log('Error:', err);
         return; 
     }
+
     if (response.ok) {
         location.href = '/categories/' + categoryID;
+    } else if (response.status === 401) {
+        location.href = '/users/login';
+    } else {
+        window.alert("Something went wrong. Please try again later.");
     }
 }

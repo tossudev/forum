@@ -23,13 +23,17 @@ type PaginationNav struct {
 }
 
 const (
-	minPage     = 1
-	maxPage     = 100000000 // capped to 100 million prevent int64 overflow on Offset calculation
-	minPageSize = 1
-	maxPageSize = 100
+	minPage         = 1
+	maxPage         = 100000000 // capped to 100 million prevent int64 overflow on Offset calculation
+	minPageSize     = 1
+	maxPageSize     = 100
+	DefaultPageSize = 5
 )
 
-var ErrPaginationParams = errors.New("invalid pagination parameter")
+var (
+	ErrPaginationParams = errors.New("invalid pagination parameter")
+	ErrPageOverTotal    = errors.New("page is larger than the total number of pages")
+)
 
 // Limit returns the number of results per page (i.e. page size).
 func (p *Pagination) Limit() int {
@@ -64,7 +68,7 @@ func Parse(query url.Values) (Pagination, error) {
 	// Set default vaules
 	pagination := Pagination{
 		Page:     minPage,
-		PageSize: 5,
+		PageSize: DefaultPageSize,
 	}
 
 	// Parse "page" from query
@@ -98,6 +102,9 @@ func Parse(query url.Values) (Pagination, error) {
 
 // CalcTotalPages calculates the total pages of paginated data available (equivalent to the last page number)
 func CalcTotalPages(totalCount, pageSize int) int {
+	if totalCount == 0 {
+		return minPage
+	}
 	return (totalCount + pageSize - 1) / pageSize // round up trick for totalCount/pageSize
 }
 
@@ -138,9 +145,9 @@ func GetDisplayPageNums(want, total, displayLimit int) []int {
 	return pages
 }
 
-func CheckPageTooLarge(paginationData Pagination, count int) int {
+func CheckPageTooLarge(paginationData Pagination, count int) error {
 	if paginationData.Page > CalcTotalPages(count, paginationData.PageSize) {
-		return CalcTotalPages(count, paginationData.PageSize)
+		return fmt.Errorf("%w: page number too large", ErrPaginationParams)
 	}
-	return paginationData.Page
+	return nil
 }

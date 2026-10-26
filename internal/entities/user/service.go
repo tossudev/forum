@@ -77,10 +77,18 @@ func (s *UserService) GetUserByID(ctx context.Context, id int) (*User, error) {
 	return s.repo.GetUserByID(ctx, id)
 }
 
-func (s *UserService) GetThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, int, error) {
+func (s *UserService) GetThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
 	return s.repo.GetThreadsByUserID(ctx, userID, pagination)
+}
+
+func (s *UserService) GetCommentsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileComment, int, error) {
+	return s.repo.GetCommentsByUserID(ctx, userID, pagination)
 }
 
 func (s *UserService) GetLikedThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
 	return s.repo.GetLikedThreadsByUserID(ctx, userID, pagination)
+}
+
+func (s *UserService) GetDislikedThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
+	return s.repo.GetDislikedThreadsByUserID(ctx, userID, pagination)
 }

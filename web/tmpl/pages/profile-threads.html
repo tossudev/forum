@@ -1,13 +1,7 @@
 {{ define "content" }}
 <div class="center-content">
    
-
-	<div>
-		<a href="/profile/threads">Threads</a>
-		<a href="/profile/comments">Comments</a>
-		<a href="/profile/liked-threads">Liked Threads</a>
-		<a href="/profile/dislikes">Dislikes</a>
-	</div>
+	{{ template "profile-links" . }}
 
 	 <h2>Threads by {{ .Username }}</h2>
 
@@ -56,7 +50,7 @@
 				<a href="{{ $nav.Path }}?page={{ $nav.TotalPages }}" title="Last page">>></a>
 			{{ end }}
 		{{ else }}
-			<p>{{ .Username }} has no liked threads.</p>
+			<p>{{ .Username }} has no threads.</p>
 		{{ end }}
 	</div>
 </div>

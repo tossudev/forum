@@ -6,6 +6,7 @@ import (
 
 	"forum/internal/entities/user"
 	"forum/internal/errs"
+	"forum/internal/models"
 	"forum/internal/pagination"
 	"forum/internal/render"
 )
@@ -38,8 +39,7 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	//get pagination data from query
 	paginationData, err := pagination.Parse(query)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		h.renderer.RenderPage(w, "error-404.html", SearchResultPage{Username: username})
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: username})
 		return
 	}
 
@@ -52,7 +52,6 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 
 	//perform search, check for errs
 	searchResult, err := h.service.Search(ctx, searchQuery, tab, paginationData)
-	paginationData.Page = searchResult.Page
 
 	//if err is 'no search results', send error to frontend and render search page
 	//otherwise, render error 500 page
@@ -61,13 +60,8 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 			msg := "No results found. Please try a different search term."
 			h.renderer.RenderPage(w, "search.html", SearchResultPage{Username: username, ResponseMsg: msg})
 			return
-		} else if errors.Is(err, errs.ErrInvalidUserInput) || errors.Is(err, errs.ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			h.renderer.RenderPage(w, "error-404.html", SearchResultPage{Username: username})
-			return
 		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			h.renderer.RenderPage(w, "error-500.html", SearchResultPage{Username: username})
+			h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: username})
 			return
 		}
 	}
@@ -98,15 +92,37 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 		NextPage:   paginationData.Page + 1,
 	}
 
+	threadBreadcrumbs := []models.Breadcrumb{
+		models.Breadcrumb{
+			Name: "Home",
+			URL:  "/",
+		},
+		models.Breadcrumb{
+			Name: "Search: Threads",
+			URL:  "/search?tab=threads&page=1&search=" + searchQuery,
+		},
+	}
+
+	commentBreadcrumbs := []models.Breadcrumb{
+		models.Breadcrumb{
+			Name: "Home",
+			URL:  "/",
+		},
+		models.Breadcrumb{
+			Name: "Search: Comments",
+			URL:  "/search?tab=comments&page=1&search=" + searchQuery,
+		},
+	}
+
 	pageData := SearchResultPage{
-		ThreadPath:     "Search > Thread",
-		CommentPath:    "Search > Comment",
-		InputQuery:     searchQuery,
-		Threads:        searchResult.Threads,
-		Comments:       searchResult.Comments,
-		ThreadPageNav:  threadPageNav,
-		CommentPageNav: commentPageNav,
-		Username:       username,
+		ThreadBreadcrumbs:  ThreadBreadcrumbs{Breadcrumbs: threadBreadcrumbs},
+		CommentBreadcrumbs: CommentBreadcrumbs{Breadcrumbs: commentBreadcrumbs},
+		InputQuery:         searchQuery,
+		Threads:            searchResult.Threads,
+		Comments:           searchResult.Comments,
+		ThreadPageNav:      threadPageNav,
+		CommentPageNav:     commentPageNav,
+		Username:           username,
 	}
 
 	h.renderer.RenderPage(w, "search.html", pageData)
