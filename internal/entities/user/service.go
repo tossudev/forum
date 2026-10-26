@@ -89,10 +89,10 @@ func (s *UserService) GetCommentsByUsername(ctx context.Context, username string
 	return s.repo.GetCommentsByUsername(ctx, username, pagination)
 }
 
-func (s *UserService) GetLikedThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
-	return s.repo.GetLikedThreadsByUserID(ctx, userID, pagination)
+func (s *UserService) GetLikedThreadsByUsername(ctx context.Context, username string, pagination pagination.Pagination) ([]ProfileThread, int, error) {
+	return s.repo.GetLikedThreadsByUsername(ctx, username, pagination)
 }
 
-func (s *UserService) GetDislikedThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
-	return s.repo.GetDislikedThreadsByUserID(ctx, userID, pagination)
+func (s *UserService) GetDislikedThreadsByUserID(ctx context.Context, username string, pagination pagination.Pagination) ([]ProfileThread, int, error) {
+	return s.repo.GetDislikedThreadsByUsername(ctx, username, pagination)
 }

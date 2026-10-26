@@ -287,9 +287,10 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 	}
 
 	type LikesPage struct {
-		Threads  []ProfileThread
-		PageNav  pagination.PaginationNav
-		Username string
+		ProfileUsername string
+		Username        string
+		Threads         []ProfileThread
+		PageNav         pagination.PaginationNav
 	}
 
 	paginationData, err := pagination.Parse(r.URL.Query())
@@ -303,8 +304,10 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	profileUsername := r.PathValue("username")
+
 	// Get all the liked threads posted by a user
-	threads, totalCount, err := h.service.GetLikedThreadsByUserID(ctx, user.ID, paginationData)
+	threads, totalCount, err := h.service.GetLikedThreadsByUsername(ctx, profileUsername, paginationData)
 	if err != nil {
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
@@ -323,9 +326,10 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 	}
 
 	pageData := LikesPage{
-		Threads:  threads,
-		PageNav:  pageNav,
-		Username: user.Username,
+		ProfileUsername: profileUsername,
+		Username:        user.Username,
+		Threads:         threads,
+		PageNav:         pageNav,
 	}
 
 	h.renderer.RenderPage(w, "profile-liked-threads.html", pageData)
@@ -342,9 +346,10 @@ func (h *UserHandler) ProfileDislikedThreadsPage(w http.ResponseWriter, r *http.
 	}
 
 	type DislikesPage struct {
-		Threads  []ProfileThread
-		PageNav  pagination.PaginationNav
-		Username string
+		ProfileUsername string
+		Username        string
+		Threads         []ProfileThread
+		PageNav         pagination.PaginationNav
 	}
 
 	paginationData, err := pagination.Parse(r.URL.Query())
@@ -358,8 +363,10 @@ func (h *UserHandler) ProfileDislikedThreadsPage(w http.ResponseWriter, r *http.
 		return
 	}
 
+	profileUsername := r.PathValue("username")
+
 	// Get all the disliked threads posted by a user
-	threads, totalCount, err := h.service.GetDislikedThreadsByUserID(ctx, user.ID, paginationData)
+	threads, totalCount, err := h.service.GetDislikedThreadsByUserID(ctx, profileUsername, paginationData)
 	if err != nil {
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
@@ -378,9 +385,10 @@ func (h *UserHandler) ProfileDislikedThreadsPage(w http.ResponseWriter, r *http.
 	}
 
 	pageData := DislikesPage{
-		Threads:  threads,
-		PageNav:  pageNav,
-		Username: user.Username,
+		ProfileUsername: profileUsername,
+		Username:        user.Username,
+		Threads:         threads,
+		PageNav:         pageNav,
 	}
 
 	h.renderer.RenderPage(w, "profile-disliked-threads.html", pageData)
