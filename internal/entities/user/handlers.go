@@ -42,9 +42,10 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := ProfilePage{
-		Username:    userProfile.Username,
-		Role:        "Member",
-		DateCreated: userProfile.CreatedAt, //userProfile.CreatedAt.Format("02 Jan 2006"),
+		ProfileUsername: profileUsername,
+		Username:        user.Username,
+		Role:            "Member",
+		DateCreated:     userProfile.CreatedAt, //userProfile.CreatedAt.Format("02 Jan 2006"),
 	}
 
 	h.renderer.RenderPage(w, "profile.html", data)
@@ -170,9 +171,10 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 	}
 
 	type ThreadsPage struct {
-		Threads  []ProfileThread
-		PageNav  pagination.PaginationNav
-		Username string
+		ProfileUsername string
+		Username        string
+		Threads         []ProfileThread
+		PageNav         pagination.PaginationNav
 	}
 
 	paginationData, err := pagination.Parse(r.URL.Query())
@@ -207,9 +209,10 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 		NextPage:   paginationData.Page + 1,
 	}
 	pageData := ThreadsPage{
-		Threads:  threads,
-		PageNav:  pageNav,
-		Username: profileUsername,
+		ProfileUsername: profileUsername,
+		Username:        user.Username, // logged in user
+		Threads:         threads,
+		PageNav:         pageNav,
 	}
 
 	h.renderer.RenderPage(w, "profile-threads.html", pageData)
@@ -225,9 +228,10 @@ func (h *UserHandler) ProfileCommentsPage(w http.ResponseWriter, r *http.Request
 	}
 
 	type CommentsPage struct {
-		Comments []ProfileComment
-		PageNav  pagination.PaginationNav
-		Username string
+		ProfileUsername string
+		Username        string
+		Comments        []ProfileComment
+		PageNav         pagination.PaginationNav
 	}
 
 	paginationData, err := pagination.Parse(r.URL.Query())
@@ -241,8 +245,10 @@ func (h *UserHandler) ProfileCommentsPage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	profileUsername := r.PathValue("username")
+
 	//Get all comments posted by a user
-	comments, totalCount, err := h.service.GetCommentsByUserID(ctx, user.ID, paginationData)
+	comments, totalCount, err := h.service.GetCommentsByUsername(ctx, profileUsername, paginationData)
 	if err != nil {
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
@@ -260,9 +266,10 @@ func (h *UserHandler) ProfileCommentsPage(w http.ResponseWriter, r *http.Request
 		NextPage:   paginationData.Page + 1,
 	}
 	pageData := CommentsPage{
-		Comments: comments,
-		PageNav:  pageNav,
-		Username: user.Username,
+		ProfileUsername: profileUsername,
+		Username:        user.Username,
+		Comments:        comments,
+		PageNav:         pageNav,
 	}
 
 	h.renderer.RenderPage(w, "profile-comments.html", pageData)

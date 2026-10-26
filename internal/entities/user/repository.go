@@ -236,14 +236,16 @@ func (r *UserRepo) GetLikedThreadsByUserID(ctx context.Context, userID int, pagi
 	return threads, totalCount, nil
 }
 
-func (r *UserRepo) GetCommentsByUserID(ctx context.Context, userID int, paginationData pagination.Pagination) ([]ProfileComment, int, error) {
+func (r *UserRepo) GetCommentsByUsername(ctx context.Context, username string, paginationData pagination.Pagination) ([]ProfileComment, int, error) {
 
 	//get count of comments created by user
-	queryCount := `SELECT COUNT(*) FROM comments WHERE author_id = ?;`
+	queryCount := `SELECT COUNT(*) FROM comments 
+	INNER JOIN users ON users.id = comments.author_id WHERE users.username = ?;`
+
 	var totalCount int
-	err := r.db.QueryRowContext(ctx, queryCount, userID).Scan(&totalCount)
+	err := r.db.QueryRowContext(ctx, queryCount, username).Scan(&totalCount)
 	if err != nil {
-		return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+		return nil, 0, fmt.Errorf("GetCommentsByUsername: %w", err)
 	}
 
 	if totalCount == 0 {
@@ -254,38 +256,39 @@ func (r *UserRepo) GetCommentsByUserID(ctx context.Context, userID int, paginati
 	//if so, return err
 	err = pagination.CheckPageTooLarge(paginationData, totalCount)
 	if err != nil {
-		return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", errs.ErrNotFound)
+		return nil, 0, fmt.Errorf("GetCommentsByUsername: %w", errs.ErrNotFound)
 	}
 
 	var comments []ProfileComment
 
-	query := `SELECT id, body, date_created, thread_id, author_id
-	FROM comments
-	WHERE author_id = ?
-	ORDER BY date_created DESC 
+	query := `SELECT c.id, c.body, c.date_created, c.thread_id, c.author_id
+	FROM comments AS c
+	INNER JOIN users ON users.id = c.author_id
+	WHERE users.username = ?
+	ORDER BY c.date_created DESC 
 	LIMIT ? OFFSET ?;`
 
-	rows, err := r.db.QueryContext(ctx, query, userID, paginationData.Limit(), paginationData.Offset())
+	rows, err := r.db.QueryContext(ctx, query, username, paginationData.Limit(), paginationData.Offset())
 	if err != nil {
-		return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+		return nil, 0, fmt.Errorf("GetCommentsByUsername: %w", err)
 	}
 
 	for rows.Next() {
 		var comment ProfileComment
 		if err := rows.Scan(&comment.ID, &comment.Body, &comment.DateCreated, &comment.ThreadID, &comment.AuthorID); err != nil {
-			return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+			return nil, 0, fmt.Errorf("GetCommentsByUsername: %w", err)
 		}
 
 		comment.DateCreated, err = timeformat.FormatTime(comment.DateCreated, timeformat.GetTimezone(ctx))
 		if err != nil {
-			return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+			return nil, 0, fmt.Errorf("GetCommentsByUsername: %w", err)
 		}
 
 		comments = append(comments, comment)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, 0, fmt.Errorf("GetCommentsByUserID: %w", err)
+		return nil, 0, fmt.Errorf("GetCommentsByUsername: %w", err)
 	}
 
 	return comments, totalCount, nil

@@ -27,9 +27,10 @@ type LoginSubmission struct {
 }
 
 type ProfilePage struct {
-	Username    string
-	Role        string
-	DateCreated string
+	ProfileUsername string
+	Username        string // logged in user
+	Role            string
+	DateCreated     string
 }
 
 type RegistrationPage struct {
