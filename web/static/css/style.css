@@ -410,6 +410,7 @@ form .button {
 	text-align: center;
 	flex-shrink: 0;
 	cursor: pointer;
+	text-decoration: none;
 }
 
 .user-sidebar:hover {
