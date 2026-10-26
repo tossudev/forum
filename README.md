@@ -14,7 +14,7 @@ with simple frontend, mostly HTML & CSS, minimal JavaScript
 - Viewing of threads, comments, and likes/dislikes without logging in
 - Account creation, allowing users to create threads and comments, like/dislike threads and comments, and delete their own comments
 - User profile pages that display a user's created threads and comments, and the threads they have liked/disliked
-- Search functionality for threads and comments, allowing searching of partial words as small as three characters
+- [Search functionality](/docs/search.md) for threads and comments, allowing searching of partial words as small as three characters
 
 # Usage / Quickstart
 ## With Docker
@@ -33,7 +33,9 @@ with simple frontend, mostly HTML & CSS, minimal JavaScript
 Once the server is running, open your browser and navigate to http://localhost:8080.
 
 # Documentation
-[docs](/docs)
+- [Documentation](/docs)
+- [Forum Architecture](/docs/architecture.md)
+- [Search Feature](/docs/search.md)
 
 # Authors
 

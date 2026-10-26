@@ -54,7 +54,7 @@ func (h *SearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	searchResult, err := h.service.Search(ctx, searchQuery, tab, paginationData)
 
 	//if err is 'no search results', send error to frontend and render search page
-	//otherwise, render error 500 page
+	//otherwise, send to WriterErrorPage for parsing
 	if err != nil {
 		if errors.Is(err, errs.ErrSearchNoResults) {
 			msg := "No results found. Please try a different search term."

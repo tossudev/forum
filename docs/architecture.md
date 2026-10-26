@@ -35,7 +35,7 @@ internal/handlers/
 ```
 #### Responsibilities
 - Create handlers for entites
-- Wrap handers in middleware
+- Wrap handlers in middleware
 
 ### Example
 
