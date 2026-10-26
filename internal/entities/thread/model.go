@@ -52,6 +52,17 @@ type ThreadCommentsPage struct {
 	Username      string
 	ThreadDisplay ThreadDisplay
 	Comments      []CommentDisplay
+	// new values for the comment page rendering
+	CommentBody  string
+	ErrorMessage string
+}
+
+// used in displayThreadPage and comment create
+type Params struct {
+	ThreadID       int
+	PaginationData pagination.Pagination
+	Username       string
+	Path           string
 }
 
 // ThreadDisplay contains data needed to display a thread box on the UI

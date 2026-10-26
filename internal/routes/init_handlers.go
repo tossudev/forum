@@ -49,7 +49,7 @@ func InitHandlers(db *sql.DB, validate *validator.Validate, renderer *render.Ren
 
 	commentRepo := comment.NewRepository(db)
 	commentService := comment.NewService(commentRepo)
-	commentHandler := comment.NewHandler(commentService, validate, renderer)
+	commentHandler := comment.NewHandler(commentService, validate, renderer, threadService)
 
 	likeRepo := like.NewRepository(db)
 	likeService := like.NewService(likeRepo)
