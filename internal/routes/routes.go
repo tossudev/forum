@@ -11,6 +11,7 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	// User routes
 	mux.HandleFunc("GET /users/register", app.UserHandler.RegisterPage)
 	mux.HandleFunc("GET /users/login", app.UserHandler.LoginPage)
+	mux.HandleFunc("GET /profile", app.UserHandler.GetProfile) // For main nav bar
 	mux.HandleFunc("GET /profile/{username}", app.UserHandler.GetProfile)
 	mux.HandleFunc("GET /profile/{username}/threads", app.UserHandler.ProfileThreadsPage)
 	mux.HandleFunc("GET /profile/{username}/comments", app.UserHandler.ProfileCommentsPage)

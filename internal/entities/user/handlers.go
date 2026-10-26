@@ -34,6 +34,9 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	profileUsername := r.PathValue("username")
+	if profileUsername == "" { // for the navbar where the path is /profile, show logged in user's own profile
+		profileUsername = user.Username
+	}
 
 	userProfile, err := h.service.GetUserProfileByUsername(ctx, profileUsername)
 	if err != nil {
