@@ -121,16 +121,18 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (User, erro
 	return user, nil
 }
 
-// GetThreadsByUserID gets all the threads posted by a user within the given pagination parameters.
+// GetThreadsByUsername gets all the threads posted by a user within the given pagination parameters.
 // Returns the threads, the total number of threads found, and a potential error
-func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, paginationData pagination.Pagination) ([]ProfileThread, int, error) {
+func (r *UserRepo) GetThreadsByUsername(ctx context.Context, username string, paginationData pagination.Pagination) ([]ProfileThread, int, error) {
 
 	//get count of threads created by user
-	queryCount := `SELECT COUNT(*) FROM threads WHERE author_id = ?;`
+	queryCount := `SELECT COUNT(*) FROM threads
+	INNER JOIN users ON users.id = threads.author_id WHERE users.username = ?;`
+
 	var totalCount int
-	err := r.db.QueryRowContext(ctx, queryCount, userID).Scan(&totalCount)
+	err := r.db.QueryRowContext(ctx, queryCount, username).Scan(&totalCount)
 	if err != nil {
-		return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+		return nil, 0, fmt.Errorf("GetThreadsByUsername: %w", err)
 	}
 
 	if totalCount == 0 {
@@ -141,36 +143,37 @@ func (r *UserRepo) GetThreadsByUserID(ctx context.Context, userID int, paginatio
 	//if so, return err
 	err = pagination.CheckPageTooLarge(paginationData, totalCount)
 	if err != nil {
-		return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", errs.ErrNotFound)
+		return nil, 0, fmt.Errorf("GetThreadsByUsername: %w", errs.ErrNotFound)
 	}
 
 	//get threads created by user on requested page
 	var threads []ProfileThread
 
-	query := `SELECT id, title, body, date_created, author_id, category_id FROM threads 
-	WHERE author_id = ? ORDER BY date_created DESC LIMIT ? OFFSET ?;`
+	query := `SELECT t.id, t.title, t.body, t.date_created, t.author_id, t.category_id
+	FROM threads AS t INNER JOIN users ON users.id = t.author_id
+	WHERE users.username = ? ORDER BY t.date_created DESC LIMIT ? OFFSET ?;`
 
-	rows, err := r.db.QueryContext(ctx, query, userID, paginationData.Limit(), paginationData.Offset())
+	rows, err := r.db.QueryContext(ctx, query, username, paginationData.Limit(), paginationData.Offset())
 	if err != nil {
-		return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+		return nil, 0, fmt.Errorf("GetThreadsByUsername: %w", err)
 	}
 
 	for rows.Next() {
 		var thread ProfileThread
 		if err := rows.Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
-			return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+			return nil, 0, fmt.Errorf("GetThreadsByUsername: %w", err)
 		}
 
 		thread.DateCreated, err = timeformat.FormatTime(thread.DateCreated, timeformat.GetTimezone(ctx))
 		if err != nil {
-			return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+			return nil, 0, fmt.Errorf("GetThreadsByUsername: %w", err)
 		}
 
 		threads = append(threads, thread)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, 0, fmt.Errorf("GetThreadsByUserID: %w", err)
+		return nil, 0, fmt.Errorf("GetThreadsByUsername: %w", err)
 	}
 
 	return threads, totalCount, nil

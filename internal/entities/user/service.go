@@ -81,8 +81,8 @@ func (s *UserService) GetUserByID(ctx context.Context, id int) (*User, error) {
 	return s.repo.GetUserByID(ctx, id)
 }
 
-func (s *UserService) GetThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
-	return s.repo.GetThreadsByUserID(ctx, userID, pagination)
+func (s *UserService) GetThreadsByUsername(ctx context.Context, username string, pagination pagination.Pagination) ([]ProfileThread, int, error) {
+	return s.repo.GetThreadsByUsername(ctx, username, pagination)
 }
 
 func (s *UserService) GetCommentsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileComment, int, error) {

@@ -186,8 +186,10 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	profileUsername := r.PathValue("username")
+
 	// Get all the threads posted by a user
-	threads, totalCount, err := h.service.GetThreadsByUserID(ctx, user.ID, paginationData)
+	threads, totalCount, err := h.service.GetThreadsByUsername(ctx, profileUsername, paginationData)
 	if err != nil {
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
@@ -207,7 +209,7 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 	pageData := ThreadsPage{
 		Threads:  threads,
 		PageNav:  pageNav,
-		Username: user.Username,
+		Username: profileUsername,
 	}
 
 	h.renderer.RenderPage(w, "profile-threads.html", pageData)
