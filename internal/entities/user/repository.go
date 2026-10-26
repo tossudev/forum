@@ -24,7 +24,8 @@ func (r *UserRepo) AddUser(ctx context.Context, user *User) (*User, error) {
 	query := `INSERT INTO users (username, email, password_hash, password_salt, date_created, role_id)
  VALUES (?, ?, ?, ?, ?, ?);`
 
-	result, err := r.db.ExecContext(ctx, query, user.Username, user.Email, user.Password.Hash, user.Password.Salt, time.Now().Unix(), user.RoleID)
+	createdAt := time.Now().UTC().Format(timeformat.TimeFormat)
+	result, err := r.db.ExecContext(ctx, query, user.Username, user.Email, user.Password.Hash, user.Password.Salt, createdAt, user.RoleID)
 	if err != nil {
 		if database.IsUniqueErr(err) {
 			return nil, fmt.Errorf("%w: username or email already exists", errs.ErrDuplicate)
@@ -46,17 +47,36 @@ func (r *UserRepo) GetUserByID(ctx context.Context, id int) (*User, error) {
 
 	var user User
 	var createdAt int
-	if err := r.db.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.Password.Salt, &createdAt, &user.RoleID); err != nil {
+	err := r.db.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.Password.Salt, &createdAt, &user.RoleID)
+	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("%w: user not found", errs.ErrNotFound)
 		}
 		return nil, fmt.Errorf("GetUserByID: scanning row: %w", err)
 	}
 
-	user.CreatedAt = time.Unix(int64(createdAt), 0)
+	user.CreatedAt, err = timeformat.FormatTime(user.CreatedAt, timeformat.GetTimezone(ctx))
 
 	return &user, nil
 
+}
+
+func (r *UserRepo) GetUserProfileByUsername(ctx context.Context, username string) (*UserProfile, error) {
+	query := `SELECT username, date_created
+	FROM users WHERE username = ?;`
+
+	var up UserProfile
+	err := r.db.QueryRowContext(ctx, query, username).Scan(&up.Username, &up.CreatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("GetUserProfileByUsername: %w", errs.ErrNotFound)
+		}
+		return nil, fmt.Errorf("GetUserProfileByUsername: %w", err)
+	}
+
+	up.CreatedAt, err = timeformat.FormatTime(up.CreatedAt, timeformat.GetTimezone(ctx))
+
+	return &up, nil
 }
 
 func (r *UserRepo) UsernameExists(ctx context.Context, username string) (bool, error) {
@@ -88,15 +108,15 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (User, erro
 	FROM users WHERE email = ?;`
 
 	var user User
-	var createdAt int
-	if err := r.db.QueryRowContext(ctx, query, email).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.Password.Salt, &createdAt, &user.RoleID); err != nil {
+	err := r.db.QueryRowContext(ctx, query, email).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.Password.Salt, &user.CreatedAt, &user.RoleID)
+	if err != nil {
 		if err == sql.ErrNoRows {
 			return User{}, fmt.Errorf("%w: invalid credentials", errs.ErrUnauthorized)
 		}
 		return User{}, fmt.Errorf("GetUserByEmail: scanning row: %w", err)
 	}
 
-	user.CreatedAt = time.Unix(int64(createdAt), 0)
+	user.CreatedAt, err = timeformat.FormatTime(user.CreatedAt, timeformat.GetTimezone(ctx))
 
 	return user, nil
 }

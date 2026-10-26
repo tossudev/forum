@@ -73,6 +73,10 @@ func (s *UserService) Authenticate(ctx context.Context, input LoginSubmission) (
 	return user.ID, nil
 }
 
+func (s *UserService) GetUserProfileByUsername(ctx context.Context, username string) (*UserProfile, error) {
+	return s.repo.GetUserProfileByUsername(ctx, username)
+}
+
 func (s *UserService) GetUserByID(ctx context.Context, id int) (*User, error) {
 	return s.repo.GetUserByID(ctx, id)
 }

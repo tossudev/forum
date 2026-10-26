@@ -25,17 +25,26 @@ func NewHandler(service *UserService, sm *session.SessionManager, renderer *rend
 }
 
 func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	user := GetUser(r)
 	if user == nil {
 		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
 		return
 	}
 
-	// TODO: figure out roles
+	profileUsername := r.PathValue("username")
+
+	userProfile, err := h.service.GetUserProfileByUsername(ctx, profileUsername)
+	if err != nil {
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
+		return
+	}
+
 	data := ProfilePage{
-		Username:    user.Username,
+		Username:    userProfile.Username,
 		Role:        "Member",
-		DateCreated: user.CreatedAt.Format("02 Jan 2006"),
+		DateCreated: userProfile.CreatedAt, //userProfile.CreatedAt.Format("02 Jan 2006"),
 	}
 
 	h.renderer.RenderPage(w, "profile.html", data)

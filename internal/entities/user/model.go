@@ -2,7 +2,6 @@ package user
 
 import (
 	"forum/internal/password"
-	"time"
 )
 
 type User struct {
@@ -10,14 +9,21 @@ type User struct {
 	Username  string            `json:"username"`
 	Email     string            `json:"email"`
 	Password  password.Password `json:"-"`
-	CreatedAt time.Time         `json:"created_at"`
+	CreatedAt string            `json:"created_at"`
 	RoleID    int               `json:"role_id"`
+}
+
+// Data needed for user profile pages
+type UserProfile struct {
+	Username  string // Username of the profile being requested
+	Avatar    string
+	CreatedAt string
 }
 
 // LoginSubmission contains the user input during login before credential verification
 type LoginSubmission struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string
+	Password string
 }
 
 type ProfilePage struct {
