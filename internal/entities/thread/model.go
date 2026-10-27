@@ -55,7 +55,7 @@ type ThreadCommentsPage struct {
 }
 
 // used in displayThreadPage and comment create
-type Params struct {
+type ThreadPageParams struct {
 	ThreadID       int
 	PaginationData pagination.Pagination
 	Username       string

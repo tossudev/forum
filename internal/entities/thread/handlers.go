@@ -226,42 +226,42 @@ func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	params := Params{}
-	params.Path = r.URL.Path
 	user := user.GetUser(r)
+	username := ""
 	if user != nil {
-		params.Username = user.Username
+		username = user.Username
 	}
 
 	paginationData, err := pagination.Parse(r.URL.Query())
 	if err != nil {
-		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: params.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: username})
 		return
 	}
 
 	if err := paginationData.Validate(); err != nil {
-		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: params.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: username})
 		return
 	}
-	params.PaginationData = paginationData
 
 	threadID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || threadID < 1 {
-		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: params.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: username})
 		return
 	}
-	params.ThreadID = threadID
 
+	params := ThreadPageParams{
+		ThreadID:       threadID,
+		PaginationData: paginationData,
+		Username:       username,
+		Path:           r.URL.Path,
+	}
 	pageData, err := h.service.CollectPageData(ctx, params)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			h.renderer.RenderPage(w, "error-404.html", ThreadCommentsPage{Username: params.Username})
+			h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: username})
 			return
 		}
-		w.WriteHeader(http.StatusInternalServerError)
-		slog.Error("collecting page data failed", "err:", err)
-		h.renderer.RenderPage(w, "error-500.html", ThreadCommentsPage{Username: params.Username})
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: username})
 		return
 	}
 	h.renderer.RenderPage(w, "thread.html", pageData)

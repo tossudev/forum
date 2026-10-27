@@ -32,7 +32,6 @@ func NewHandler(service *CommentService, validator *validator.Validate, renderer
 func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
-	params := thread.Params{}
 
 	user := user.GetUser(r)
 	//user not logged in
@@ -40,7 +39,6 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	params.Username = user.Username
 
 	threadID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || threadID < 1 {
@@ -48,23 +46,19 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		slog.Error("comment creation fail", "err", err)
 		return
 	}
-	params.ThreadID = threadID
-	params.Path = "/threads/" + strconv.Itoa(threadID)
 
 	paginationData, err := pagination.Parse(r.URL.Query())
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		h.renderer.RenderPage(w, "error-404.html", thread.ThreadCommentsPage{Username: params.Username})
+		h.renderer.RenderPage(w, "error-404.html", thread.ThreadCommentsPage{Username: user.Username})
 		return
 	}
-	params.PaginationData = paginationData
 
 	if err := paginationData.Validate(); err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		h.renderer.RenderPage(w, "error-404.html", thread.ThreadCommentsPage{Username: params.Username})
+		h.renderer.RenderPage(w, "error-404.html", thread.ThreadCommentsPage{Username: user.Username})
 		return
 	}
-
 	// TODO: this should be implemented for comments for better UX:
 	// Parse form before handling user not logged in error so that form data can be saved
 	// and reinserted into the page templates when displaying errors.
@@ -73,13 +67,20 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		slog.Error("comment creation fail", "err", err)
 		return
 	}
-
+	// input params for CollectPageData
+	params := thread.ThreadPageParams{
+		ThreadID:       threadID,
+		PaginationData: paginationData,
+		Username:       user.Username,
+		Path:           "/threads/" + strconv.Itoa(threadID),
+	}
 	// to check if there is only spaces in comment body
 	commentBody := strings.TrimSpace(r.PostFormValue("body"))
+
 	if commentBody == "" {
 		pageData, err := h.threadService.CollectPageData(ctx, params)
 		if err != nil {
-			errs.WriteError(w, err)
+			h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 			return
 		}
 		pageData.CommentBody = commentBody
@@ -100,7 +101,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, errs.ErrInvalidUserInput) {
 			pageData, err := h.threadService.CollectPageData(ctx, params)
 			if err != nil {
-				errs.WriteError(w, err)
+				h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 				return
 			}
 			pageData.CommentBody = commentBody
@@ -109,7 +110,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 			h.renderer.RenderPage(w, "thread.html", pageData)
 			return
 		}
-		errs.WriteError(w, err)
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}
 

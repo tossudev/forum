@@ -121,7 +121,7 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 	return threadDisplay, commentsDisplay, totalCount, nil
 }
 
-func (s *ThreadService) CollectPageData(ctx context.Context, params Params) (ThreadCommentsPage, error) {
+func (s *ThreadService) CollectPageData(ctx context.Context, params ThreadPageParams) (ThreadCommentsPage, error) {
 
 	threadDisplay, commentsDisplay, totalCount, err := s.DisplayThreadPage(ctx, params.ThreadID, params.Username, params.PaginationData)
 	if err != nil {
