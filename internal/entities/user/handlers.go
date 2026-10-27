@@ -6,6 +6,8 @@ import (
 	"forum/internal/password"
 	"forum/internal/render"
 	"forum/internal/session"
+	"forum/internal/validate"
+	"log/slog"
 	"net/http"
 	"strings"
 )
@@ -189,6 +191,18 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	for i, t := range threads {
+		threads[i].TitleHTML, err = validate.ParseHTML(t.Title)
+		if err != nil {
+			slog.Error("thread title validtion failed", "err:", err, "thread_id:", t.ID, "title:", t.Title)
+		}
+
+		threads[i].BodyHTML, err = validate.ParseHTML(t.Body)
+		if err != nil {
+			slog.Error("thread body validation failed", "err:", err, "thread_id:", t.ID, "body:", t.Body)
+		}
+	}
+
 	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
 	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
 
@@ -240,6 +254,13 @@ func (h *UserHandler) ProfileCommentsPage(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
+	}
+
+	for i, c := range comments {
+		comments[i].BodyHTML, err = validate.ParseHTML(c.Body)
+		if err != nil {
+			slog.Error("comment validation failed", "err:", err, "comment_id:", c.ID, "body:", c.Body)
+		}
 	}
 
 	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
@@ -297,6 +318,18 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	for i, t := range threads {
+		threads[i].TitleHTML, err = validate.ParseHTML(t.Title)
+		if err != nil {
+			slog.Error("thread title validtion failed", "err:", err, "thread_id:", t.ID, "title:", t.Title)
+		}
+
+		threads[i].BodyHTML, err = validate.ParseHTML(t.Body)
+		if err != nil {
+			slog.Error("thread body validation failed", "err:", err, "thread_id:", t.ID, "body:", t.Body)
+		}
+	}
+
 	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
 	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
 
@@ -350,6 +383,18 @@ func (h *UserHandler) ProfileDislikedThreadsPage(w http.ResponseWriter, r *http.
 	if err != nil {
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
+	}
+
+	for i, t := range threads {
+		threads[i].TitleHTML, err = validate.ParseHTML(t.Title)
+		if err != nil {
+			slog.Error("thread title validtion failed", "err:", err, "thread_id:", t.ID, "title:", t.Title)
+		}
+
+		threads[i].BodyHTML, err = validate.ParseHTML(t.Body)
+		if err != nil {
+			slog.Error("thread body validation failed", "err:", err, "thread_id:", t.ID, "body:", t.Body)
+		}
 	}
 
 	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)

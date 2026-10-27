@@ -2,6 +2,7 @@ package user
 
 import (
 	"forum/internal/password"
+	"html/template"
 	"time"
 )
 
@@ -50,6 +51,8 @@ type ProfileThread struct {
 	AuthorID    int
 	CategoryID  int
 	ReplyCount  int
+	TitleHTML   template.HTML
+	BodyHTML    template.HTML
 }
 
 type ProfileComment struct {
@@ -58,4 +61,5 @@ type ProfileComment struct {
 	DateCreated string
 	ThreadID    int
 	AuthorID    int
+	BodyHTML    template.HTML
 }
