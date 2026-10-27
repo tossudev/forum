@@ -35,12 +35,11 @@ async function deleteThread(elementRef) {
         return; 
     }
 
-    const currentPath  = '/categories/' + categoryID;
     if (response.ok) {
-         location.href = currentPath;
+         location.href = '/categories/' + categoryID; // go to category page of where the deleted thread was from
          return;
     } 
-    handleDeleteError(response, currentPath);
+    handleDeleteError(response);
 }
 
 function handleDeleteError(response) {
