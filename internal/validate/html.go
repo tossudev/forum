@@ -1,7 +1,7 @@
 package validate
 
 import (
-	"fmt"
+	"forum/internal/errs"
 	"html/template"
 	"strings"
 
@@ -28,7 +28,7 @@ func ParseHTML(input string) (template.HTML, error) {
 
 	out := HTMLPolicy.Sanitize(input)
 	if out == "" {
-		return template.HTML(""), fmt.Errorf("HTML sanitization failed")
+		return template.HTML(""), errs.ErrHTMLSanitizationFail
 	}
 
 	return template.HTML(out), nil

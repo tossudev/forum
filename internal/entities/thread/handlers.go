@@ -3,7 +3,6 @@ package thread
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -163,9 +162,12 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Username:     username,
 	}
 
+	fieldErrors := make(map[string]string)
+
 	// User not logged in: Shows error without redirect so that the user doesn't lose their submission data
 	if user == nil {
-		pageData.OtherErr = "Please log in to create a thread."
+		fieldErrors["OtherErr"] = "Please log in to create a thread."
+		pageData.FieldErrors = fieldErrors
 		w.WriteHeader(http.StatusUnauthorized)
 		h.renderer.RenderPage(w, "thread-create.html", pageData)
 		return
@@ -175,23 +177,9 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	threadID, err := h.service.Create(ctx, &thread)
 	if err != nil {
-		if errors.Is(err, errs.ErrInvalidThreadTitle) {
-			pageData.TitleErr = "Thread title must be 1-100 characters."
-		}
-
-		if errors.Is(err, errs.ErrInvalidThreadBody) {
-			pageData.BodyErr = "Thread body must be 1-5000 characters."
-		}
-
-		if !errors.Is(err, errs.ErrInvalidThreadTitle) && !errors.Is(err, errs.ErrInvalidThreadBody) {
-			pageData.OtherErr = "Unable to create thread. Please try again later."
-			w.WriteHeader(http.StatusInternalServerError)
-			h.renderer.RenderPage(w, "thread-create.html", pageData)
-			slog.Error("thread creation fail", "err", err)
-			return
-		}
-
-		w.WriteHeader(http.StatusBadRequest)
+		fieldErrors, statusCode := getThreadCreationFormFieldErrors(err)
+		pageData.FieldErrors = fieldErrors
+		w.WriteHeader(statusCode)
 		h.renderer.RenderPage(w, "thread-create.html", pageData)
 		return
 	}

@@ -72,7 +72,13 @@ async function like(elementRef, like) {
 			dislikeCounter.textContent = Number(initialDislikes) + 1
 		}
 		elementRef.classList.add("pressed")
-    } else {
-		window.alert("You need to be signed in!");
+    } else if (response.status === 400) {
+		window.alert("Invalid request");
+	} else if (response.status === 401) {
+		window.alert("You must be logged in to use this feature");
+	} else if (response.status === 404) {
+		window.alert("Resource not found");
+	} else {
+		window.alert("Something went wrong. Please try again later.")
 	}
 }

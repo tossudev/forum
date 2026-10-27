@@ -36,9 +36,7 @@ type CreateThreadsPage struct {
 	CategoryName string
 	InputTitle   string
 	InputBody    string
-	TitleErr     string
-	BodyErr      string
-	OtherErr     string
+	FieldErrors  map[string]string
 	Username     string
 }
 
