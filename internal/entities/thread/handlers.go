@@ -243,10 +243,11 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 		Username:       username,
 		Path:           r.URL.Path,
 	}
-	pageData, err := h.service.CollectPageData(ctx, params)
+	pageData, totalCount, err := h.service.CollectPageData(ctx, params)
 	if err != nil {
-		if errors.Is(err, errs.ErrNotFound) {
-			h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: username})
+		if errors.Is(err, pagination.ErrPageOverTotal) {
+			totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
+			http.Redirect(w, r, r.URL.Path+"?page="+strconv.Itoa(totalPages), http.StatusSeeOther) // Redirect to last page - good UX when a user deletes the only comment on the last page (otherwise they see 404)
 			return
 		}
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: username})

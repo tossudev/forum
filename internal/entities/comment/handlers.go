@@ -30,7 +30,6 @@ func NewHandler(service *CommentService, validator *validator.Validate, renderer
 }
 
 func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
-
 	ctx := r.Context()
 
 	user := user.GetUser(r)
@@ -78,7 +77,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	commentBody := strings.TrimSpace(r.PostFormValue("body"))
 
 	if commentBody == "" {
-		pageData, err := h.threadService.CollectPageData(ctx, params)
+		pageData, _, err := h.threadService.CollectPageData(ctx, params)
 		if err != nil {
 			h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 			return
@@ -99,11 +98,12 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	_, totalComments, err := h.service.Create(ctx, &comment)
 	if err != nil {
 		if errors.Is(err, errs.ErrInvalidUserInput) {
-			pageData, err := h.threadService.CollectPageData(ctx, params)
+			pageData, _, err := h.threadService.CollectPageData(ctx, params)
 			if err != nil {
 				h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 				return
 			}
+
 			pageData.CommentBody = commentBody
 			pageData.ErrorMessage = "Comment has invalid formatting"
 			w.WriteHeader(http.StatusBadRequest)

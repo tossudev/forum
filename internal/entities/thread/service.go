@@ -121,23 +121,23 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 	return threadDisplay, commentsDisplay, totalCount, nil
 }
 
-func (s *ThreadService) CollectPageData(ctx context.Context, params ThreadPageParams) (ThreadCommentsPage, error) {
+func (s *ThreadService) CollectPageData(ctx context.Context, params ThreadPageParams) (ThreadCommentsPage, int, error) {
 
 	threadDisplay, commentsDisplay, totalCount, err := s.DisplayThreadPage(ctx, params.ThreadID, params.Username, params.PaginationData)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
-			return ThreadCommentsPage{}, errs.ErrNotFound
+			return ThreadCommentsPage{}, totalCount, errs.ErrNotFound
 		}
-		return ThreadCommentsPage{}, err
+		return ThreadCommentsPage{}, totalCount, err
 	}
 
 	catID := threadDisplay.Thread.CategoryID
 	categoryName, err := s.GetCategoryName(ctx, catID)
 	if err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
-			return ThreadCommentsPage{}, errs.ErrNotFound
+			return ThreadCommentsPage{}, totalCount, errs.ErrNotFound
 		}
-		return ThreadCommentsPage{}, err
+		return ThreadCommentsPage{}, totalCount, err
 	}
 
 	breadcrumbs := []models.Breadcrumb{
@@ -171,5 +171,5 @@ func (s *ThreadService) CollectPageData(ctx context.Context, params ThreadPagePa
 		ThreadDisplay: *threadDisplay,
 		Comments:      commentsDisplay,
 	}
-	return pageData, nil
+	return pageData, totalCount, nil
 }
