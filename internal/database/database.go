@@ -15,7 +15,6 @@ func Open(path string) (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open database: %w", err)
 	}
-
 	if err := db.Ping(); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("verify database connection: %w", err)

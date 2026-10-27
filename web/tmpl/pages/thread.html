@@ -153,11 +153,9 @@
 	{{ if .Username }}
 	<div class="center-content">
 		<h2>Reply to thread</h2>
-		<form class="create-thread" action="/threads/{{ .ThreadDisplay.Thread.ID }}/comments" method="post">
-			<label for="body">Body text</label>
-			<textarea id="body" name="body" placeholder="Write your comment..." minlength="1" maxlength="5000" required></textarea>
-			<p class="error-msg"></p>
-
+		<form class="create-thread" action="/threads/{{ .ThreadDisplay.Thread.ID }}/comments?page={{ $nav.Page }}" method="post">
+			<label for="body">Body text</label>{{ if .ErrorMessage }}<p class="error-msg">{{ .ErrorMessage }}</p>{{ end }}
+			<textarea id="body" name="body" placeholder="Write your comment..." minlength="1" maxlength="5000" required>{{ if .CommentBody }}{{ .CommentBody }}{{ end }}</textarea>
 			<button class="button register-btn" type="submit">Publish comment</button>
 		</form>
 	</div>

@@ -2,11 +2,14 @@ package thread
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"time"
 
 	"forum/internal/errs"
+	"forum/internal/models"
 	"forum/internal/pagination"
 	"forum/internal/timeformat"
 	"forum/internal/validate"
@@ -116,4 +119,57 @@ func (s *ThreadService) DisplayThreadPage(ctx context.Context, threadID int, use
 
 	//TODO: Check if this should still return nil if there is a display error (as above)
 	return threadDisplay, commentsDisplay, totalCount, nil
+}
+
+func (s *ThreadService) CollectPageData(ctx context.Context, params ThreadPageParams) (ThreadCommentsPage, int, error) {
+
+	threadDisplay, commentsDisplay, totalCount, err := s.DisplayThreadPage(ctx, params.ThreadID, params.Username, params.PaginationData)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			return ThreadCommentsPage{}, totalCount, errs.ErrNotFound
+		}
+		return ThreadCommentsPage{}, totalCount, err
+	}
+
+	catID := threadDisplay.Thread.CategoryID
+	categoryName, err := s.GetCategoryName(ctx, catID)
+	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			return ThreadCommentsPage{}, totalCount, errs.ErrNotFound
+		}
+		return ThreadCommentsPage{}, totalCount, err
+	}
+
+	breadcrumbs := []models.Breadcrumb{
+		models.Breadcrumb{
+			Name: "Home",
+			URL:  "/",
+		},
+		models.Breadcrumb{
+			Name: categoryName,
+			URL:  "/categories/" + strconv.Itoa(catID),
+		},
+		models.Breadcrumb{
+			Name: threadDisplay.Thread.Title,
+			URL:  "/threads/" + strconv.Itoa(params.ThreadID),
+		},
+	}
+	totalPages := pagination.CalcTotalPages(totalCount, params.PaginationData.PageSize)
+	pageList := pagination.GetDisplayPageNums(params.PaginationData.Page, totalPages, 5) // The visible pages in navigation
+	pageNav := pagination.PaginationNav{
+		Path:       params.Path,
+		Page:       params.PaginationData.Page,
+		TotalPages: totalPages,
+		PageList:   pageList,
+		PrevPage:   params.PaginationData.Page - 1,
+		NextPage:   params.PaginationData.Page + 1,
+	}
+	pageData := ThreadCommentsPage{
+		Breadcrumbs:   breadcrumbs,
+		PageNav:       pageNav,
+		Username:      params.Username,
+		ThreadDisplay: *threadDisplay,
+		Comments:      commentsDisplay,
+	}
+	return pageData, totalCount, nil
 }

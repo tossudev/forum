@@ -22,7 +22,7 @@ func NewService(r *CommentRepository) *CommentService {
 // Create creates a new comment, and returns the added comment, the total number of comments, and a potential error.
 func (s *CommentService) Create(ctx context.Context, req *Comment) (Comment, int, error) {
 	if _, err := validate.ParseHTML(req.Body); err != nil {
-		return Comment{}, 0, err
+		return Comment{}, 0, errs.ErrInvalidUserInput
 	}
 
 	isoTime := time.Now().UTC()

@@ -1,67 +1,109 @@
 package comment
 
 import (
+	"errors"
 	"fmt"
-	"forum/internal/errs"
-	"forum/internal/pagination"
-	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"forum/internal/entities/thread"
 	"forum/internal/entities/user"
+	"forum/internal/errs"
+	"forum/internal/pagination"
+	"forum/internal/render"
 	"forum/internal/session"
 
 	"github.com/go-playground/validator/v10"
 )
 
 type CommentHandler struct {
-	service   *CommentService
-	validator *validator.Validate
+	service       *CommentService
+	validator     *validator.Validate
+	renderer      *render.Renderer
+	threadService *thread.ThreadService
 }
 
-func NewHandler(service *CommentService, validator *validator.Validate) *CommentHandler {
-	return &CommentHandler{service: service, validator: validator}
+func NewHandler(service *CommentService, validator *validator.Validate, renderer *render.Renderer, threadService *thread.ThreadService) *CommentHandler {
+	return &CommentHandler{service: service, validator: validator, renderer: renderer, threadService: threadService}
 }
 
-// TODO: user friendly error handling
 func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	user := user.GetUser(r)
+	if user == nil {
+		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
+		return
+	}
 
 	threadID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || threadID < 1 {
-		w.WriteHeader(http.StatusBadRequest)
-		slog.Error("comment creation fail", "err", err)
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
 		return
 	}
 
-	// TODO: this should be implemented for comments for better UX:
-	// Parse form before handling user not logged in error so that form data can be saved
-	// and reinserted into the page templates when displaying errors.
+	paginationData, err := pagination.Parse(r.URL.Query())
+	if err != nil {
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
+		return
+	}
+
+	if err := paginationData.Validate(); err != nil {
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
+		return
+	}
+
 	if err := r.ParseForm(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		slog.Error("comment creation fail", "err", err)
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
 		return
 	}
 
-	// User not logged in
-	if user == nil {
-		w.WriteHeader(http.StatusUnauthorized)
+	// input params for CollectPageData
+	params := thread.ThreadPageParams{
+		ThreadID:       threadID,
+		PaginationData: paginationData,
+		Username:       user.Username,
+		Path:           "/threads/" + strconv.Itoa(threadID),
+	}
+	// to check if there is only spaces in comment body
+	commentBody := strings.TrimSpace(r.PostFormValue("body"))
+
+	if commentBody == "" {
+		pageData, _, err := h.threadService.CollectPageData(ctx, params)
+		if err != nil {
+			h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
+			return
+		}
+		pageData.CommentBody = commentBody
+		pageData.ErrorMessage = "Comment has to include characters"
+		w.WriteHeader(http.StatusBadRequest)
+		h.renderer.RenderPage(w, "thread.html", pageData)
 		return
 	}
 
 	comment := Comment{
-		Body:     strings.TrimSpace(r.PostFormValue("body")),
+		Body:     commentBody,
 		ThreadID: threadID,
 		AuthorID: user.ID,
 	}
 
 	_, totalComments, err := h.service.Create(ctx, &comment)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		slog.Error("comment creation fail", "err", err)
+		if errors.Is(err, errs.ErrInvalidUserInput) {
+			pageData, _, err := h.threadService.CollectPageData(ctx, params)
+			if err != nil {
+				h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
+				return
+			}
+
+			pageData.CommentBody = commentBody
+			pageData.ErrorMessage = "Comment has invalid formatting"
+			w.WriteHeader(http.StatusBadRequest)
+			h.renderer.RenderPage(w, "thread.html", pageData)
+			return
+		}
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
 	}
 

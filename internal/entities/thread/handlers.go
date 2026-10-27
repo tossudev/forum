@@ -214,8 +214,8 @@ func (h *ThreadHandler) Delete(w http.ResponseWriter, r *http.Request) {
 func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var username string
 	user := user.GetUser(r)
+	username := ""
 	if user != nil {
 		username = user.Username
 	}
@@ -237,7 +237,13 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	threadDisplay, commentsDisplay, totalCount, err := h.service.DisplayThreadPage(ctx, threadID, username, paginationData)
+	params := ThreadPageParams{
+		ThreadID:       threadID,
+		PaginationData: paginationData,
+		Username:       username,
+		Path:           r.URL.Path,
+	}
+	pageData, totalCount, err := h.service.CollectPageData(ctx, params)
 	if err != nil {
 		if errors.Is(err, pagination.ErrPageOverTotal) {
 			totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
@@ -247,47 +253,5 @@ func (h *ThreadHandler) DisplayThreadPage(w http.ResponseWriter, r *http.Request
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: username})
 		return
 	}
-
-	catID := threadDisplay.Thread.CategoryID
-	categoryName, err := h.service.GetCategoryName(ctx, catID)
-	if err != nil {
-		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: username})
-		return
-	}
-
-	breadcrumbs := []models.Breadcrumb{
-		models.Breadcrumb{
-			Name: "Home",
-			URL:  "/",
-		},
-		models.Breadcrumb{
-			Name: categoryName,
-			URL:  "/categories/" + strconv.Itoa(catID),
-		},
-		models.Breadcrumb{
-			Name: threadDisplay.Thread.Title,
-			URL:  "/threads/" + strconv.Itoa(threadID),
-		},
-	}
-
-	totalPages := pagination.CalcTotalPages(totalCount, paginationData.PageSize)
-	pageList := pagination.GetDisplayPageNums(paginationData.Page, totalPages, 5) // The visible pages in navigation
-	pageNav := pagination.PaginationNav{
-		Path:       r.URL.Path,
-		Page:       paginationData.Page,
-		TotalPages: totalPages,
-		PageList:   pageList,
-		PrevPage:   paginationData.Page - 1,
-		NextPage:   paginationData.Page + 1,
-	}
-
-	pageData := ThreadCommentsPage{
-		Breadcrumbs:   breadcrumbs,
-		PageNav:       pageNav,
-		Username:      username,
-		ThreadDisplay: *threadDisplay,
-		Comments:      commentsDisplay,
-	}
-
 	h.renderer.RenderPage(w, "thread.html", pageData)
 }
