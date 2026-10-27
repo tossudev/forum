@@ -7,16 +7,6 @@ import (
 	"log/slog"
 )
 
-func InitCategories(ctx context.Context, db *sql.DB) error {
-	app := initSeedHandlers(db)
-
-	if err := seedCategories(ctx, &app); err != nil {
-		return err
-	}
-	slog.Info("Categories added to fresh database")
-	return nil
-}
-
 func AddCategories(db *sql.DB) error {
 	ctx := context.Background()
 
@@ -33,5 +23,15 @@ func AddCategories(db *sql.DB) error {
 		}
 
 	}
+	return nil
+}
+
+func InitCategories(ctx context.Context, db *sql.DB) error {
+	app := initSeedHandlers(db)
+
+	if err := seedCategories(ctx, &app); err != nil {
+		return err
+	}
+	slog.Info("Categories added to fresh database")
 	return nil
 }
