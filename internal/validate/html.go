@@ -3,6 +3,7 @@ package validate
 import (
 	"forum/internal/errs"
 	"html/template"
+	"slices"
 	"strings"
 	"unicode"
 
@@ -10,7 +11,10 @@ import (
 )
 
 var (
-	HTMLPolicy *bluemonday.Policy
+	HTMLPolicy          *bluemonday.Policy
+	InvisibleCharacters = []rune{
+		'\u2800', '\u3164',
+	}
 )
 
 func CreatePolicy() {
@@ -38,7 +42,7 @@ func ParseHTML(input string) (template.HTML, error) {
 // Remove non-printable (invisible) Unicode characters and leading & trailing whitespace
 func TrimEmpty(input string) string {
 	input = strings.Map(func(r rune) rune {
-		if unicode.IsPrint(r) {
+		if unicode.IsPrint(r) && !slices.Contains(InvisibleCharacters, r) {
 			return r
 		}
 		return -1
