@@ -61,6 +61,11 @@ func setupDB(db *sql.DB, reset bool, path string) error {
 			slog.Error("migrating database", "err", err)
 			return err
 		}
+		//create categories if database empty
+		if err := seed.AddCategories(db); err != nil {
+			slog.Error("initialising categories", "err", err)
+			return err
+		}
 	}
 	return nil
 }
