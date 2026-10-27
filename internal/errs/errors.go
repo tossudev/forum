@@ -2,6 +2,7 @@ package errs
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"forum/internal/pagination"
 	"log/slog"
@@ -41,7 +42,11 @@ func WriteError(w http.ResponseWriter, err error) {
 		http.Error(w, "request timed out", http.StatusGatewayTimeout)
 	case errors.Is(err, ErrNotFound):
 		http.Error(w, ErrNotFound.Error(), http.StatusNotFound)
-	case errors.Is(err, ErrInvalidUserInput), errors.Is(err, pagination.ErrPaginationParams), errors.Is(err, ErrDuplicate):
+	case errors.Is(err, ErrInvalidUserInput),
+		errors.Is(err, pagination.ErrPaginationParams),
+		errors.As(err, new(*json.SyntaxError)),
+		errors.As(err, new(*json.UnmarshalTypeError)),
+		errors.Is(err, ErrDuplicate):
 		http.Error(w, ErrInvalidUserInput.Error(), http.StatusBadRequest)
 	case errors.Is(err, ErrInvalidFiletype):
 		http.Error(w, err.Error(), http.StatusUnsupportedMediaType)
