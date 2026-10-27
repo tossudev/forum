@@ -2,17 +2,17 @@
 <div class="center-content">
     <h2>Create new thread</h2>
     <form class="create-thread" action="/categories/{{ .CategoryID }}/create" method="post">
-        <p class="error-msg other-error">{{ .OtherErr }}</p>
+        <p class="error-msg other-error">{{ index .FieldErrors "OtherErr" }}</p>
 
         <h3>Category: {{ .CategoryName }}</h3>
 
         <label for="title">Title</label>
         <input type="text" id="title" name="title" maxlength="100" value="{{ .InputTitle }}" required />
-        <p class="error-msg">{{ .TitleErr }}</p>
+        <p class="error-msg">{{ index .FieldErrors "TitleErr" }}</p>
 
         <label for="body">Body text</label>
         <textarea id="body" name="body" placeholder="Write your post..." minlength="1" maxlength="5000" required>{{ .InputBody }}</textarea>
-        <p class="error-msg">{{ .BodyErr }}</p>
+        <p class="error-msg">{{ index .FieldErrors "BodyErr" }}</p>
 
         <button class="button register-btn" type="submit">Publish thread</button>
     </form>
