@@ -46,6 +46,7 @@ func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination
 	if err != nil {
 		return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var thread Thread
@@ -168,134 +169,97 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 	return threadDisplay, commentsDisplay, totalCount, nil
 }
 
-// getThreadDisplay is a helper for getting all data for displaying a single thread post.
 func (r *ThreadRepository) getThreadDisplay(ctx context.Context, threadID int, username string) (*ThreadDisplay, error) {
-	// Get thread data along with thread author name
-	query := `SELECT threads.id, title, body, threads.date_created, threads.author_id, threads.category_id, username
-	FROM users INNER JOIN threads ON users.id = threads.author_id WHERE threads.id = ?;`
+	query := `SELECT t.id, title, body, t.date_created, t.author_id, t.category_id, u.username,
+				SUM(CASE WHEN tl.thread_like = 1 THEN 1 ELSE 0 END)	AS num_likes,
+				SUM(CASE WHEN tl.thread_like = 0 THEN 1 ELSE 0 END)	AS num_dislikes,
+				MAX(CASE WHEN tl.thread_like = 1 AND lu.username = ? THEN 1 ELSE 0 END)	    AS user_liked,
+				MAX(CASE WHEN tl.thread_like = 0 AND lu.username = ? THEN 1 ELSE 0 END) 	AS user_disliked
+			FROM threads AS t
+			INNER JOIN users AS u 						ON u.id = t.author_id
+			LEFT JOIN thread_likes AS tl 				ON tl.thread_id = t.id
+			LEFT JOIN users AS lu 						ON lu.id = tl.user_id
+			WHERE t.id = ? 
+			GROUP BY t.id`
 
+	var threadDisplay ThreadDisplay
 	//TODO: Modify query to get author avatar
+	row := r.db.QueryRowContext(ctx, query, username, username, threadID)
+	err := row.Scan(&threadDisplay.Thread.ID,
+		&threadDisplay.Thread.Title,
+		&threadDisplay.Thread.Body,
+		&threadDisplay.Thread.DateCreated,
+		&threadDisplay.Thread.AuthorID,
+		&threadDisplay.Thread.CategoryID,
+		&threadDisplay.AuthorName,
+		&threadDisplay.LikeData.NumLikes,
+		&threadDisplay.LikeData.NumDislikes,
+		&threadDisplay.LikeData.LoggedUserLiked,
+		&threadDisplay.LikeData.LoggedUserDisliked)
 
-	var authorName string
-	var thread Thread
-	err := r.db.QueryRowContext(ctx, query, threadID).Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID, &authorName)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errs.ErrNotFound
 		}
 		return nil, fmt.Errorf("getThreadDisplay: %w", err)
 	}
-
-	thread.DateCreated, err = timeformat.FormatTime(thread.DateCreated, timeformat.GetTimezone(ctx))
+	threadDisplay.Thread.DateCreated, err = timeformat.FormatTime(threadDisplay.Thread.DateCreated, timeformat.GetTimezone(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("getThreadDisplay: %w", err)
 	}
-
-	// Get thread likes data
-	// TODO: Reevaluate whether the queries can be optimized further instead of this being separate
-	likeQuery := `SELECT username, thread_like FROM thread_likes INNER JOIN users ON users.id = thread_likes.user_id WHERE thread_id = ?`
-	likeData, err := r.getLikeData(ctx, likeQuery, threadID, username)
-	if err != nil {
-		return nil, fmt.Errorf("getThreadDisplay: %w", err)
-	}
-
-	threadDisplay := ThreadDisplay{
-		Thread:     thread,
-		AuthorName: authorName,
-		//AuthorAvatar: authorAvatar,
-		LikeData: *likeData,
-		//DisplayError: ?,
-	}
-
 	return &threadDisplay, nil
 }
 
-// getCommentsDisplay is a helper for getting all the comment data (paginated) for displaying comments.
 func (r *ThreadRepository) getCommentsDisplay(ctx context.Context, threadID int, username string, paginationData pagination.Pagination) ([]CommentDisplay, error) {
-	// Get all comments for this thread plus username of comment author
-	commentsQuery := `SELECT c.id, c.body, c.thread_id, u.username, c.date_created
-	FROM comments AS c INNER JOIN users AS u ON c.author_id = u.id WHERE c.thread_id = ?
-	ORDER BY c.date_created ASC LIMIT ? OFFSET ?;`
-	commentRows, err := r.db.QueryContext(ctx, commentsQuery, threadID, paginationData.Limit(), paginationData.Offset())
+	commentsQuery := `SELECT c.id, c.body, c.thread_id, u.username, c.date_created,
+			SUM(CASE WHEN cl.comment_like = 1 THEN 1 ELSE 0 END)	AS num_likes,
+			SUM(CASE WHEN cl.comment_like = 0 THEN 1 ELSE 0 END)	AS num_dislikes,
+			MAX(CASE WHEN cl.comment_like = 1 AND lu.username = ? THEN 1 ELSE 0 END)	AS user_liked,
+			MAX(CASE WHEN cl.comment_like = 0 AND lu.username = ? THEN 1 ELSE 0 END) 	AS user_disliked
+		FROM comments AS c
+		INNER JOIN users AS u			ON u.id = c.author_id
+		LEFT JOIN comment_likes AS cl 	ON cl.comment_id = c.id
+		LEFT JOIN users AS lu 			ON lu.id = cl.user_id
+		WHERE c.thread_id = ? 
+		GROUP BY c.id
+		ORDER BY c.date_created ASC
+		LIMIT ? OFFSET ?;`
+	// values returned: id, body, threadID, username (author name), date created, number of likes/number of dislikes, which comments did the user like/dislike
+	// scan said values into a slice and return
+	//TODO: Get author avatar
+
+	commentRows, err := r.db.QueryContext(ctx, commentsQuery, username, username, threadID, paginationData.Limit(), paginationData.Offset())
 	if err != nil {
 		return nil, fmt.Errorf("getCommentsDisplay: %w", err)
 	}
+	defer commentRows.Close()
+	var commentDisplays []CommentDisplay
 
-	var comments []CommentDisplay
-
-	// Get the data for each comment in the thread
+	// fill the values to a commentdisplay and append to the slice above
 	for commentRows.Next() {
-		var comment Comment
-		var authorName string
-		//TODO: Get author avator
-		if err := commentRows.Scan(&comment.ID, &comment.Body, &comment.ThreadID, &authorName, &comment.DateCreated); err != nil {
-			return nil, fmt.Errorf("getCommentsDisplay: %w", err)
-		}
-
-		comment.DateCreated, err = timeformat.FormatTime(comment.DateCreated, timeformat.GetTimezone(ctx))
+		var cd CommentDisplay
+		err := commentRows.Scan(&cd.Comment.ID,
+			&cd.Comment.Body,
+			&cd.Comment.ThreadID,
+			&cd.AuthorName,
+			&cd.Comment.DateCreated,
+			&cd.LikeData.NumLikes,
+			&cd.LikeData.NumDislikes,
+			&cd.LikeData.LoggedUserLiked,
+			&cd.LikeData.LoggedUserDisliked)
 		if err != nil {
 			return nil, fmt.Errorf("getCommentsDisplay: %w", err)
 		}
 
-		// Get comment likes data
-		// TODO: Refactor to combine this and above query
-		likeQuery := `SELECT username, comment_like FROM comment_likes INNER JOIN users ON users.id = comment_likes.user_id WHERE comment_id = ?;`
-		likeData, err := r.getLikeData(ctx, likeQuery, comment.ID, username)
+		cd.Comment.DateCreated, err = timeformat.FormatTime(cd.Comment.DateCreated, timeformat.GetTimezone(ctx))
 		if err != nil {
 			return nil, fmt.Errorf("getCommentsDisplay: %w", err)
 		}
-
-		commentDisplay := CommentDisplay{
-			Comment:    comment,
-			AuthorName: authorName,
-			//AuthorAvatar: authorAvatar,
-			LikeData: *likeData,
-		}
-		comments = append(comments, commentDisplay)
+		commentDisplays = append(commentDisplays, cd)
 	}
 
-	return comments, nil
-}
-
-// getLikeData gets the LikeData for a single thread or comment, where id can be either the thread ID or comment ID.
-// The query provided should return rows with 1) the username of the like/dislike, and 2) the like status (bool), in that order.
-func (r *ThreadRepository) getLikeData(ctx context.Context, query string, id int, username string) (*LikeData, error) {
-	rows, err := r.db.QueryContext(ctx, query, id)
-	if err != nil {
-		return nil, fmt.Errorf("getLikeData: %w", err)
+	if commentRows.Err() != nil {
+		return nil, fmt.Errorf("getCommentsDisplay: %w", err)
 	}
-
-	var likeCount, dislikeCount int
-	var loggedUserLike, loggedUserDislike bool
-	for rows.Next() {
-		var likeUser string
-		var like bool
-		if err := rows.Scan(&likeUser, &like); err != nil {
-			return nil, fmt.Errorf("getLikeData: %w", err)
-		}
-
-		if like {
-			likeCount++
-			if likeUser == username {
-				loggedUserLike = true
-			}
-		} else {
-			dislikeCount++
-			if likeUser == username {
-				loggedUserDislike = true
-			}
-		}
-	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("getLikeData: %w", err)
-	}
-
-	likeData := LikeData{
-		NumLikes:           likeCount,
-		NumDislikes:        dislikeCount,
-		LoggedUserLiked:    loggedUserLike,
-		LoggedUserDisliked: loggedUserDislike,
-	}
-
-	return &likeData, nil
+	return commentDisplays, nil
 }
