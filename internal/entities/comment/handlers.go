@@ -3,7 +3,6 @@ package comment
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -33,39 +32,33 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	user := user.GetUser(r)
-	//user not logged in
 	if user == nil {
-		w.WriteHeader(http.StatusUnauthorized)
+		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
 		return
 	}
 
 	threadID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || threadID < 1 {
-		w.WriteHeader(http.StatusBadRequest)
-		slog.Error("comment creation fail", "err", err)
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	paginationData, err := pagination.Parse(r.URL.Query())
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		h.renderer.RenderPage(w, "error-404.html", thread.ThreadCommentsPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
 		return
 	}
 
 	if err := paginationData.Validate(); err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		h.renderer.RenderPage(w, "error-404.html", thread.ThreadCommentsPage{Username: user.Username})
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
 		return
 	}
-	// TODO: this should be implemented for comments for better UX:
-	// Parse form before handling user not logged in error so that form data can be saved
-	// and reinserted into the page templates when displaying errors.
+
 	if err := r.ParseForm(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		slog.Error("comment creation fail", "err", err)
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{Username: user.Username})
 		return
 	}
+
 	// input params for CollectPageData
 	params := thread.ThreadPageParams{
 		ThreadID:       threadID,
