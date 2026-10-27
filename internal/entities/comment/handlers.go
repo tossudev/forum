@@ -13,19 +13,16 @@ import (
 	"forum/internal/render"
 	"forum/internal/session"
 	"forum/internal/validate"
-
-	"github.com/go-playground/validator/v10"
 )
 
 type CommentHandler struct {
 	service       *CommentService
-	validator     *validator.Validate
 	renderer      *render.Renderer
 	threadService *thread.ThreadService
 }
 
-func NewHandler(service *CommentService, validator *validator.Validate, renderer *render.Renderer, threadService *thread.ThreadService) *CommentHandler {
-	return &CommentHandler{service: service, validator: validator, renderer: renderer, threadService: threadService}
+func NewHandler(service *CommentService, renderer *render.Renderer, threadService *thread.ThreadService) *CommentHandler {
+	return &CommentHandler{service: service, renderer: renderer, threadService: threadService}
 }
 
 func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {

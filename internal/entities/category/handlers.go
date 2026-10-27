@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-playground/validator/v10"
-
 	"forum/internal/entities/user"
 	"forum/internal/errs"
 	"forum/internal/models"
@@ -15,16 +13,14 @@ import (
 )
 
 type CategoryHandler struct {
-	service   *CategoryService
-	validator *validator.Validate
-	renderer  *render.Renderer
+	service  *CategoryService
+	renderer *render.Renderer
 }
 
-func NewHandler(service *CategoryService, validator *validator.Validate, renderer *render.Renderer) *CategoryHandler {
+func NewHandler(service *CategoryService, renderer *render.Renderer) *CategoryHandler {
 	return &CategoryHandler{
-		service:   service,
-		validator: validator,
-		renderer:  renderer,
+		service:  service,
+		renderer: renderer,
 	}
 }
 

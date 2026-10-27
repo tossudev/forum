@@ -48,11 +48,11 @@ type App struct {
 func New(db *sql.DB) http.Handler {
     userRepo := user.NewRepo(db)
     userService := user.NewService(userRepo)
-    userHandler := user.NewHandler(userService, validator.Validate)
+    userHandler := user.NewHandler(userService)
 
     threadRepo := thread.NewRepository(db)
     threadService := thread.NewService(threadRepo)
-    threadHandler := thread.NewHandler(threadService, validate)
+    threadHandler := thread.NewHandler(threadService)
     // etc...
 
     app := App{

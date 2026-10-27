@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-playground/validator/v10"
-
 	"forum/internal/entities/user"
 	"forum/internal/errs"
 	"forum/internal/models"
@@ -17,16 +15,14 @@ import (
 )
 
 type ThreadHandler struct {
-	service   *ThreadService
-	validator *validator.Validate
-	renderer  *render.Renderer
+	service  *ThreadService
+	renderer *render.Renderer
 }
 
-func NewHandler(service *ThreadService, validator *validator.Validate, renderer *render.Renderer) *ThreadHandler {
+func NewHandler(service *ThreadService, renderer *render.Renderer) *ThreadHandler {
 	return &ThreadHandler{
-		service:   service,
-		validator: validator,
-		renderer:  renderer,
+		service:  service,
+		renderer: renderer,
 	}
 }
 
