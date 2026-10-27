@@ -25,25 +25,21 @@ func (h *LikeHandler) LikeComment(w http.ResponseWriter, r *http.Request) {
 	var req CommentLikeRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		errs.WriteError(w, err)
+		errs.WriteError(w, errs.ErrInvalidUserInput)
 		return
 	}
 
 	if user := user.GetUser(r); user != nil {
 		req.UserID = user.ID
 	} else {
-		w.WriteHeader(http.StatusUnauthorized)
+		errs.WriteError(w, errs.ErrUnauthorized)
 		return
 	}
 
 	if err := h.service.LikeComment(ctx, req); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
 		errs.WriteError(w, err)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func (h *LikeHandler) LikeThread(w http.ResponseWriter, r *http.Request) {
@@ -52,23 +48,19 @@ func (h *LikeHandler) LikeThread(w http.ResponseWriter, r *http.Request) {
 	var req ThreadLikeRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		errs.WriteError(w, err)
+		errs.WriteError(w, errs.ErrInvalidUserInput)
 		return
 	}
 
 	if user := user.GetUser(r); user != nil {
 		req.UserID = user.ID
 	} else {
-		w.WriteHeader(http.StatusUnauthorized)
+		errs.WriteError(w, errs.ErrUnauthorized)
 		return
 	}
 
 	if err := h.service.LikeThread(ctx, req); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
 		errs.WriteError(w, err)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 }

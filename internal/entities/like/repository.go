@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"forum/internal/errs"
 )
 
 type LikeRepository struct {
@@ -15,6 +16,14 @@ func NewRepository(db *sql.DB) *LikeRepository {
 }
 
 func (r *LikeRepository) GetThreadLike(ctx context.Context, thread_id, user_id int) (bool, bool, error) {
+	exists, err := r.CheckThreadExists(ctx, thread_id)
+	if err != nil {
+		return false, false, fmt.Errorf("get thread like: %w", err)
+	}
+	if !exists {
+		return false, false, fmt.Errorf("get thread like: %w", errs.ErrNotFound)
+	}
+
 	var like bool
 	query := "SELECT thread_like FROM thread_likes WHERE thread_id = ? AND user_id = ?;"
 
@@ -51,6 +60,22 @@ func (r *LikeRepository) UpdateThreadLike(ctx context.Context, req ThreadLikeReq
 	return nil
 }
 
+// CheckThreadExists returns true if the thread with the given id exists
+func (r *LikeRepository) CheckThreadExists(ctx context.Context, threadID int) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM threads WHERE id = ?);`
+	var exists bool
+	err := r.db.QueryRowContext(ctx, query, threadID).Scan(&exists)
+	return exists, err
+}
+
+// CheckCommentExists returns true if the thread with the given id exists
+func (r *LikeRepository) CheckCommentExists(ctx context.Context, commentID int) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM comments WHERE id = ?);`
+	var exists bool
+	err := r.db.QueryRowContext(ctx, query, commentID).Scan(&exists)
+	return exists, err
+}
+
 func (r *LikeRepository) LikeThread(ctx context.Context, req ThreadLikeRequest) error {
 	query := "INSERT INTO thread_likes (thread_id, user_id, thread_like) VALUES (?, ?, ?)"
 	if _, err := r.db.ExecContext(ctx, query, req.ThreadID, req.UserID, req.Like); err != nil {
@@ -61,6 +86,14 @@ func (r *LikeRepository) LikeThread(ctx context.Context, req ThreadLikeRequest) 
 }
 
 func (r *LikeRepository) GetCommentLike(ctx context.Context, comment_id, user_id int) (bool, bool, error) {
+	exists, err := r.CheckCommentExists(ctx, comment_id)
+	if err != nil {
+		return false, false, fmt.Errorf("get comment like: %w", err)
+	}
+	if !exists {
+		return false, false, fmt.Errorf("get comment like: %w", errs.ErrNotFound)
+	}
+
 	var like bool
 	query := "SELECT comment_like FROM comment_likes WHERE comment_id = ? AND user_id = ?;"
 
