@@ -3,7 +3,7 @@
 
 	{{ template "profile-links" . }}
 
-     <h2>Comments by {{ .Username }}</h2>
+     <h2>Comments by {{ .ProfileUsername }}</h2>
 
         {{range .Comments}}
         <div class="comment-container">
@@ -12,7 +12,7 @@
                 <a href="/threads/{{.ThreadID}}" class="hidden-link"></a>
 
                     <div class="content">
-                        {{.Body}}
+                        {{.BodyHTML}}
                         <div class="comment-footer">
                             <div>{{.DateCreated}}</div>
                         </div>
@@ -47,7 +47,7 @@
                 <a href="{{ $nav.Path }}?page={{ $nav.TotalPages }}" title="Last page">>></a>
             {{ end }}
         {{ else }}
-            <p>{{ .Username }} has no comments.</p>
+            <p>{{ .ProfileUsername }} has no comments.</p>
         {{ end }}
     </div>
 </div>

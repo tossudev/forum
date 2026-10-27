@@ -15,12 +15,12 @@
 		<!-- Show thread post -->
 		<div class="comment-container">
 			<div class="comment">
-				<div class="user-sidebar">
+				<a class="user-sidebar" href="/profile/{{ .ThreadDisplay.AuthorName }}">
 					<img class="user-avatar" src="/web/static/img/default-avatar.png" alt="Avatar">
 					<div class="username">{{ .ThreadDisplay.AuthorName }}</div>
 					<!-- TODO: add role -->
 					<div class="role">Member</div> 
-				</div>
+				</a>
 
 				<div class="content">
 					{{ if .ThreadDisplay.DisplayError }}
@@ -72,12 +72,12 @@
 		{{ range .Comments }}
 		<div class="comment-container">
 			<div class="comment">
-				<div class="user-sidebar">
+				<a class="user-sidebar" href="/profile/{{ .AuthorName }}">
 					<img class="user-avatar" src="/web/static/img/default-avatar.png" alt="Avatar">
 					<div class="username">{{ .AuthorName }}</div>
 					<!-- TODO: add role -->
 					<div class="role">Member</div> 
-				</div>
+				</a>
 
 				<div class="content">
 					{{ if .DisplayError }}

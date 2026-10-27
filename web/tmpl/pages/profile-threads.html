@@ -3,7 +3,7 @@
    
 	{{ template "profile-links" . }}
 
-	 <h2>Threads by {{ .Username }}</h2>
+	 <h2>Threads by {{ .ProfileUsername }}</h2>
 
 		{{range .Threads}}
 		<div class="comment-container">
@@ -13,9 +13,9 @@
 
 					<div class="content">
 						<div class="thread-header">
-							{{.Title}}
+							{{.TitleHTML}}
 						</div>
-						{{.Body}}
+						{{.BodyHTML}}
 						<div class="thread-footer">
 							<div>{{.DateCreated}}</div>
 						</div>
@@ -50,7 +50,7 @@
 				<a href="{{ $nav.Path }}?page={{ $nav.TotalPages }}" title="Last page">>></a>
 			{{ end }}
 		{{ else }}
-			<p>{{ .Username }} has no threads.</p>
+			<p>{{ .ProfileUsername }} has no threads.</p>
 		{{ end }}
 	</div>
 </div>

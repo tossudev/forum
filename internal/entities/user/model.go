@@ -2,7 +2,7 @@ package user
 
 import (
 	"forum/internal/password"
-	"time"
+	"html/template"
 )
 
 type User struct {
@@ -10,20 +10,28 @@ type User struct {
 	Username  string            `json:"username"`
 	Email     string            `json:"email"`
 	Password  password.Password `json:"-"`
-	CreatedAt time.Time         `json:"created_at"`
+	CreatedAt string            `json:"created_at"`
 	RoleID    int               `json:"role_id"`
+}
+
+// Data needed for user profile pages
+type UserProfile struct {
+	Username  string // Username of the profile being requested
+	Avatar    string
+	CreatedAt string
 }
 
 // LoginSubmission contains the user input during login before credential verification
 type LoginSubmission struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string
+	Password string
 }
 
 type ProfilePage struct {
-	Username    string
-	Role        string
-	DateCreated string
+	ProfileUsername string
+	Username        string // logged in user
+	Role            string
+	DateCreated     string
 }
 
 type RegistrationPage struct {
@@ -50,6 +58,8 @@ type ProfileThread struct {
 	AuthorID    int
 	CategoryID  int
 	ReplyCount  int
+	TitleHTML   template.HTML
+	BodyHTML    template.HTML
 }
 
 type ProfileComment struct {
@@ -58,4 +68,5 @@ type ProfileComment struct {
 	DateCreated string
 	ThreadID    int
 	AuthorID    int
+	BodyHTML    template.HTML
 }
