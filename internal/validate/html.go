@@ -4,6 +4,7 @@ import (
 	"forum/internal/errs"
 	"html/template"
 	"strings"
+	"unicode"
 
 	"github.com/microcosm-cc/bluemonday"
 )
@@ -32,4 +33,16 @@ func ParseHTML(input string) (template.HTML, error) {
 	}
 
 	return template.HTML(out), nil
+}
+
+// Remove non-printable (invisible) Unicode characters and leading & trailing whitespace
+func TrimEmpty(input string) string {
+	input = strings.Map(func(r rune) rune {
+		if unicode.IsPrint(r) {
+			return r
+		}
+		return -1
+	}, input)
+
+	return strings.TrimSpace(input)
 }

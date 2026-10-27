@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"forum/internal/entities/thread"
 	"forum/internal/entities/user"
@@ -13,6 +12,7 @@ import (
 	"forum/internal/pagination"
 	"forum/internal/render"
 	"forum/internal/session"
+	"forum/internal/validate"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -67,7 +67,7 @@ func (h *CommentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Path:           "/threads/" + strconv.Itoa(threadID),
 	}
 	// to check if there is only spaces in comment body
-	commentBody := strings.TrimSpace(r.PostFormValue("body"))
+	commentBody := validate.TrimEmpty(r.PostFormValue("body"))
 
 	if commentBody == "" {
 		pageData, _, err := h.threadService.CollectPageData(ctx, params)
