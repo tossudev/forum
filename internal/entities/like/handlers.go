@@ -6,17 +6,14 @@ import (
 
 	"forum/internal/entities/user"
 	"forum/internal/errs"
-
-	"github.com/go-playground/validator/v10"
 )
 
 type LikeHandler struct {
-	service  *LikeService
-	validate *validator.Validate
+	service *LikeService
 }
 
-func NewHandler(service *LikeService, validate *validator.Validate) *LikeHandler {
-	return &LikeHandler{service: service, validate: validate}
+func NewHandler(service *LikeService) *LikeHandler {
+	return &LikeHandler{service: service}
 }
 
 func (h *LikeHandler) LikeComment(w http.ResponseWriter, r *http.Request) {

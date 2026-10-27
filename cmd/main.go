@@ -29,9 +29,8 @@ func main() {
 	slog.Info("connected to database", "db", cfg.DbPath)
 
 	validate.CreatePolicy()
-	validator := validate.InitValidator()
 	renderer := render.NewRenderer()
-	handler := routes.InitHandlers(db, validator, renderer)
+	handler := routes.InitHandlers(db, renderer)
 
 	err = setupDB(db, cfg.Reset, cfg.MigrationsPath)
 	if err != nil {

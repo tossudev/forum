@@ -5,28 +5,24 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
-
-	"github.com/go-playground/validator/v10"
 
 	"forum/internal/entities/user"
 	"forum/internal/errs"
 	"forum/internal/models"
 	"forum/internal/pagination"
 	"forum/internal/render"
+	"forum/internal/validate"
 )
 
 type ThreadHandler struct {
-	service   *ThreadService
-	validator *validator.Validate
-	renderer  *render.Renderer
+	service  *ThreadService
+	renderer *render.Renderer
 }
 
-func NewHandler(service *ThreadService, validator *validator.Validate, renderer *render.Renderer) *ThreadHandler {
+func NewHandler(service *ThreadService, renderer *render.Renderer) *ThreadHandler {
 	return &ThreadHandler{
-		service:   service,
-		validator: validator,
-		renderer:  renderer,
+		service:  service,
+		renderer: renderer,
 	}
 }
 
@@ -149,8 +145,8 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	thread := Thread{
-		Title:      strings.TrimSpace(r.PostFormValue("title")),
-		Body:       strings.TrimSpace(r.PostFormValue("body")),
+		Title:      validate.TrimEmpty(r.PostFormValue("title")),
+		Body:       validate.TrimEmpty(r.PostFormValue("body")),
 		CategoryID: categoryID,
 	}
 
