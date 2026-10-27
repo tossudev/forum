@@ -31,8 +31,6 @@ var (
 	ErrDuplicateEmail       = errors.New("Email already taken.")
 	ErrInvalidCredentials   = errors.New("Invalid credentials.")
 	ErrInternal             = errors.New("Sorry, we're unable to process your request at the moment. Please try again later.")
-	ErrJsonSyntax           *json.SyntaxError
-	ErrJsonType             *json.UnmarshalTypeError
 )
 
 // WriteError chooses the appropriate error response and writes to http.ResponseWrite
@@ -46,8 +44,8 @@ func WriteError(w http.ResponseWriter, err error) {
 		http.Error(w, ErrNotFound.Error(), http.StatusNotFound)
 	case errors.Is(err, ErrInvalidUserInput),
 		errors.Is(err, pagination.ErrPaginationParams),
-		errors.As(err, &ErrJsonSyntax),
-		errors.As(err, &ErrJsonType),
+		errors.As(err, new(*json.SyntaxError)),
+		errors.As(err, new(*json.UnmarshalTypeError)),
 		errors.Is(err, ErrDuplicate):
 		http.Error(w, ErrInvalidUserInput.Error(), http.StatusBadRequest)
 	case errors.Is(err, ErrInvalidFiletype):
