@@ -22,6 +22,8 @@ func Timezone(next http.Handler) http.Handler {
 			userLocation, err := time.LoadLocation(cookie.Value)
 			if err == nil {
 				loc = userLocation
+			} else {
+				slog.Warn("invalid timezone cookie")
 			}
 		}
 		ctx = context.WithValue(ctx, timezoneContextKey{}, loc)
@@ -34,7 +36,6 @@ func Timezone(next http.Handler) http.Handler {
 func GetTimezone(ctx context.Context) *time.Location {
 	timezone, ok := ctx.Value(timezoneContextKey{}).(*time.Location)
 	if !ok {
-		slog.Error("timezone not found in the context")
 		return time.UTC
 	}
 	return timezone

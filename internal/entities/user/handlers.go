@@ -25,17 +25,30 @@ func NewHandler(service *UserService, sm *session.SessionManager, renderer *rend
 }
 
 func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	user := GetUser(r)
 	if user == nil {
 		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
 		return
 	}
 
-	// TODO: figure out roles
+	profileUsername := r.PathValue("username")
+	if profileUsername == "" { // for the navbar where the path is /profile, show logged in user's own profile
+		profileUsername = user.Username
+	}
+
+	userProfile, err := h.service.GetUserProfileByUsername(ctx, profileUsername)
+	if err != nil {
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
+		return
+	}
+
 	data := ProfilePage{
-		Username:    user.Username,
-		Role:        "Member",
-		DateCreated: user.CreatedAt.Format("02 Jan 2006"),
+		ProfileUsername: userProfile.Username,
+		Username:        user.Username,
+		Role:            "Member",
+		DateCreated:     userProfile.CreatedAt, //userProfile.CreatedAt.Format("02 Jan 2006"),
 	}
 
 	h.renderer.RenderPage(w, "profile.html", data)
@@ -166,9 +179,10 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 	}
 
 	type ThreadsPage struct {
-		Threads  []ProfileThread
-		PageNav  pagination.PaginationNav
-		Username string
+		ProfileUsername string
+		Username        string
+		Threads         []ProfileThread
+		PageNav         pagination.PaginationNav
 	}
 
 	paginationData, err := pagination.Parse(r.URL.Query())
@@ -182,8 +196,14 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	userProfile, err := h.service.GetUserProfileByUsername(ctx, r.PathValue("username"))
+	if err != nil {
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
+		return
+	}
+
 	// Get all the threads posted by a user
-	threads, totalCount, err := h.service.GetThreadsByUserID(ctx, user.ID, paginationData)
+	threads, totalCount, err := h.service.GetThreadsByUsername(ctx, userProfile.Username, paginationData)
 	if err != nil {
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
@@ -201,9 +221,10 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 		NextPage:   paginationData.Page + 1,
 	}
 	pageData := ThreadsPage{
-		Threads:  threads,
-		PageNav:  pageNav,
-		Username: user.Username,
+		ProfileUsername: userProfile.Username,
+		Username:        user.Username, // logged in user
+		Threads:         threads,
+		PageNav:         pageNav,
 	}
 
 	h.renderer.RenderPage(w, "profile-threads.html", pageData)
@@ -219,9 +240,10 @@ func (h *UserHandler) ProfileCommentsPage(w http.ResponseWriter, r *http.Request
 	}
 
 	type CommentsPage struct {
-		Comments []ProfileComment
-		PageNav  pagination.PaginationNav
-		Username string
+		ProfileUsername string
+		Username        string
+		Comments        []ProfileComment
+		PageNav         pagination.PaginationNav
 	}
 
 	paginationData, err := pagination.Parse(r.URL.Query())
@@ -235,8 +257,14 @@ func (h *UserHandler) ProfileCommentsPage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	userProfile, err := h.service.GetUserProfileByUsername(ctx, r.PathValue("username"))
+	if err != nil {
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
+		return
+	}
+
 	//Get all comments posted by a user
-	comments, totalCount, err := h.service.GetCommentsByUserID(ctx, user.ID, paginationData)
+	comments, totalCount, err := h.service.GetCommentsByUsername(ctx, userProfile.Username, paginationData)
 	if err != nil {
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
@@ -254,9 +282,10 @@ func (h *UserHandler) ProfileCommentsPage(w http.ResponseWriter, r *http.Request
 		NextPage:   paginationData.Page + 1,
 	}
 	pageData := CommentsPage{
-		Comments: comments,
-		PageNav:  pageNav,
-		Username: user.Username,
+		ProfileUsername: userProfile.Username,
+		Username:        user.Username,
+		Comments:        comments,
+		PageNav:         pageNav,
 	}
 
 	h.renderer.RenderPage(w, "profile-comments.html", pageData)
@@ -274,9 +303,10 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 	}
 
 	type LikesPage struct {
-		Threads  []ProfileThread
-		PageNav  pagination.PaginationNav
-		Username string
+		ProfileUsername string
+		Username        string
+		Threads         []ProfileThread
+		PageNav         pagination.PaginationNav
 	}
 
 	paginationData, err := pagination.Parse(r.URL.Query())
@@ -290,8 +320,14 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	userProfile, err := h.service.GetUserProfileByUsername(ctx, r.PathValue("username"))
+	if err != nil {
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
+		return
+	}
+
 	// Get all the liked threads posted by a user
-	threads, totalCount, err := h.service.GetLikedThreadsByUserID(ctx, user.ID, paginationData)
+	threads, totalCount, err := h.service.GetLikedThreadsByUsername(ctx, userProfile.Username, paginationData)
 	if err != nil {
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
@@ -310,9 +346,10 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 	}
 
 	pageData := LikesPage{
-		Threads:  threads,
-		PageNav:  pageNav,
-		Username: user.Username,
+		ProfileUsername: userProfile.Username,
+		Username:        user.Username,
+		Threads:         threads,
+		PageNav:         pageNav,
 	}
 
 	h.renderer.RenderPage(w, "profile-liked-threads.html", pageData)
@@ -329,9 +366,10 @@ func (h *UserHandler) ProfileDislikedThreadsPage(w http.ResponseWriter, r *http.
 	}
 
 	type DislikesPage struct {
-		Threads  []ProfileThread
-		PageNav  pagination.PaginationNav
-		Username string
+		ProfileUsername string
+		Username        string
+		Threads         []ProfileThread
+		PageNav         pagination.PaginationNav
 	}
 
 	paginationData, err := pagination.Parse(r.URL.Query())
@@ -345,8 +383,14 @@ func (h *UserHandler) ProfileDislikedThreadsPage(w http.ResponseWriter, r *http.
 		return
 	}
 
+	userProfile, err := h.service.GetUserProfileByUsername(ctx, r.PathValue("username"))
+	if err != nil {
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
+		return
+	}
+
 	// Get all the disliked threads posted by a user
-	threads, totalCount, err := h.service.GetDislikedThreadsByUserID(ctx, user.ID, paginationData)
+	threads, totalCount, err := h.service.GetDislikedThreadsByUsername(ctx, userProfile.Username, paginationData)
 	if err != nil {
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
@@ -365,9 +409,10 @@ func (h *UserHandler) ProfileDislikedThreadsPage(w http.ResponseWriter, r *http.
 	}
 
 	pageData := DislikesPage{
-		Threads:  threads,
-		PageNav:  pageNav,
-		Username: user.Username,
+		ProfileUsername: userProfile.Username,
+		Username:        user.Username,
+		Threads:         threads,
+		PageNav:         pageNav,
 	}
 
 	h.renderer.RenderPage(w, "profile-disliked-threads.html", pageData)
