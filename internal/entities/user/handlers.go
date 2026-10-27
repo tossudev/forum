@@ -8,6 +8,8 @@ import (
 	"forum/internal/session"
 	"net/http"
 	"strings"
+
+	"golang.org/x/text/unicode/norm"
 )
 
 type UserHandler struct {
@@ -75,6 +77,7 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	inputUsername := strings.TrimSpace(r.PostFormValue("username"))
 	inputEmail := strings.TrimSpace(r.PostFormValue("email"))
+	inputPassword := norm.NFC.String(r.PostFormValue("password")) // normalizes unicode characters to NFC
 
 	user := &User{
 		Username: inputUsername,
@@ -83,7 +86,7 @@ func (h *UserHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		RoleID:   1,
 	}
 
-	user, err := h.service.RegisterUser(ctx, user, r.PostFormValue("password"))
+	user, err := h.service.RegisterUser(ctx, user, inputPassword)
 	if err != nil {
 		pageData := RegistrationPage{InputUsername: inputUsername, InputEmail: inputEmail} // service.RegisterUser returns a nil user on error, so values are taken from the form
 		fieldErrors, statusCode := getRegistrationFieldErrors(err)
@@ -127,7 +130,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	inputEmail := strings.TrimSpace(r.PostFormValue("email"))
-	inputPassword := r.PostFormValue("password")
+	inputPassword := norm.NFC.String(r.PostFormValue("password")) // normalizes unicode characters to NFC
 
 	input := LoginSubmission{
 		Email:    inputEmail,
