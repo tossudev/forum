@@ -55,15 +55,15 @@ func (s *ThreadService) GetCategoryName(ctx context.Context, categoryID int) (st
 
 func (s *ThreadService) Create(ctx context.Context, thread *Thread) (int, error) {
 	if err := validateThreadContent(thread.Title, thread.Body); err != nil {
-		return 0, err
+		return 0, fmt.Errorf("%w: %w", errs.ErrInvalidUserInput, err)
 	}
 
 	if _, err := validate.ParseHTML(thread.Title); err != nil {
-		return 0, err
+		return 0, fmt.Errorf("%w: %w", errs.ErrInvalidUserInput, err)
 	}
 
 	if _, err := validate.ParseHTML(thread.Body); err != nil {
-		return 0, err
+		return 0, fmt.Errorf("%w: %w", errs.ErrInvalidUserInput, err)
 	}
 
 	now := time.Now().UTC().Format(timeformat.TimeFormat)
