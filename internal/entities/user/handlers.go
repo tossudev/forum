@@ -191,10 +191,14 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	profileUsername := r.PathValue("username")
+	userProfile, err := h.service.GetUserProfileByUsername(ctx, r.PathValue("username"))
+	if err != nil {
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
+		return
+	}
 
 	// Get all the threads posted by a user
-	threads, totalCount, err := h.service.GetThreadsByUsername(ctx, profileUsername, paginationData)
+	threads, totalCount, err := h.service.GetThreadsByUsername(ctx, userProfile.Username, paginationData)
 	if err != nil {
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
@@ -212,7 +216,7 @@ func (h *UserHandler) ProfileThreadsPage(w http.ResponseWriter, r *http.Request)
 		NextPage:   paginationData.Page + 1,
 	}
 	pageData := ThreadsPage{
-		ProfileUsername: profileUsername,
+		ProfileUsername: userProfile.Username,
 		Username:        user.Username, // logged in user
 		Threads:         threads,
 		PageNav:         pageNav,
@@ -248,10 +252,14 @@ func (h *UserHandler) ProfileCommentsPage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	profileUsername := r.PathValue("username")
+	userProfile, err := h.service.GetUserProfileByUsername(ctx, r.PathValue("username"))
+	if err != nil {
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
+		return
+	}
 
 	//Get all comments posted by a user
-	comments, totalCount, err := h.service.GetCommentsByUsername(ctx, profileUsername, paginationData)
+	comments, totalCount, err := h.service.GetCommentsByUsername(ctx, userProfile.Username, paginationData)
 	if err != nil {
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
@@ -269,7 +277,7 @@ func (h *UserHandler) ProfileCommentsPage(w http.ResponseWriter, r *http.Request
 		NextPage:   paginationData.Page + 1,
 	}
 	pageData := CommentsPage{
-		ProfileUsername: profileUsername,
+		ProfileUsername: userProfile.Username,
 		Username:        user.Username,
 		Comments:        comments,
 		PageNav:         pageNav,
@@ -307,10 +315,14 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	profileUsername := r.PathValue("username")
+	userProfile, err := h.service.GetUserProfileByUsername(ctx, r.PathValue("username"))
+	if err != nil {
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
+		return
+	}
 
 	// Get all the liked threads posted by a user
-	threads, totalCount, err := h.service.GetLikedThreadsByUsername(ctx, profileUsername, paginationData)
+	threads, totalCount, err := h.service.GetLikedThreadsByUsername(ctx, userProfile.Username, paginationData)
 	if err != nil {
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
@@ -329,7 +341,7 @@ func (h *UserHandler) ProfileLikedThreadsPage(w http.ResponseWriter, r *http.Req
 	}
 
 	pageData := LikesPage{
-		ProfileUsername: profileUsername,
+		ProfileUsername: userProfile.Username,
 		Username:        user.Username,
 		Threads:         threads,
 		PageNav:         pageNav,
@@ -366,10 +378,14 @@ func (h *UserHandler) ProfileDislikedThreadsPage(w http.ResponseWriter, r *http.
 		return
 	}
 
-	profileUsername := r.PathValue("username")
+	userProfile, err := h.service.GetUserProfileByUsername(ctx, r.PathValue("username"))
+	if err != nil {
+		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
+		return
+	}
 
 	// Get all the disliked threads posted by a user
-	threads, totalCount, err := h.service.GetDislikedThreadsByUserID(ctx, profileUsername, paginationData)
+	threads, totalCount, err := h.service.GetDislikedThreadsByUserID(ctx, userProfile.Username, paginationData)
 	if err != nil {
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{Username: user.Username})
 		return
@@ -388,7 +404,7 @@ func (h *UserHandler) ProfileDislikedThreadsPage(w http.ResponseWriter, r *http.
 	}
 
 	pageData := DislikesPage{
-		ProfileUsername: profileUsername,
+		ProfileUsername: userProfile.Username,
 		Username:        user.Username,
 		Threads:         threads,
 		PageNav:         pageNav,

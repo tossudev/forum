@@ -71,7 +71,7 @@ func (r *UserRepo) GetUserProfileByUsername(ctx context.Context, username string
 	err := r.db.QueryRowContext(ctx, query, username).Scan(&up.Username, &up.CreatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, errs.ErrNotFound
+			return nil, fmt.Errorf("GetUserProfileByUsername: %w", errs.ErrNotFound)
 		}
 		return nil, fmt.Errorf("GetUserProfileByUsername: %w", err)
 	}
