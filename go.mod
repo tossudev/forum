@@ -6,6 +6,7 @@ require (
 	github.com/go-playground/validator/v10 v10.30.4
 	github.com/mattn/go-sqlite3 v1.14.52
 	github.com/microcosm-cc/bluemonday v1.0.27
+	golang.org/x/text v0.43.0
 )
 
 require (
@@ -18,5 +19,4 @@ require (
 	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/text v0.41.0 // indirect
 )
