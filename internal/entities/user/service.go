@@ -6,6 +6,8 @@ import (
 	"forum/internal/errs"
 	"forum/internal/pagination"
 	"forum/internal/password"
+	"forum/internal/validate"
+	"log/slog"
 )
 
 type UserService struct {
@@ -78,17 +80,80 @@ func (s *UserService) GetUserByID(ctx context.Context, id int) (*User, error) {
 }
 
 func (s *UserService) GetThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
-	return s.repo.GetThreadsByUserID(ctx, userID, pagination)
+	threads, totalCount, err := s.repo.GetThreadsByUserID(ctx, userID, pagination)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	for i, t := range threads {
+		threads[i].TitleHTML, err = validate.ParseHTML(t.Title)
+		if err != nil {
+			slog.Error("thread title validtion failed", "err:", err, "thread_id:", t.ID, "title:", t.Title)
+		}
+
+		threads[i].BodyHTML, err = validate.ParseHTML(t.Body)
+		if err != nil {
+			slog.Error("thread body validation failed", "err:", err, "thread_id:", t.ID, "body:", t.Body)
+		}
+	}
+
+	return threads, totalCount, nil
 }
 
 func (s *UserService) GetCommentsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileComment, int, error) {
-	return s.repo.GetCommentsByUserID(ctx, userID, pagination)
+	comments, totalCount, err := s.repo.GetCommentsByUserID(ctx, userID, pagination)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	for i, c := range comments {
+		comments[i].BodyHTML, err = validate.ParseHTML(c.Body)
+		if err != nil {
+			slog.Error("comment validation failed", "err:", err, "comment_id:", c.ID, "body:", c.Body)
+		}
+	}
+
+	return comments, totalCount, nil
 }
 
 func (s *UserService) GetLikedThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
-	return s.repo.GetLikedThreadsByUserID(ctx, userID, pagination)
+	threads, totalCount, err := s.repo.GetLikedThreadsByUserID(ctx, userID, pagination)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	for i, t := range threads {
+		threads[i].TitleHTML, err = validate.ParseHTML(t.Title)
+		if err != nil {
+			slog.Error("thread title validtion failed", "err:", err, "thread_id:", t.ID, "title:", t.Title)
+		}
+
+		threads[i].BodyHTML, err = validate.ParseHTML(t.Body)
+		if err != nil {
+			slog.Error("thread body validation failed", "err:", err, "thread_id:", t.ID, "body:", t.Body)
+		}
+	}
+
+	return threads, totalCount, nil
 }
 
 func (s *UserService) GetDislikedThreadsByUserID(ctx context.Context, userID int, pagination pagination.Pagination) ([]ProfileThread, int, error) {
-	return s.repo.GetDislikedThreadsByUserID(ctx, userID, pagination)
+	threads, totalCount, err := s.repo.GetDislikedThreadsByUserID(ctx, userID, pagination)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	for i, t := range threads {
+		threads[i].TitleHTML, err = validate.ParseHTML(t.Title)
+		if err != nil {
+			slog.Error("thread title validtion failed", "err:", err, "thread_id:", t.ID, "title:", t.Title)
+		}
+
+		threads[i].BodyHTML, err = validate.ParseHTML(t.Body)
+		if err != nil {
+			slog.Error("thread body validation failed", "err:", err, "thread_id:", t.ID, "body:", t.Body)
+		}
+	}
+
+	return threads, totalCount, nil
 }
