@@ -16,9 +16,6 @@ import (
 	"forum/internal/search"
 	"forum/internal/session"
 	"forum/internal/timeformat"
-
-	//"forum/internal/middleware"
-	"github.com/go-playground/validator/v10"
 )
 
 type App struct {
@@ -31,7 +28,7 @@ type App struct {
 	SearchHandler   *search.SearchHandler
 }
 
-func InitHandlers(db *sql.DB, validate *validator.Validate, renderer *render.Renderer) http.Handler {
+func InitHandlers(db *sql.DB, renderer *render.Renderer) http.Handler {
 	sessionRepo := session.NewRepo(db)
 	sm := session.NewSessionManager(sessionRepo, "session_token", 30*24*time.Hour) // session expires after a 30 days of inactivity
 
@@ -41,23 +38,23 @@ func InitHandlers(db *sql.DB, validate *validator.Validate, renderer *render.Ren
 
 	categoryRepo := category.NewRepository(db)
 	categoryService := category.NewService(categoryRepo)
-	categoryHandler := category.NewHandler(categoryService, validate, renderer)
+	categoryHandler := category.NewHandler(categoryService, renderer)
 
 	threadRepo := thread.NewRepository(db)
 	threadService := thread.NewService(threadRepo)
-	threadHandler := thread.NewHandler(threadService, validate, renderer)
+	threadHandler := thread.NewHandler(threadService, renderer)
 
 	commentRepo := comment.NewRepository(db)
 	commentService := comment.NewService(commentRepo)
-	commentHandler := comment.NewHandler(commentService, validate, renderer, threadService)
+	commentHandler := comment.NewHandler(commentService, renderer, threadService)
 
 	likeRepo := like.NewRepository(db)
 	likeService := like.NewService(likeRepo)
-	likeHandler := like.NewHandler(likeService, validate)
+	likeHandler := like.NewHandler(likeService)
 
 	imageRepo := image.NewRepository(db)
 	imageService := image.NewService(imageRepo)
-	imageHandler := image.NewHandler(imageService, validate)
+	imageHandler := image.NewHandler(imageService)
 
 	searchRepo := search.NewRepository(db)
 	searchService := search.NewService(searchRepo)

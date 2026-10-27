@@ -7,18 +7,16 @@ import (
 	"strconv"
 
 	"forum/internal/errs"
-	"github.com/go-playground/validator/v10"
 )
 
 type ImageHandler struct {
-	service   *ImageService
-	validator *validator.Validate
+	service *ImageService
 }
 
 const MaxUploadSize int64 = 3_000_000 // 3MB
 
-func NewHandler(service *ImageService, validator *validator.Validate) *ImageHandler {
-	return &ImageHandler{service: service, validator: validator}
+func NewHandler(service *ImageService) *ImageHandler {
+	return &ImageHandler{service: service}
 }
 
 func (h *ImageHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
