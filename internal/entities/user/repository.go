@@ -46,8 +46,7 @@ func (r *UserRepo) GetUserByID(ctx context.Context, id int) (*User, error) {
 	FROM users WHERE id = ?;`
 
 	var user User
-	var createdAt int
-	err := r.db.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.Password.Salt, &createdAt, &user.RoleID)
+	err := r.db.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.Hash, &user.Password.Salt, &user.CreatedAt, &user.RoleID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("%w: user not found", errs.ErrNotFound)
@@ -56,6 +55,9 @@ func (r *UserRepo) GetUserByID(ctx context.Context, id int) (*User, error) {
 	}
 
 	user.CreatedAt, err = timeformat.FormatTime(user.CreatedAt, timeformat.GetTimezone(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("GetUserByID: scanning row: %w", err)
+	}
 
 	return &user, nil
 
@@ -117,6 +119,9 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (User, erro
 	}
 
 	user.CreatedAt, err = timeformat.FormatTime(user.CreatedAt, timeformat.GetTimezone(ctx))
+	if err != nil {
+		return User{}, fmt.Errorf("GetUserByEmail: scanning row: %w", err)
+	}
 
 	return user, nil
 }
