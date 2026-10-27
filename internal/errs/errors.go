@@ -36,32 +36,18 @@ func WriteError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, context.Canceled):
 		slog.Info("user disconnected before response finished")
-		return
-
 	case errors.Is(err, context.DeadlineExceeded):
 		http.Error(w, "request timed out", http.StatusGatewayTimeout)
-		return
-
 	case errors.Is(err, ErrNotFound):
 		http.Error(w, ErrNotFound.Error(), http.StatusNotFound)
-		return
-
 	case errors.Is(err, ErrInvalidUserInput), errors.Is(err, pagination.ErrPaginationParams), errors.Is(err, ErrDuplicate):
-		http.Error(w, err.Error(), http.StatusBadRequest) // Show detailed error so user can fix input
-		return
-
+		http.Error(w, ErrInvalidUserInput.Error(), http.StatusBadRequest)
 	case errors.Is(err, ErrInvalidFiletype):
 		http.Error(w, err.Error(), http.StatusUnsupportedMediaType)
-		return
-
 	case errors.Is(err, ErrFileTooLarge):
 		http.Error(w, err.Error(), http.StatusRequestEntityTooLarge)
-		return
-
 	case errors.Is(err, ErrUnauthorized):
 		http.Error(w, err.Error(), http.StatusUnauthorized)
-		return
-
 	default:
 		slog.Error("internal server error:", "err", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
