@@ -142,6 +142,11 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	if GetUser(r) == nil {
+		http.Redirect(w, r, "/users/login", http.StatusSeeOther)
+		return
+	}
+
 	if err := h.sm.Logout(w, r); err != nil {
 		h.renderer.WriteErrorPage(w, err, render.ErrorPage{})
 		return
