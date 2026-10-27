@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/go-playground/validator/v10"
 
@@ -14,6 +13,7 @@ import (
 	"forum/internal/models"
 	"forum/internal/pagination"
 	"forum/internal/render"
+	"forum/internal/validate"
 )
 
 type ThreadHandler struct {
@@ -149,8 +149,8 @@ func (h *ThreadHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	thread := Thread{
-		Title:      strings.TrimSpace(r.PostFormValue("title")),
-		Body:       strings.TrimSpace(r.PostFormValue("body")),
+		Title:      validate.TrimEmpty(r.PostFormValue("title")),
+		Body:       validate.TrimEmpty(r.PostFormValue("body")),
 		CategoryID: categoryID,
 	}
 
