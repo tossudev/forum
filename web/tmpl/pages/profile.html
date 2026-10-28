@@ -10,15 +10,15 @@
 			src="/web/static/img/default-avatar.png"
 			{{ end }}
 			alt="Avatar">
-			
+		
+			{{ if eq .Username .ProfileUsername }}
 			<form method="POST" action="/profile/avatar" enctype="multipart/form-data">
-				{{ if .Username }}
 				<div>
 				<input type="file" name="image" accept="image/jpeg, image/jpg, image/png, image/gif" required>
 				<input type="submit">
-				{{ end }}
 				</div>
 			</form>
+			{{ end }}
 		</div>
 
 		<div class="right">
