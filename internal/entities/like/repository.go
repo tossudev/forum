@@ -15,28 +15,29 @@ func NewRepository(db *sql.DB) *LikeRepository {
 	return &LikeRepository{db: db}
 }
 
-func (r *LikeRepository) GetThreadLike(ctx context.Context, thread_id, user_id int) (bool, bool, error) {
+func (r *LikeRepository) GetThreadLike(ctx context.Context, thread_id, user_id int) (*Like, error) {
 	exists, err := r.CheckThreadExists(ctx, thread_id)
 	if err != nil {
-		return false, false, fmt.Errorf("get thread like: %w", err)
+		return nil, fmt.Errorf("get thread like: %w", err)
 	}
 	if !exists {
-		return false, false, fmt.Errorf("get thread like: %w", errs.ErrNotFound)
+		return nil, fmt.Errorf("get thread like: %w", errs.ErrNotFound)
 	}
 
-	var like bool
 	query := "SELECT thread_like FROM thread_likes WHERE thread_id = ? AND user_id = ?;"
-
-	row := r.db.QueryRow(query, thread_id, user_id)
-
-	if err := row.Scan(&like); err != nil {
+	var liked bool
+	var like Like
+	if err := r.db.QueryRowContext(ctx, query, thread_id, user_id).Scan(&liked); err != nil {
 		if err == sql.ErrNoRows {
-			return false, like, nil
+			return &like, nil // error is nil because non-existent like reaction is valid
 		}
-		return false, like, fmt.Errorf("get thread like: %w", err)
+		return nil, fmt.Errorf("get thread like: %w", err)
 	}
 
-	return true, like, nil
+	like.Exists = true
+	like.Liked = liked
+
+	return &like, nil
 }
 
 func (r *LikeRepository) RemoveThreadLike(ctx context.Context, thread_id, user_id int) error {
@@ -85,28 +86,30 @@ func (r *LikeRepository) LikeThread(ctx context.Context, req ThreadLikeRequest) 
 	return nil
 }
 
-func (r *LikeRepository) GetCommentLike(ctx context.Context, comment_id, user_id int) (bool, bool, error) {
+func (r *LikeRepository) GetCommentLike(ctx context.Context, comment_id, user_id int) (*Like, error) {
 	exists, err := r.CheckCommentExists(ctx, comment_id)
 	if err != nil {
-		return false, false, fmt.Errorf("get comment like: %w", err)
+		return nil, fmt.Errorf("get comment like: %w", err)
 	}
 	if !exists {
-		return false, false, fmt.Errorf("get comment like: %w", errs.ErrNotFound)
+		return nil, fmt.Errorf("get comment like: %w", errs.ErrNotFound)
 	}
 
-	var like bool
 	query := "SELECT comment_like FROM comment_likes WHERE comment_id = ? AND user_id = ?;"
+	var liked bool
+	var like Like
 
-	row := r.db.QueryRow(query, comment_id, user_id)
-
-	if err := row.Scan(&like); err != nil {
+	if err := r.db.QueryRowContext(ctx, query, comment_id, user_id).Scan(&liked); err != nil {
 		if err == sql.ErrNoRows {
-			return false, like, nil
+			return &like, nil // error is nil because non-existent like reaction is valid
 		}
-		return false, like, fmt.Errorf("get comment like: %w", err)
+		return nil, fmt.Errorf("get comment like: %w", err)
 	}
 
-	return true, like, nil
+	like.Exists = true
+	like.Liked = liked
+
+	return &like, nil
 }
 
 func (r *LikeRepository) RemoveCommentLike(ctx context.Context, comment_id, user_id int) error {
