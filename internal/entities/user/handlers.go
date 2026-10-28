@@ -50,7 +50,7 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		ProfileUsername: userProfile.Username,
 		Username:        user.Username,
 		Role:            "Member",
-		DateCreated:     userProfile.CreatedAt, //userProfile.CreatedAt.Format("02 Jan 2006"),
+		DateCreated:     userProfile.CreatedAt,
 	}
 
 	h.renderer.RenderPage(w, "profile.html", data)
@@ -125,7 +125,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseForm(); err != nil {
-		h.renderer.WriteErrorPage(w, err, render.ErrorPage{})
+		h.renderer.WriteErrorPage(w, errs.ErrInvalidUserInput, render.ErrorPage{})
 		return
 	}
 
