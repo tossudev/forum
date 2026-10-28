@@ -307,6 +307,8 @@ form .button {
 }
 
 .avatar {
+	width: 150px;
+	height: 150px;
 	border: solid #000;
 	border-width: 1px 1px 3px 1px;
 	image-rendering: smooth;

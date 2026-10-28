@@ -135,7 +135,7 @@ func seedUsers(ctx context.Context, app *SeedApp) error {
 			Email:    "mpp@thegoat.ca",
 			Password: password.Password{},
 			RoleID:   1,
-			Avatar:   "",
+			Avatar:   "bee.gif",
 		},
 		{
 			Username: "MontrealGoalie",

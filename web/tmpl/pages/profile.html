@@ -2,7 +2,7 @@
 <div class="center-content">
 	<h2>Profile</h2>
 	<div class="profile-view">
-		<form method="POST" action="/profile/avatar" enctype="multipart/form-data" class="left">
+		<div class="left">
 			<img class="avatar"
 			{{ if .Avatar }}
 			src="/uploads/{{ .Avatar }}"
@@ -10,19 +10,23 @@
 			src="/web/static/img/default-avatar.png"
 			{{ end }}
 			alt="Avatar">
-			{{ if .Username }}
-			<input type="file" id="imageUpload" name="image"
-			accept="image/jpeg, image/jpg, image/png, image/gif">
-			<input type="submit">
-			{{ end }}
-		</form>
+			
+			<form method="POST" action="/profile/avatar" enctype="multipart/form-data">
+				{{ if .Username }}
+				<div>
+				<input type="file" name="image" accept="image/jpeg, image/jpg, image/png, image/gif" required>
+				<input type="submit">
+				{{ end }}
+				</div>
+			</form>
+		</div>
 
-		
 		<div class="right">
 			<h2>{{ .ProfileUsername }}</h2>
 			<p class="role">{{ .Role }}</p>
 			<p>Registered since {{ .DateCreated }}</p>
 		</div>
+
 	</div>
 
 	{{ template "profile-links" . }}
