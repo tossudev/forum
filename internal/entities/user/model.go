@@ -6,12 +6,12 @@ import (
 )
 
 type User struct {
-	ID        int               `json:"id"`
-	Username  string            `json:"username"`
-	Email     string            `json:"email"`
-	Password  password.Password `json:"-"`
-	CreatedAt string            `json:"created_at"`
-	RoleID    int               `json:"role_id"`
+	ID        int
+	Username  string
+	Email     string
+	Password  password.Password
+	CreatedAt string
+	RoleID    int
 }
 
 // Data needed for user profile pages
@@ -35,14 +35,14 @@ type ProfilePage struct {
 }
 
 type RegistrationPage struct {
-	Username      string // Logged in user, if any (for toggling login/logout button)
-	InputUsername string // From registration form
+	Username      string // For base layout
+	InputUsername string
 	InputEmail    string
 	FieldErrors   map[string]string
 }
 
 type LoginPage struct {
-	Username    string // Only needed because this field is required by the base layout
+	Username    string // For base layout
 	Email       string
 	FieldErrors map[string]string
 }

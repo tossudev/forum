@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"forum/internal/render"
 	"forum/internal/session"
 	"log/slog"
 	"net/http"
@@ -22,7 +23,7 @@ func (h *UserHandler) GetUserMiddleware(next http.Handler) http.Handler {
 		if session != nil {
 			user, err = h.service.repo.GetUserByID(ctx, session.UserID())
 			if err != nil {
-				// TODO: redirect to error page according to error type
+				h.renderer.WriteErrorPage(w, err, render.ErrorPage{})
 				return
 			}
 		}
