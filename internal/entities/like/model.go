@@ -11,3 +11,8 @@ type CommentLikeRequest struct {
 	UserID    int
 	Like      bool `json:"like"`
 }
+
+type Like struct {
+	Exists bool // Is a like/dislike reaction present at all
+	Liked  bool // True = like, false = dislike
+}
