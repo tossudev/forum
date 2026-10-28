@@ -19,6 +19,8 @@ var (
 	}
 )
 
+const MaxUploadSize int64 = 3_000_000 // 3MB
+
 // getRegistrationFieldErrors returns a map of field errors and corresponding error messages for display for the registration form.
 // Also returns the http status code.
 func getRegistrationFieldErrors(err error) (map[string]string, int) {

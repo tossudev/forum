@@ -13,9 +13,6 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
-// FIXME: mv to config
-const MaxUploadSize int64 = 3_000_000 // 3MB
-
 type UserHandler struct {
 	service  *UserService
 	sm       *session.SessionManager
