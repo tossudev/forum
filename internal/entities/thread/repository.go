@@ -170,7 +170,7 @@ func (r *ThreadRepository) DisplayThreadPage(ctx context.Context, threadID int, 
 }
 
 func (r *ThreadRepository) getThreadDisplay(ctx context.Context, threadID int, username string) (*ThreadDisplay, error) {
-	query := `SELECT t.id, title, body, t.date_created, t.author_id, t.category_id, u.username,
+	query := `SELECT t.id, title, body, t.date_created, t.author_id, t.category_id, u.username, u.avatar,
 				SUM(CASE WHEN tl.thread_like = 1 THEN 1 ELSE 0 END)	AS num_likes,
 				SUM(CASE WHEN tl.thread_like = 0 THEN 1 ELSE 0 END)	AS num_dislikes,
 				MAX(CASE WHEN tl.thread_like = 1 AND lu.username = ? THEN 1 ELSE 0 END)	    AS user_liked,
@@ -192,6 +192,7 @@ func (r *ThreadRepository) getThreadDisplay(ctx context.Context, threadID int, u
 		&threadDisplay.Thread.AuthorID,
 		&threadDisplay.Thread.CategoryID,
 		&threadDisplay.AuthorName,
+		&threadDisplay.AuthorAvatar,
 		&threadDisplay.LikeData.NumLikes,
 		&threadDisplay.LikeData.NumDislikes,
 		&threadDisplay.LikeData.LoggedUserLiked,
@@ -211,7 +212,7 @@ func (r *ThreadRepository) getThreadDisplay(ctx context.Context, threadID int, u
 }
 
 func (r *ThreadRepository) getCommentsDisplay(ctx context.Context, threadID int, username string, paginationData pagination.Pagination) ([]CommentDisplay, error) {
-	commentsQuery := `SELECT c.id, c.body, c.thread_id, u.username, c.date_created,
+	commentsQuery := `SELECT c.id, c.body, c.thread_id, u.username, u.avatar, c.date_created,
 			SUM(CASE WHEN cl.comment_like = 1 THEN 1 ELSE 0 END)	AS num_likes,
 			SUM(CASE WHEN cl.comment_like = 0 THEN 1 ELSE 0 END)	AS num_dislikes,
 			MAX(CASE WHEN cl.comment_like = 1 AND lu.username = ? THEN 1 ELSE 0 END)	AS user_liked,
@@ -242,6 +243,7 @@ func (r *ThreadRepository) getCommentsDisplay(ctx context.Context, threadID int,
 			&cd.Comment.Body,
 			&cd.Comment.ThreadID,
 			&cd.AuthorName,
+			&cd.AuthorAvatar,
 			&cd.Comment.DateCreated,
 			&cd.LikeData.NumLikes,
 			&cd.LikeData.NumDislikes,

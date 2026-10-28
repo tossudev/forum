@@ -17,6 +17,7 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	mux.HandleFunc("GET /profile/{username}/comments", app.UserHandler.ProfileCommentsPage)
 	mux.HandleFunc("GET /profile/{username}/liked-threads", app.UserHandler.ProfileLikedThreadsPage)
 	mux.HandleFunc("GET /profile/{username}/disliked-threads", app.UserHandler.ProfileDislikedThreadsPage)
+	mux.HandleFunc("POST /profile/avatar", app.UserHandler.ChangeAvatar)
 	mux.HandleFunc("POST /users/register", app.UserHandler.RegisterUser)
 	mux.HandleFunc("POST /users/login", app.UserHandler.Login)
 	mux.HandleFunc("POST /users/logout", app.UserHandler.Logout)
@@ -32,7 +33,7 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	mux.HandleFunc("GET /threads/{id}", app.ThreadHandler.DisplayThreadPage)
 	mux.HandleFunc("DELETE /threads/{id}", app.ThreadHandler.Delete)
 
-	//Comment routes
+	// Comment routes
 	mux.HandleFunc("POST /threads/{id}/comments", app.CommentHandler.Create)
 	mux.HandleFunc("DELETE /comments/{id}", app.CommentHandler.Delete)
 
@@ -40,10 +41,7 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	mux.HandleFunc("POST /like/thread", app.LikeHandler.LikeThread)
 	mux.HandleFunc("POST /like/comment", app.LikeHandler.LikeComment)
 
-	// Image routes
-	mux.HandleFunc("POST /image", app.ImageHandler.UploadImage)
-
-	//Search routes
+	// Search routes
 	mux.HandleFunc("GET /search", app.SearchHandler.Search)
 
 	// TODO: consider using embedding for static

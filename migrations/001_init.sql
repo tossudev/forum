@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
 	email TEXT COLLATE NOCASE NOT NULL UNIQUE,
 	password_hash BLOB NOT NULL,
 	password_salt BLOB NOT NULL,
-	avatar TEXT,
+	avatar TEXT NOT NULL,
 	date_created TEXT NOT NULL,
 	role_id INTEGER NOT NULL,
 	signature TEXT

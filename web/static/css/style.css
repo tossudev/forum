@@ -432,6 +432,7 @@ form .button {
 
 .user-avatar {
 	width: 140px;
+	height: 140px;
 	border-radius: 50%;
 	border: 2px solid #000000;
 	display: flex;

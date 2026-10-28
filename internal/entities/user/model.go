@@ -9,6 +9,7 @@ type User struct {
 	ID        int
 	Username  string
 	Email     string
+	Avatar    string
 	Password  password.Password
 	CreatedAt string
 	RoleID    int
@@ -32,6 +33,7 @@ type ProfilePage struct {
 	Username        string // logged in user
 	Role            string
 	DateCreated     string
+	Avatar          string
 }
 
 type RegistrationPage struct {

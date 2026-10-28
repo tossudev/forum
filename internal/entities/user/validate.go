@@ -4,12 +4,19 @@ import (
 	"errors"
 	"forum/internal/errs"
 	"log/slog"
+	"mime/multipart"
 	"net/http"
 	"regexp"
 )
 
 var (
-	emailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$")
+	emailRX        = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$")
+	validFileTypes = map[string]struct{}{
+		"image/jpeg": {},
+		"image/jpg":  {},
+		"image/png":  {},
+		"image/gif":  {},
+	}
 )
 
 // getRegistrationFieldErrors returns a map of field errors and corresponding error messages for display for the registration form.
@@ -167,4 +174,20 @@ func isNumber(r rune) bool {
 		return true
 	}
 	return false
+}
+
+func validateFiletype(file multipart.File) (bool, error) {
+	buffer := make([]byte, 512)
+	_, err := file.Read(buffer)
+	if err != nil {
+		return false, err
+	}
+
+	filetype := http.DetectContentType(buffer)
+
+	if _, ok := validFileTypes[filetype]; !ok {
+		return false, nil
+	}
+
+	return true, nil
 }

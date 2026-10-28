@@ -7,7 +7,6 @@ import (
 
 	"forum/internal/entities/category"
 	"forum/internal/entities/comment"
-	"forum/internal/entities/image"
 	"forum/internal/entities/like"
 	"forum/internal/entities/thread"
 	"forum/internal/entities/user"
@@ -24,7 +23,6 @@ type App struct {
 	ThreadHandler   *thread.ThreadHandler
 	CommentHandler  *comment.CommentHandler
 	LikeHandler     *like.LikeHandler
-	ImageHandler    *image.ImageHandler
 	SearchHandler   *search.SearchHandler
 }
 
@@ -52,10 +50,6 @@ func InitHandlers(db *sql.DB, renderer *render.Renderer) http.Handler {
 	likeService := like.NewService(likeRepo)
 	likeHandler := like.NewHandler(likeService)
 
-	imageRepo := image.NewRepository(db)
-	imageService := image.NewService(imageRepo)
-	imageHandler := image.NewHandler(imageService)
-
 	searchRepo := search.NewRepository(db)
 	searchService := search.NewService(searchRepo)
 	searchHandler := search.NewHandler(searchService, renderer)
@@ -66,7 +60,6 @@ func InitHandlers(db *sql.DB, renderer *render.Renderer) http.Handler {
 		ThreadHandler:   threadHandler,
 		CommentHandler:  commentHandler,
 		LikeHandler:     likeHandler,
-		ImageHandler:    imageHandler,
 		SearchHandler:   searchHandler,
 	}
 

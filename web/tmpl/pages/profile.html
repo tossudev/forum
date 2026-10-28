@@ -2,9 +2,20 @@
 <div class="center-content">
 	<h2>Profile</h2>
 	<div class="profile-view">
-		<div class="left">
-			<img class="avatar" src="/web/static/img/default-avatar.png" alt="Avatar">
-		</div>
+		<form method="POST" action="/profile/avatar" enctype="multipart/form-data" class="left">
+			<img class="avatar"
+			{{ if .Avatar }}
+			src="/uploads/{{ .Avatar }}"
+			{{ else }}
+			src="/web/static/img/default-avatar.png"
+			{{ end }}
+			alt="Avatar">
+			{{ if .Username }}
+			<input type="file" id="imageUpload" name="image"
+			accept="image/jpeg, image/jpg, image/png, image/gif">
+			<input type="submit">
+			{{ end }}
+		</form>
 
 		
 		<div class="right">
