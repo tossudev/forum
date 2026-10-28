@@ -1,13 +1,13 @@
 package like
 
 type ThreadLikeRequest struct {
-	ThreadID int  `json:"id" validate:"gt=0"`
-	UserID   int  `validate:"gt=0"`
+	ThreadID int `json:"id"`
+	UserID   int
 	Like     bool `json:"like"`
 }
 
 type CommentLikeRequest struct {
-	CommentID int  `json:"id" validate:"gt=0"`
-	UserID    int  `validate:"gt=0"`
+	CommentID int `json:"id"`
+	UserID    int
 	Like      bool `json:"like"`
 }
