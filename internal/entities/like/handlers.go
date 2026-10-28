@@ -26,6 +26,11 @@ func (h *LikeHandler) LikeComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.CommentID < 1 {
+		errs.WriteError(w, errs.ErrInvalidUserInput)
+		return
+	}
+
 	if user := user.GetUser(r); user != nil {
 		req.UserID = user.ID
 	} else {
@@ -45,6 +50,11 @@ func (h *LikeHandler) LikeThread(w http.ResponseWriter, r *http.Request) {
 	var req ThreadLikeRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errs.WriteError(w, errs.ErrInvalidUserInput)
+		return
+	}
+
+	if req.ThreadID < 1 {
 		errs.WriteError(w, errs.ErrInvalidUserInput)
 		return
 	}
