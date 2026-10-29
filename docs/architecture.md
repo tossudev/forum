@@ -7,7 +7,7 @@
 - [Entities](#entities)
     - [Entity Handler](#entity-handler)
     - [Entity Service](#entity-service)
-    - [Entity Repository](#entitiy-repository) 
+    - [Entity Repository](#entity-repository) 
 
 ### Data flow diagram
        HTTP Request
@@ -33,6 +33,7 @@
 ---
 
 ## App
+[Back to top](#overview)
 ```text
 internal/routes/init_handlers.go
 ```
@@ -74,6 +75,7 @@ func New(db *sql.DB) http.Handler {
 ---
 
 ## Routes
+[Back to top](#overview)
 ```text
 internal/routes/routes.go
 ```
@@ -97,6 +99,7 @@ func NewRoutes(h Handlers) http.Handler {
 ---
 
 ## Middleware
+[Back to top](#overview)
 ```text
 internal/middleware/
 //except where noted
@@ -114,6 +117,7 @@ Middleware intercepts every incoming HTTP request before it reaches the handlers
 ---
 
 ## Entities
+[Back to top](#overview)
 ```text
 internal/entities/
 ```
@@ -154,6 +158,7 @@ userRepo.Create() //handles database logic
 ---
 
 ## Entity Handler
+[Back to top](#overview)
 ```text
 internal/entities/<entity>/handler.go
 ```
@@ -174,6 +179,7 @@ Responsibilities include:
 ---
 
 ## Entity Service
+[Back to top](#overview)
 ```text
 internal/entities/<entity>/service.go
 ```
@@ -194,6 +200,7 @@ The service layer coordinates one or more repositories to complete an operation.
 ---
 
 ## Entity Repository
+[Back to top](#overview)
 ```text
 internal/entities/<entity>/repository.go
 ```
