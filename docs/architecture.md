@@ -1,6 +1,13 @@
 # Architecture
 
-## Overview
+## Overview 
+- [App](#app)
+- [Routes](#routes)
+- [Middleware](#middleware)
+- [Entities](#entities)
+    - [Entity Handler](#entity-handler)
+    - [Entity Service](#entity-service)
+    - [Entity Repository](#entity-repository) 
 
 ### Data flow diagram
        HTTP Request
@@ -10,8 +17,6 @@
             │
             ▼
         Middleware
-        (logging)
-        (recovery)
             │
             ▼
       Entity handler
@@ -27,15 +32,14 @@
 
 ---
 
-# Layers
-
-## Handlers
+## App
+[Back to top](#overview)
 ```text
-internal/handlers/
+internal/routes/init_handlers.go
 ```
 #### Responsibilities
-- Create handlers for entites
-- Wrap handlers in middleware
+- Create handlers for entities
+- Wrap handlers in middleware (found in internal/middleware)
 
 ### Example
 
@@ -71,8 +75,9 @@ func New(db *sql.DB) http.Handler {
 ---
 
 ## Routes
+[Back to top](#overview)
 ```text
-internal/routes/
+internal/routes/routes.go
 ```
 #### Responsibilities
 - Register all API endpoints
@@ -94,24 +99,39 @@ func NewRoutes(h Handlers) http.Handler {
 ---
 
 ## Middleware
+[Back to top](#overview)
 ```text
 internal/middleware/
+//except where noted
 ```
 
 Middleware intercepts every incoming HTTP request before it reaches the handlers.
 
+- **Timeout** - Creates a 5-second timeout for every request.
+- **User Middleware** *(In the user entity)* - Gets user information and attaches it to the context. 
+- **Session Authentication** *(In the session package)* - Checks cookie for session id and validates it. 
+- **Time Format** *(In the timeformat package)* - Gets user timezone. 
 - **Request Logging** – Logs important information about the requests.
 - **Panic Recovery** – Recovers from unexpected panics and returns a standardized `500 Internal Server Error` response instead of terminating the application.
 
 ---
 
 ## Entities
+[Back to top](#overview)
 ```text
 internal/entities/
 ```
-
 Entities contain layers for each database entity  
-### Example entity layer
+
+### Entities Used
+- Category
+- Comment
+- Image
+- Like *(also handles dislikes)*
+- Thread
+- User
+
+### Example Entity Layer
 ```bash
 internal/entities/<entity>
 └── model.go
@@ -126,23 +146,24 @@ internal/entities/<entity>
 Request & routing
         │
         ▼
-userHandler.Create()
+userHandler.Create() //handles http requests & responses
         │
         ▼
-userService.Create()
+userService.Create() //handles validation & formatting
         │
         ▼
-userRepo.Create()
+userRepo.Create() //handles database logic
 ```
 
 ---
 
-## Entity handler
+## Entity Handler
+[Back to top](#overview)
 ```text
 internal/entities/<entity>/handler.go
 ```
 
-#### Responsibilities
+### Responsibilities
 
 Handlers are responsible for processing HTTP requests and responses.
 
@@ -157,7 +178,8 @@ Responsibilities include:
 
 ---
 
-## Entity service
+## Entity Service
+[Back to top](#overview)
 ```text
 internal/entities/<entity>/service.go
 ```
@@ -169,16 +191,16 @@ The service layer contains all business logic.
 Examples include:
 
 - Creating and updating entities
-- Filtering
-- Searching
-- Pagination
 - Validation beyond simple field checks
+- HTML Parsing
+- Pagination
 
 The service layer coordinates one or more repositories to complete an operation.
 
 ---
 
-## Repository Layer
+## Entity Repository
+[Back to top](#overview)
 ```text
 internal/entities/<entity>/repository.go
 ```
@@ -192,7 +214,6 @@ Responsibilities include:
 - CRUD operations
 - Raw SQL queries
 - Join queries
-- Transactions
 - Returning repository-specific errors
 
 ### Example
