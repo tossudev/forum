@@ -16,7 +16,13 @@
 		<div class="comment-container">
 			<div class="comment">
 				<a class="user-sidebar" href="/profile/{{ .ThreadDisplay.AuthorName }}">
-					<img class="user-avatar" src="/web/static/img/default-avatar.png" alt="Avatar">
+					<img class="user-avatar"
+					{{ if .ThreadDisplay.AuthorAvatar }}
+					src="/uploads/{{ .ThreadDisplay.AuthorAvatar }}"
+					{{ else }}
+					src="/web/static/img/default-avatar.png"
+					{{ end }}
+					alt="Avatar">
 					<div class="username">{{ .ThreadDisplay.AuthorName }}</div>
 					<!-- TODO: add role -->
 					<div class="role">Member</div> 
@@ -73,7 +79,13 @@
 		<div class="comment-container">
 			<div class="comment">
 				<a class="user-sidebar" href="/profile/{{ .AuthorName }}">
-					<img class="user-avatar" src="/web/static/img/default-avatar.png" alt="Avatar">
+					<img class="user-avatar"
+					{{ if .AuthorAvatar }}
+					src="/uploads/{{ .AuthorAvatar }}"
+					{{ else }}
+					src="/web/static/img/default-avatar.png"
+					{{ end }}
+					alt="Avatar">
 					<div class="username">{{ .AuthorName }}</div>
 					<!-- TODO: add role -->
 					<div class="role">Member</div> 

@@ -3,15 +3,30 @@
 	<h2>Profile</h2>
 	<div class="profile-view">
 		<div class="left">
-			<img class="avatar" src="/web/static/img/default-avatar.png" alt="Avatar">
+			<img class="avatar"
+			{{ if .Avatar }}
+			src="/uploads/{{ .Avatar }}"
+			{{ else }}
+			src="/web/static/img/default-avatar.png"
+			{{ end }}
+			alt="Avatar">
+		
+			{{ if eq .Username .ProfileUsername }}
+			<form method="POST" action="/profile/avatar" enctype="multipart/form-data">
+				<div>
+				<input type="file" name="image" accept="image/jpeg, image/jpg, image/png, image/gif" required>
+				<input type="submit">
+				</div>
+			</form>
+			{{ end }}
 		</div>
 
-		
 		<div class="right">
 			<h2>{{ .ProfileUsername }}</h2>
 			<p class="role">{{ .Role }}</p>
 			<p>Registered since {{ .DateCreated }}</p>
 		</div>
+
 	</div>
 
 	{{ template "profile-links" . }}

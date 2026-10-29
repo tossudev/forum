@@ -3,11 +3,19 @@ package user
 import (
 	"context"
 	"fmt"
+	"io"
+	"log/slog"
+	"mime/multipart"
+	"net/http"
+	"os"
+	"path/filepath"
+	"uuid"
+
+	"forum/internal/config"
 	"forum/internal/errs"
 	"forum/internal/pagination"
 	"forum/internal/password"
 	"forum/internal/validate"
-	"log/slog"
 )
 
 type UserService struct {
@@ -160,4 +168,52 @@ func (s *UserService) GetDislikedThreadsByUsername(ctx context.Context, username
 	}
 
 	return threads, totalCount, nil
+}
+
+func (s *UserService) ChangeAvatar(ctx context.Context, r *http.Request, userID int) error {
+	file, fileHeader, err := r.FormFile("image")
+	if err != nil {
+		return fmt.Errorf("change avatar formfile err: %w", err)
+	}
+	defer file.Close()
+
+	valid, err := validateFiletype(file)
+	if err != nil {
+		return fmt.Errorf("image validation failed: %w", err)
+	}
+
+	if !valid {
+		return errs.ErrInvalidFiletype
+	}
+
+	imageName := uuid.NewV7().String() + filepath.Ext(fileHeader.Filename)
+	imagePath := filepath.Join(config.UploadsPath, imageName)
+	if err := createFile(file, imagePath); err != nil {
+		return fmt.Errorf("image creation failed: %w", err)
+	}
+
+	return s.repo.ChangeAvatar(ctx, imageName, userID)
+}
+
+func createFile(file multipart.File, imagePath string) error {
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		return err
+	}
+
+	dst, err := os.Create(imagePath)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		return err
+	}
+
+	if _, err := dst.Write(fileBytes); err != nil {
+		return err
+	}
+
+	return nil
 }

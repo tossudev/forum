@@ -114,30 +114,35 @@ func seedUsers(ctx context.Context, app *SeedApp) error {
 			Email:    "name@name.com",
 			Password: password.Password{},
 			RoleID:   1,
+			Avatar:   "avatar_e.png",
 		},
 		{
 			Username: "JustinV",
 			Email:    "v@justin.com",
 			Password: password.Password{},
 			RoleID:   1,
+			Avatar:   "avatar_v.png",
 		},
 		{
 			Username: "KevinMac2004",
 			Email:    "imjustakid@email.com",
 			Password: password.Password{},
 			RoleID:   1,
+			Avatar:   "avatar_s.png",
 		},
 		{
 			Username: "Marie",
 			Email:    "mpp@thegoat.ca",
 			Password: password.Password{},
 			RoleID:   1,
+			Avatar:   "bee.gif",
 		},
 		{
 			Username: "MontrealGoalie",
 			Email:    "ard@montreal.ca",
 			Password: password.Password{},
 			RoleID:   1,
+			Avatar:   "",
 		},
 	}
 

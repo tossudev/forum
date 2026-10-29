@@ -16,6 +16,7 @@
 !*.css
 !*.js
 !*.png
+!*.gif
 !*.ico
 
 !go.sum

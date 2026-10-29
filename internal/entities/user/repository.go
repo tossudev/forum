@@ -21,11 +21,11 @@ func NewRepo(db *sql.DB) *UserRepo {
 }
 
 func (r *UserRepo) AddUser(ctx context.Context, user *User) (*User, error) {
-	query := `INSERT INTO users (username, email, password_hash, password_salt, date_created, role_id)
- VALUES (?, ?, ?, ?, ?, ?);`
+	query := `INSERT INTO users (username, email, password_hash, password_salt, date_created, role_id, avatar)
+ VALUES (?, ?, ?, ?, ?, ?, ?);`
 
 	createdAt := time.Now().UTC().Format(timeformat.TimeFormat)
-	result, err := r.db.ExecContext(ctx, query, user.Username, user.Email, user.Password.Hash, user.Password.Salt, createdAt, user.RoleID)
+	result, err := r.db.ExecContext(ctx, query, user.Username, user.Email, user.Password.Hash, user.Password.Salt, createdAt, user.RoleID, user.Avatar)
 	if err != nil {
 		if database.IsUniqueErr(err) {
 			return nil, fmt.Errorf("%w: username or email already exists", errs.ErrDuplicate)
@@ -64,11 +64,11 @@ func (r *UserRepo) GetUserByID(ctx context.Context, id int) (*User, error) {
 }
 
 func (r *UserRepo) GetUserProfileByUsername(ctx context.Context, username string) (*UserProfile, error) {
-	query := `SELECT username, date_created
+	query := `SELECT username, date_created, avatar
 	FROM users WHERE username = ?;`
 
 	var up UserProfile
-	err := r.db.QueryRowContext(ctx, query, username).Scan(&up.Username, &up.CreatedAt)
+	err := r.db.QueryRowContext(ctx, query, username).Scan(&up.Username, &up.CreatedAt, &up.Avatar)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("GetUserProfileByUsername: %w", errs.ErrNotFound)
@@ -360,4 +360,14 @@ func (r *UserRepo) GetDislikedThreadsByUsername(ctx context.Context, username st
 	}
 
 	return threads, totalCount, nil
+}
+
+func (r *UserRepo) ChangeAvatar(ctx context.Context, imageName string, userID int) error {
+	query := `UPDATE users SET avatar = ? where id = ?`
+
+	if _, err := r.db.ExecContext(ctx, query, imageName, userID); err != nil {
+		return fmt.Errorf("update user avatar: %w", err)
+	}
+
+	return nil
 }

@@ -1,14 +1,15 @@
 package user
 
 import (
+	"errors"
+	"net/http"
+	"strings"
+
 	"forum/internal/errs"
 	"forum/internal/pagination"
 	"forum/internal/password"
 	"forum/internal/render"
 	"forum/internal/session"
-	"net/http"
-	"strings"
-
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -51,6 +52,7 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		Username:        user.Username,
 		Role:            "Member",
 		DateCreated:     userProfile.CreatedAt,
+		Avatar:          userProfile.Avatar,
 	}
 
 	h.renderer.RenderPage(w, "profile.html", data)
@@ -419,4 +421,39 @@ func (h *UserHandler) ProfileDislikedThreadsPage(w http.ResponseWriter, r *http.
 	}
 
 	h.renderer.RenderPage(w, "profile-disliked-threads.html", pageData)
+}
+
+func (h *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var userID int
+	user := GetUser(r)
+	if user == nil {
+		errs.WriteError(w, errs.ErrUnauthorized)
+		return
+	} else {
+		userID = user.ID
+	}
+
+	// Limit upload file size
+	r.Body = http.MaxBytesReader(w, r.Body, MaxUploadSize)
+	if err := r.ParseMultipartForm(MaxUploadSize); err != nil {
+		var maxBytesErr *http.MaxBytesError
+
+		if errors.As(err, &maxBytesErr) {
+			errs.WriteError(w, errs.ErrFileTooLarge)
+			return
+		}
+
+		errs.WriteError(w, err)
+		return
+	}
+
+	err := h.service.ChangeAvatar(ctx, r, userID)
+	if err != nil {
+		errs.WriteError(w, err)
+		return
+	}
+
+	http.Redirect(w, r, "/profile", http.StatusSeeOther)
 }
