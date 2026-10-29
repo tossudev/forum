@@ -39,8 +39,12 @@ func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination
 
 	var threads []Thread
 
-	query := `SELECT id, title, body, date_created, author_id, category_id
-	FROM threads WHERE category_id = ? ORDER BY date_created ASC LIMIT ? OFFSET ?;`
+	query := `SELECT COUNT(c.id), t.id, t.title, t.body, t.date_created, t.author_id, t.category_id 
+	FROM threads AS t 
+	LEFT JOIN comments as c ON t.id = c.thread_id 
+	WHERE category_id = ? 
+	GROUP BY t.id 
+	ORDER BY t.date_created DESC;`
 
 	rows, err := r.db.QueryContext(ctx, query, id, paginationData.Limit(), paginationData.Offset())
 	if err != nil {
@@ -50,17 +54,12 @@ func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination
 
 	for rows.Next() {
 		var thread Thread
-		if err := rows.Scan(&thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
+		if err := rows.Scan(&thread.ReplyCount, &thread.ID, &thread.Title, &thread.Body, &thread.DateCreated, &thread.AuthorID, &thread.CategoryID); err != nil {
 			return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
 
 		thread.DateCreated, err = timeformat.FormatTime(thread.DateCreated, timeformat.GetTimezone(ctx))
 		if err != nil {
-			return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
-		}
-
-		queryCount := "SELECT COUNT(*) FROM comments WHERE thread_id = ?"
-		if err := r.db.QueryRowContext(ctx, queryCount, thread.ID).Scan(&thread.ReplyCount); err != nil {
 			return nil, 0, fmt.Errorf("Thread GetByCategory: %w", err)
 		}
 
