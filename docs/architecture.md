@@ -17,8 +17,6 @@
             │
             ▼
         Middleware
-        (logging)
-        (recovery)
             │
             ▼
       Entity handler
@@ -101,14 +99,15 @@ func NewRoutes(h Handlers) http.Handler {
 ## Middleware
 ```text
 internal/middleware/
+//except where noted
 ```
 
 Middleware intercepts every incoming HTTP request before it reaches the handlers.
 
 - **Timeout** - Creates a 5-second timeout for every request.
-- **User Middleware** - Gets user information and attaches it to the context.
-- **Session Authentication** - Checks cookie for session id and validates it.
-- **Time Format** - Gets user timezone.
+- **User Middleware** <em>(In the user entity)</em> - Gets user information and attaches it to the context. 
+- **Session Authentication** <em>(In the session package)</em> - Checks cookie for session id and validates it. 
+- **Time Format** <em>(In the timeformat package)</em> - Gets user timezone. 
 - **Request Logging** – Logs important information about the requests.
 - **Panic Recovery** – Recovers from unexpected panics and returns a standardized `500 Internal Server Error` response instead of terminating the application.
 
@@ -118,9 +117,17 @@ Middleware intercepts every incoming HTTP request before it reaches the handlers
 ```text
 internal/entities/
 ```
-
 Entities contain layers for each database entity  
-### Example entity layer
+
+### Entities Used
+- Category
+- Comment
+- Image
+- Like <em>(also handles dislikes)</em>
+- Thread
+- User
+
+### Example Entity Layer
 ```bash
 internal/entities/<entity>
 └── model.go
@@ -135,13 +142,13 @@ internal/entities/<entity>
 Request & routing
         │
         ▼
-userHandler.Create()
+userHandler.Create() //handles http requests & responses
         │
         ▼
-userService.Create()
+userService.Create() //handles validation & formatting
         │
         ▼
-userRepo.Create()
+userRepo.Create() //handles database logic
 ```
 
 ---
@@ -151,7 +158,7 @@ userRepo.Create()
 internal/entities/<entity>/handler.go
 ```
 
-#### Responsibilities
+### Responsibilities
 
 Handlers are responsible for processing HTTP requests and responses.
 
@@ -178,10 +185,9 @@ The service layer contains all business logic.
 Examples include:
 
 - Creating and updating entities
-- Filtering
-- Searching
-- Pagination
 - Validation beyond simple field checks
+- HTML Parsing
+- Pagination
 
 The service layer coordinates one or more repositories to complete an operation.
 
@@ -201,7 +207,6 @@ Responsibilities include:
 - CRUD operations
 - Raw SQL queries
 - Join queries
-- Transactions
 - Returning repository-specific errors
 
 ### Example
