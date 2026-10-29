@@ -108,9 +108,9 @@ internal/middleware/
 Middleware intercepts every incoming HTTP request before it reaches the handlers.
 
 - **Timeout** - Creates a 5-second timeout for every request.
-- **User Middleware** <em>(In the user entity)</em> - Gets user information and attaches it to the context. 
-- **Session Authentication** <em>(In the session package)</em> - Checks cookie for session id and validates it. 
-- **Time Format** <em>(In the timeformat package)</em> - Gets user timezone. 
+- **User Middleware** *(In the user entity)* - Gets user information and attaches it to the context. 
+- **Session Authentication** *(In the session package)* - Checks cookie for session id and validates it. 
+- **Time Format** *(In the timeformat package)* - Gets user timezone. 
 - **Request Logging** – Logs important information about the requests.
 - **Panic Recovery** – Recovers from unexpected panics and returns a standardized `500 Internal Server Error` response instead of terminating the application.
 
@@ -127,7 +127,7 @@ Entities contain layers for each database entity
 - Category
 - Comment
 - Image
-- Like <em>(also handles dislikes)</em>
+- Like *(also handles dislikes)*
 - Thread
 - User
 
