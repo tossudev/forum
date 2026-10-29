@@ -1,6 +1,13 @@
 # Architecture
 
-## Overview
+## Overview 
+- [App](#app)
+- [Routes](#routes)
+- [Middleware](#middleware)
+- [Entities](#entities)
+    - [Entity Handler](#entity-handler)
+    - [Entity Service](#entity-service)
+    - [Entity Repository](#entitiy-repository) 
 
 ### Data flow diagram
        HTTP Request
@@ -27,15 +34,13 @@
 
 ---
 
-# Layers
-
-## Handlers
+## App
 ```text
-internal/handlers/
+internal/routes/init_handlers.go
 ```
 #### Responsibilities
-- Create handlers for entites
-- Wrap handlers in middleware
+- Create handlers for entities
+- Wrap handlers in middleware (found in internal/middleware)
 
 ### Example
 
@@ -72,7 +77,7 @@ func New(db *sql.DB) http.Handler {
 
 ## Routes
 ```text
-internal/routes/
+internal/routes/routes.go
 ```
 #### Responsibilities
 - Register all API endpoints
@@ -100,6 +105,10 @@ internal/middleware/
 
 Middleware intercepts every incoming HTTP request before it reaches the handlers.
 
+- **Timeout** - Creates a 5-second timeout for every request.
+- **User Middleware** - Gets user information and attaches it to the context.
+- **Session Authentication** - Checks cookie for session id and validates it.
+- **Time Format** - Gets user timezone.
 - **Request Logging** – Logs important information about the requests.
 - **Panic Recovery** – Recovers from unexpected panics and returns a standardized `500 Internal Server Error` response instead of terminating the application.
 
@@ -137,7 +146,7 @@ userRepo.Create()
 
 ---
 
-## Entity handler
+## Entity Handler
 ```text
 internal/entities/<entity>/handler.go
 ```
@@ -157,7 +166,7 @@ Responsibilities include:
 
 ---
 
-## Entity service
+## Entity Service
 ```text
 internal/entities/<entity>/service.go
 ```
@@ -178,7 +187,7 @@ The service layer coordinates one or more repositories to complete an operation.
 
 ---
 
-## Repository Layer
+## Entity Repository
 ```text
 internal/entities/<entity>/repository.go
 ```
