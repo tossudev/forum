@@ -22,7 +22,6 @@ func GetRoutes(app *App, sm *session.SessionManager) *http.ServeMux {
 	mux.HandleFunc("POST /users/logout", app.UserHandler.Logout)
 
 	// Category routes
-	mux.HandleFunc("POST /categories", app.CategoryHandler.Create)
 	mux.HandleFunc("GET /", app.CategoryHandler.GetAll)
 
 	// Thread routes
