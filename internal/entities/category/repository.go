@@ -18,7 +18,7 @@ func NewRepository(db *sql.DB) *CategoryRepository {
 
 func (r *CategoryRepository) GetAll(ctx context.Context, pagination pagination.Pagination) ([]Category, error) {
 	var categories []Category
-	query := "SELECT id, name FROM categories ORDER BY id ASC LIMIT ? OFFSET ?;"
+	query := `SELECT COUNT(t.id), cat.id, cat.name from categories AS cat LEFT JOIN threads AS t ON cat.id = t.category_id GROUP BY cat.id;`
 	rows, err := r.db.QueryContext(ctx, query, pagination.Limit(), pagination.Offset())
 	if err != nil {
 		return nil, fmt.Errorf("Category GetAll: %w", err)
@@ -26,12 +26,7 @@ func (r *CategoryRepository) GetAll(ctx context.Context, pagination pagination.P
 
 	for rows.Next() {
 		var category Category
-		if err := rows.Scan(&category.ID, &category.Name); err != nil {
-			return nil, fmt.Errorf("Category GetAll: %w", err)
-		}
-
-		queryCount := "SELECT COUNT(*) FROM threads WHERE category_id = ?"
-		if err := r.db.QueryRowContext(ctx, queryCount, category.ID).Scan(&category.ThreadCount); err != nil {
+		if err := rows.Scan(&category.ThreadCount, &category.ID, &category.Name); err != nil {
 			return nil, fmt.Errorf("Category GetAll: %w", err)
 		}
 
