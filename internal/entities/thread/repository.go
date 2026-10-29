@@ -44,7 +44,7 @@ func (r *ThreadRepository) GetByCategory(ctx context.Context, id int, pagination
 	LEFT JOIN comments as c ON t.id = c.thread_id 
 	WHERE category_id = ? 
 	GROUP BY t.id 
-	ORDER BY t.date_created;`
+	ORDER BY t.date_created DESC;`
 
 	rows, err := r.db.QueryContext(ctx, query, id, paginationData.Limit(), paginationData.Offset())
 	if err != nil {
